@@ -1,0 +1,21 @@
+{
+    "name": "MRModuleEditor.Tests.PlayMode",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ecb35c8da2aaf0b07877c14fac9ba1c6",
+        "GUID:8e7e58ad1dea4c96fa52075a38feda69",
+        "GUID:0acc523941302664db1f4e527237feb3",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

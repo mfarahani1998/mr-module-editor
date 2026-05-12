@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.forward_kinematics_mini",
+  "title": "Forward Kinematics Mini Demo",
+  "description": "A tiny Phase A sample that proves JSON load, validation, anchors, object references, and step structure.",
+  "author": "Your Name",
+  "estimatedDurationSeconds": 420,
+  "assets": [],
+  "objects": [
+    {
+      "id": "object.robot_preview",
+      "label": "Robot Preview",
+      "bindingKey": "RobotPreview"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head"
+    },
+    {
+      "id": "anchor.world.table",
+      "type": "world"
+    },
+    {
+      "id": "anchor.object.robot",
+      "type": "object",
+      "targetObjectId": "object.robot_preview"
+    }
+  ],
+  "layouts": [],
+  "steps": [
+    {
+      "id": "step.001",
+      "type": "text",
+      "title": "Welcome",
+      "durationSeconds": 5,
+      "parameters": {
+        "text": "Welcome to the forward kinematics mini demo.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002",
+      "type": "wait",
+      "title": "Pause",
+      "durationSeconds": 1,
+      "parameters": {}
+    },
+    {
+      "id": "step.003",
+      "type": "showObject",
+      "title": "Show Robot",
+      "durationSeconds": 0,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "visible": true
+      }
+    },
+    {
+      "id": "step.004",
+      "type": "moveObject",
+      "title": "Move Robot Preview",
+      "durationSeconds": 2,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "position": { "x": 0, "y": 0, "z": 1.5 },
+        "rotationEuler": { "x": 0, "y": 45, "z": 0 }
+      }
+    },
+    {
+      "id": "step.005",
+      "type": "mcq",
+      "title": "Quick Check",
+      "durationSeconds": 0,
+      "parameters": {
+        "question": "What does forward kinematics compute?",
+        "choices": [
+          "Joint angles from pose",
+          "End-effector pose from joint angles",
+          "Motor current",
+          "Camera calibration"
+        ],
+        "correctIndex": 1
+      }
+    }
+  ]
+}

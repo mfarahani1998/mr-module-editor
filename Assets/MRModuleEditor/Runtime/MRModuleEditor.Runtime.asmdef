@@ -1,0 +1,16 @@
+{
+    "name": "MRModuleEditor.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ecb35c8da2aaf0b07877c14fac9ba1c6"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
