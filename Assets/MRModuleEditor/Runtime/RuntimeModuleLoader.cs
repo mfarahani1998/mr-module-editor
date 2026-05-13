@@ -19,6 +19,8 @@ namespace MRModuleEditor.Runtime
         private List<ValidationIssue> lastIssues = new List<ValidationIssue>();
 
         public ModuleDocument LoadedModule { get; private set; }
+        public string LastLoadedAbsolutePath { get; private set; } = "";
+        public string LastLoadedDirectory { get; private set; } = "";
 
         public IReadOnlyList<ValidationIssue> LastIssues
         {
@@ -51,6 +53,9 @@ namespace MRModuleEditor.Runtime
                 LoadedModule = ModuleJsonSerializer.LoadFromFile(absolutePath);
                 lastIssues = ModuleValidator.Validate(LoadedModule);
 
+                LastLoadedAbsolutePath = absolutePath;
+                LastLoadedDirectory = Path.GetDirectoryName(absolutePath);
+
                 Debug.Log("Loaded module: " + LoadedModule.title + " from " + absolutePath);
                 LogIssues(lastIssues);
 
@@ -64,6 +69,8 @@ namespace MRModuleEditor.Runtime
             }
             catch (Exception ex)
             {
+                LastLoadedAbsolutePath = "";
+                LastLoadedDirectory = "";
                 LoadedModule = null;
                 lastIssues = new List<ValidationIssue>
                 {

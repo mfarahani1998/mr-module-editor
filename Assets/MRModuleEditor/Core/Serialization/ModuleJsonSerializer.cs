@@ -17,11 +17,17 @@ namespace MRModuleEditor.Core.Serialization
         {
             if (string.IsNullOrWhiteSpace(json))
             {
-                throw new ArgumentException("Input JSON string is empty.");
+                throw new ArgumentException("Module JSON is empty.", nameof(json));
             }
 
             ModuleDocument document = JsonConvert.DeserializeObject<ModuleDocument>(json, Settings);
+            if (document == null)
+            {
+                throw new InvalidDataException("Module JSON did not produce a ModuleDocument.");
+            }
+
             EnsureListsAreNotNull(document);
+            EnsureStepParametersAreNotNull(document);
             return document;
         }
 
@@ -29,10 +35,11 @@ namespace MRModuleEditor.Core.Serialization
         {
             if (document == null)
             {
-                throw new ArgumentNullException(nameof(document), "ModuleDocument cannot be null.");
+                throw new ArgumentNullException(nameof(document));
             }
 
             EnsureListsAreNotNull(document);
+            EnsureStepParametersAreNotNull(document);
             return JsonConvert.SerializeObject(document, Settings);
         }
 
@@ -40,12 +47,12 @@ namespace MRModuleEditor.Core.Serialization
         {
             if (string.IsNullOrWhiteSpace(absolutePath))
             {
-                throw new ArgumentException("File path is empty.", "absolutePath");
+                throw new ArgumentException("Path is empty.", nameof(absolutePath));
             }
 
             if (!File.Exists(absolutePath))
             {
-                throw new FileNotFoundException("File not found at path: " + absolutePath);
+                throw new FileNotFoundException("Module JSON file not found.", absolutePath);
             }
 
             string json = File.ReadAllText(absolutePath);
@@ -56,11 +63,11 @@ namespace MRModuleEditor.Core.Serialization
         {
             if (string.IsNullOrWhiteSpace(absolutePath))
             {
-                throw new ArgumentException("File path is empty.", "absolutePath");
+                throw new ArgumentException("Path is empty.", nameof(absolutePath));
             }
 
             string directory = Path.GetDirectoryName(absolutePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            if (!string.IsNullOrEmpty(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -76,6 +83,17 @@ namespace MRModuleEditor.Core.Serialization
             if (document.anchors == null) document.anchors = new System.Collections.Generic.List<AnchorDefinition>();
             if (document.layouts == null) document.layouts = new System.Collections.Generic.List<LayoutDefinition>();
             if (document.steps == null) document.steps = new System.Collections.Generic.List<ModuleStep>();
+        }
+
+        private static void EnsureStepParametersAreNotNull(ModuleDocument document)
+        {
+            for (int i = 0; i < document.steps.Count; i++)
+            {
+                if (document.steps[i] != null && document.steps[i].parameters == null)
+                {
+                    document.steps[i].parameters = new System.Collections.Generic.Dictionary<string, Newtonsoft.Json.Linq.JToken>();
+                }
+            }
         }
     }
 }

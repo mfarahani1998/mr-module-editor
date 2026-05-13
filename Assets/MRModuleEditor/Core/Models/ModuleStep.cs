@@ -67,5 +67,16 @@ namespace MRModuleEditor.Core.Models
 
             return bool.TryParse(value.ToString(), out bool parsed) ? parsed : fallback;
         }
+
+        public float GetFloat(string key, float fallback = 0f)
+        {
+            JToken value = GetToken(key);
+            if (value == null || value.Type == JTokenType.Null)
+            {
+                return fallback;
+            }
+
+            return float.TryParse(value.ToString(), out global::System.Single parsed) ? parsed : fallback;
+        }
     }
 }
