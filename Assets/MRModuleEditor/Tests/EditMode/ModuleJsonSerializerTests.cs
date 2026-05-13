@@ -33,18 +33,22 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.AreEqual("0.1", document.schemaVersion);
             Assert.AreEqual("module.forward_kinematics_mini", document.moduleId);
             Assert.AreEqual("Forward Kinematics Mini Demo", document.title);
-            Assert.AreEqual(5, document.steps.Count);
-            Assert.AreEqual("text", document.steps[0].type);
-            Assert.AreEqual("showObject", document.steps[2].type);
-            Assert.AreEqual("mcq", document.steps[4].type);
+            Assert.AreEqual(7, document.steps.Count);
+            AssertStep(document, "step.001", "text");
+            AssertStep(document, "step.002", "image");
+            AssertStep(document, "step.003", "wait");
+            AssertStep(document, "step.004", "showObject");
+            AssertStep(document, "step.005", "moveObject");
+            AssertStep(document, "step.006", "text");
+            AssertStep(document, "step.007", "mcq");
         }
 
         [Test]
         public void LoadSampleModule_ReadsFlexibleParameters()
         {
             ModuleDocument document = ModuleJsonSerializer.LoadFromFile(SamplePath);
-            ModuleStep firstStep = document.steps[0];
-            ModuleStep mcqStep = document.steps[4];
+            ModuleStep firstStep = AssertStep(document, "step.001", "text");
+            ModuleStep mcqStep = AssertStep(document, "step.007", "mcq");
 
             Assert.AreEqual(
                 "Welcome to the forward kinematics mini demo.",
@@ -62,13 +66,23 @@ namespace MRModuleEditor.Tests.EditMode
             ModuleDocument original = ModuleJsonSerializer.LoadFromFile(SamplePath);
             string json = ModuleJsonSerializer.Serialize(original);
             ModuleDocument copy = ModuleJsonSerializer.Deserialize(json);
+            ModuleStep originalMcq = AssertStep(original, "step.007", "mcq");
+            ModuleStep copyMcq = AssertStep(copy, "step.007", "mcq");
 
             Assert.AreEqual(original.title, copy.title);
             Assert.AreEqual(original.steps.Count, copy.steps.Count);
-            Assert.AreEqual(original.steps[4].type, copy.steps[4].type);
+            Assert.AreEqual(originalMcq.type, copyMcq.type);
             Assert.AreEqual(
                 "What does forward kinematics compute?",
-                copy.steps[4].GetString("question"));
+                copyMcq.GetString("question"));
+        }
+
+        private static ModuleStep AssertStep(ModuleDocument document, string id, string expectedType)
+        {
+            ModuleStep step = document.steps.Find(candidate => candidate != null && candidate.id == id);
+            Assert.IsNotNull(step, "Missing step: " + id);
+            Assert.AreEqual(expectedType, step.type, "Unexpected type for step: " + id);
+            return step;
         }
     }
 }

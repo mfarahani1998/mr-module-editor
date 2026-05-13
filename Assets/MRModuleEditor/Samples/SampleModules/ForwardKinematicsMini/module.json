@@ -2,10 +2,17 @@
   "schemaVersion": "0.1",
   "moduleId": "module.forward_kinematics_mini",
   "title": "Forward Kinematics Mini Demo",
-  "description": "A tiny Phase A sample that proves JSON load, validation, anchors, object references, and step structure.",
+  "description": "A tiny Phase B sample that proves runtime step execution, image display, object binding, object motion, and MCQ feedback.",
   "author": "Your Name",
   "estimatedDurationSeconds": 420,
-  "assets": [],
+  "assets": [
+    {
+      "id": "asset.intro_image",
+      "type": "image",
+      "path": "assets/images/intro.png",
+      "label": "Intro Image"
+    }
+  ],
   "objects": [
     {
       "id": "object.robot_preview",
@@ -34,7 +41,7 @@
       "id": "step.001",
       "type": "text",
       "title": "Welcome",
-      "durationSeconds": 5,
+      "durationSeconds": 3,
       "parameters": {
         "text": "Welcome to the forward kinematics mini demo.",
         "anchorId": "anchor.head.default"
@@ -42,13 +49,23 @@
     },
     {
       "id": "step.002",
+      "type": "image",
+      "title": "Module Overview",
+      "durationSeconds": 3,
+      "parameters": {
+        "assetId": "asset.intro_image",
+        "caption": "This placeholder image proves that the runtime can resolve an image asset from the module folder."
+      }
+    },
+    {
+      "id": "step.003",
       "type": "wait",
       "title": "Pause",
       "durationSeconds": 1,
       "parameters": {}
     },
     {
-      "id": "step.003",
+      "id": "step.004",
       "type": "showObject",
       "title": "Show Robot",
       "durationSeconds": 0,
@@ -58,7 +75,7 @@
       }
     },
     {
-      "id": "step.004",
+      "id": "step.005",
       "type": "moveObject",
       "title": "Move Robot Preview",
       "durationSeconds": 2,
@@ -69,7 +86,16 @@
       }
     },
     {
-      "id": "step.005",
+      "id": "step.006",
+      "type": "text",
+      "title": "Concept",
+      "durationSeconds": 3,
+      "parameters": {
+        "text": "Forward kinematics computes the end-effector pose from known joint values."
+      }
+    },
+    {
+      "id": "step.007",
       "type": "mcq",
       "title": "Quick Check",
       "durationSeconds": 0,
