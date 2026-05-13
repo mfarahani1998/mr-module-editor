@@ -535,7 +535,7 @@ MonoBehaviour:
   moduleLoader: {fileID: 1762172284}
   sceneBindingRegistry: {fileID: 1762172283}
   displayPanel: {fileID: 1762172282}
-  controlPanel: {fileID: 0}
+  controlPanel: {fileID: 1762172281}
   loadOnStart: 1
   playOnStart: 0
 --- !u!114 &1762172281
@@ -633,7 +633,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
-  loadOnStart: 1
+  loadOnStart: 0
 --- !u!4 &2059663867
 Transform:
   m_ObjectHideFlags: 0

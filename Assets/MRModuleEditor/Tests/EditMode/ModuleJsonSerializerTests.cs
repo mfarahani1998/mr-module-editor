@@ -77,6 +77,19 @@ namespace MRModuleEditor.Tests.EditMode
                 copyMcq.GetString("question"));
         }
 
+        [Test]
+        public void SampleModule_ReferencedImageAssetExistsOnDisk()
+        {
+            ModuleDocument document = ModuleJsonSerializer.LoadFromFile(SamplePath);
+            string moduleDirectory = Path.GetDirectoryName(SamplePath);
+
+            ModuleAsset imageAsset = document.assets.Find(asset => asset != null && asset.id == "asset.intro_image");
+            Assert.IsNotNull(imageAsset, "Sample module is missing asset.intro_image.");
+
+            string imagePath = Path.Combine(moduleDirectory, imageAsset.path);
+            Assert.IsTrue(File.Exists(imagePath), "Missing sample image: " + imagePath);
+        }
+
         private static ModuleStep AssertStep(ModuleDocument document, string id, string expectedType)
         {
             ModuleStep step = document.steps.Find(candidate => candidate != null && candidate.id == id);
