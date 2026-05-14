@@ -2,7 +2,7 @@
   "schemaVersion": "0.1",
   "moduleId": "module.forward_kinematics_mini",
   "title": "Forward Kinematics Mini Demo",
-  "description": "A tiny Phase B sample that proves runtime step execution, image display, object binding, object motion, and MCQ feedback.",
+  "description": "A tiny sample that proves runtime step execution, image display, object binding, object motion, and MCQ feedback.",
   "author": "Your Name",
   "estimatedDurationSeconds": 420,
   "assets": [
@@ -23,11 +23,13 @@
   "anchors": [
     {
       "id": "anchor.head.default",
-      "type": "head"
+      "type": "head",
+      "targetObjectId": ""
     },
     {
       "id": "anchor.world.table",
-      "type": "world"
+      "type": "world",
+      "targetObjectId": ""
     },
     {
       "id": "anchor.object.robot",
@@ -41,7 +43,7 @@
       "id": "step.001",
       "type": "text",
       "title": "Welcome",
-      "durationSeconds": 3,
+      "durationSeconds": 3.0,
       "parameters": {
         "text": "Welcome to the forward kinematics mini demo.",
         "anchorId": "anchor.head.default"
@@ -51,7 +53,7 @@
       "id": "step.002",
       "type": "image",
       "title": "Module Overview",
-      "durationSeconds": 3,
+      "durationSeconds": 3.0,
       "parameters": {
         "assetId": "asset.intro_image",
         "caption": "This placeholder image proves that the runtime can resolve an image asset from the module folder."
@@ -61,14 +63,14 @@
       "id": "step.003",
       "type": "wait",
       "title": "Pause",
-      "durationSeconds": 1,
+      "durationSeconds": 1.0,
       "parameters": {}
     },
     {
       "id": "step.004",
       "type": "showObject",
       "title": "Show Robot",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "objectId": "object.robot_preview",
         "visible": true
@@ -78,18 +80,26 @@
       "id": "step.005",
       "type": "moveObject",
       "title": "Move Robot Preview",
-      "durationSeconds": 2,
+      "durationSeconds": 2.0,
       "parameters": {
         "objectId": "object.robot_preview",
-        "position": { "x": 0, "y": 0, "z": 1.5 },
-        "rotationEuler": { "x": 0, "y": 45, "z": 0 }
+        "position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.5
+        },
+        "rotationEuler": {
+          "x": 0.0,
+          "y": 45.0,
+          "z": 0.0
+        }
       }
     },
     {
       "id": "step.006",
       "type": "text",
       "title": "Concept",
-      "durationSeconds": 3,
+      "durationSeconds": 3.0,
       "parameters": {
         "text": "Forward kinematics computes the end-effector pose from known joint values."
       }
@@ -98,7 +108,7 @@
       "id": "step.007",
       "type": "mcq",
       "title": "Quick Check",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "question": "What does forward kinematics compute?",
         "choices": [
