@@ -19,6 +19,9 @@ namespace MRModuleEditor.Runtime.UI
         private Vector2 panelSize = new Vector2(3.2f, 0.58f);
 
         [SerializeField]
+        private Vector3 panelLocalOffset = new Vector3(0f, -0.75f, 0f);
+
+        [SerializeField]
         private Vector2 minimumPanelSize = new Vector2(2.2f, 0.52f);
 
         [SerializeField]
@@ -28,7 +31,7 @@ namespace MRModuleEditor.Runtime.UI
         private Vector2 padding = new Vector2(0.18f, 0.08f);
 
         [SerializeField]
-        private float textDepthOffset = 0.02f;
+        private float textDepthOffset = 0.01f;
 
         [SerializeField]
         private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.86f);
@@ -222,6 +225,8 @@ namespace MRModuleEditor.Runtime.UI
                 ? Vector3.one
                 : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
 
+            localPosition += panelLocalOffset;
+            
             Quaternion localRotation = Quaternion.Euler(localEuler);
             Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;
             Quaternion targetRotation = anchorPose.rotation * localRotation;

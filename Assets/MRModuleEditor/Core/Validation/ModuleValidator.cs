@@ -14,7 +14,9 @@ namespace MRModuleEditor.Core.Validation
             "wait",
             "showObject",
             "moveObject",
-            "mcq"
+            "mcq",
+            "rotateJoint",
+            "showFrame"
         };
 
         private static readonly HashSet<string> KnownAnchorTypes = new HashSet<string>(StringComparer.Ordinal)
@@ -306,6 +308,17 @@ namespace MRModuleEditor.Core.Validation
                 {
                     ValidateObjectIdParameter(step, objectIds, location, issues);
                 }
+                else if (step.type == "rotateJoint")
+                {
+                    ValidateObjectIdParameter(step, objectIds, location, issues);
+                    ValidateJointIndexParameter(step, location, issues);
+                    ValidateAngleDegreesParameter(step, location, issues);
+                }
+                else if (step.type == "showFrame")
+                {
+                    ValidateObjectIdParameter(step, objectIds, location, issues);
+                    ValidateJointIndexParameter(step, location, issues);
+                }
                 else if (step.type == "image")
                 {
                     ValidateAssetIdParameter(step, assetIds, location, issues);
@@ -419,6 +432,38 @@ namespace MRModuleEditor.Core.Validation
                     ValidationSeverity.Error,
                     "mcq.correctIndex.invalid",
                     "MCQ correctIndex is outside the choices array.",
+                    location));
+            }
+        }
+
+        private static void ValidateJointIndexParameter(
+            ModuleStep step,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            int jointIndex = step.GetInt("jointIndex", -1);
+            if (jointIndex < 0)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "robotics.jointIndex.invalid",
+                    "Robotics step must have a non-negative jointIndex.",
+                    location));
+            }
+        }
+
+        private static void ValidateAngleDegreesParameter(
+            ModuleStep step,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            JToken token = step.GetToken("angleDegrees");
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "robotics.angleDegrees.missing",
+                    "rotateJoint step is missing angleDegrees.",
                     location));
             }
         }

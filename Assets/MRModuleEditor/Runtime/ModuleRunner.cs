@@ -130,6 +130,11 @@ namespace MRModuleEditor.Runtime
             }
         }
 
+        public void RegisterStepHandler(IStepHandler handler)
+        {
+            handlers.Register(handler);
+        }
+
         public bool LoadModule()
         {
             LastError = "";

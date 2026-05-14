@@ -33,14 +33,17 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.AreEqual("0.1", document.schemaVersion);
             Assert.AreEqual("module.forward_kinematics_mini", document.moduleId);
             Assert.AreEqual("Forward Kinematics Mini Demo", document.title);
-            Assert.AreEqual(7, document.steps.Count);
+            Assert.AreEqual(10, document.steps.Count);
             AssertStep(document, "step.001", "text");
             AssertStep(document, "step.002", "image");
             AssertStep(document, "step.003", "wait");
             AssertStep(document, "step.004", "showObject");
             AssertStep(document, "step.005", "moveObject");
             AssertStep(document, "step.006", "text");
-            AssertStep(document, "step.007", "mcq");
+            AssertStep(document, "step.007", "showFrame");
+            AssertStep(document, "step.008", "rotateJoint");
+            AssertStep(document, "step.009", "text");
+            AssertStep(document, "step.010", "mcq");
         }
 
         [Test]
@@ -48,7 +51,7 @@ namespace MRModuleEditor.Tests.EditMode
         {
             ModuleDocument document = ModuleJsonSerializer.LoadFromFile(SamplePath);
             ModuleStep firstStep = AssertStep(document, "step.001", "text");
-            ModuleStep mcqStep = AssertStep(document, "step.007", "mcq");
+            ModuleStep mcqStep = AssertStep(document, "step.010", "mcq");
 
             Assert.AreEqual(
                 "Welcome to the forward kinematics mini demo.",
@@ -66,8 +69,8 @@ namespace MRModuleEditor.Tests.EditMode
             ModuleDocument original = ModuleJsonSerializer.LoadFromFile(SamplePath);
             string json = ModuleJsonSerializer.Serialize(original);
             ModuleDocument copy = ModuleJsonSerializer.Deserialize(json);
-            ModuleStep originalMcq = AssertStep(original, "step.007", "mcq");
-            ModuleStep copyMcq = AssertStep(copy, "step.007", "mcq");
+            ModuleStep originalMcq = AssertStep(original, "step.010", "mcq");
+            ModuleStep copyMcq = AssertStep(copy, "step.010", "mcq");
 
             Assert.AreEqual(original.title, copy.title);
             Assert.AreEqual(original.steps.Count, copy.steps.Count);

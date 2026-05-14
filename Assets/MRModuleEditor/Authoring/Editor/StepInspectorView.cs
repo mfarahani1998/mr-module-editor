@@ -15,7 +15,9 @@ namespace MRModuleEditor.Authoring.Editor
             "wait",
             "showObject",
             "moveObject",
-            "mcq"
+            "mcq",
+            "showFrame",
+            "rotateJoint"
         };
 
         public static void Draw(ModuleDocument document, int selectedStepIndex)
@@ -113,6 +115,23 @@ namespace MRModuleEditor.Authoring.Editor
                 if (string.IsNullOrWhiteSpace(step.title)) step.title = "Move Object";
                 if (step.durationSeconds <= 0f) step.durationSeconds = 2f;
             }
+            else if (step.type == "showFrame")
+            {
+                SetIfMissing(step, "objectId", "object.robot_preview");
+                SetIfMissing(step, "jointIndex", 2);
+                SetIfMissing(step, "visible", true);
+                if (string.IsNullOrWhiteSpace(step.title)) step.title = "Show Frame";
+                if (step.durationSeconds <= 0f) step.durationSeconds = 1f;
+            }
+            else if (step.type == "rotateJoint")
+            {
+                SetIfMissing(step, "objectId", "object.robot_preview");
+                SetIfMissing(step, "jointIndex", 0);
+                SetIfMissing(step, "angleDegrees", 50f);
+                SetIfMissing(step, "showFrame", true);
+                if (string.IsNullOrWhiteSpace(step.title)) step.title = "Rotate Joint";
+                if (step.durationSeconds <= 0f) step.durationSeconds = 2f;
+            }
             else if (step.type == "mcq")
             {
                 SetIfMissing(step, "question", "What does forward kinematics compute?");
@@ -154,6 +173,19 @@ namespace MRModuleEditor.Authoring.Editor
                 DrawVector3(step, "position", "Target Local Position");
                 DrawVector3(step, "rotationEuler", "Target Local Rotation Euler");
             }
+            else if (step.type == "showFrame")
+            {
+                DrawString(step, "objectId", "Object ID");
+                DrawInt(step, "jointIndex", "Joint Index", 0);
+                DrawBool(step, "visible", "Visible", true);
+            }
+            else if (step.type == "rotateJoint")
+            {
+                DrawString(step, "objectId", "Object ID");
+                DrawInt(step, "jointIndex", "Joint Index", 0);
+                DrawFloat(step, "angleDegrees", "Angle Degrees", 0f);
+                DrawBool(step, "showFrame", "Show Frame", true);
+            }
             else if (step.type == "mcq")
             {
                 DrawMultilineString(step, "question", "Question");
@@ -184,6 +216,12 @@ namespace MRModuleEditor.Authoring.Editor
         private static void DrawInt(ModuleStep step, string key, string label, int fallback)
         {
             int next = EditorGUILayout.IntField(label, step.GetInt(key, fallback));
+            step.parameters[key] = JToken.FromObject(next);
+        }
+
+        private static void DrawFloat(ModuleStep step, string key, string label, float fallback)
+        {
+            float next = EditorGUILayout.FloatField(label, step.GetFloat(key, fallback));
             step.parameters[key] = JToken.FromObject(next);
         }
 
@@ -274,6 +312,11 @@ namespace MRModuleEditor.Authoring.Editor
         private static void SetVectorIfMissing(ModuleStep step, string key, Vector3 value)
         {
             if (!step.parameters.ContainsKey(key)) step.parameters[key] = MakeVector(value);
+        }
+
+        private static void SetIfMissing(ModuleStep step, string key, float value)
+        {
+            if (!step.parameters.ContainsKey(key)) step.parameters[key] = JToken.FromObject(value);
         }
     }
 }

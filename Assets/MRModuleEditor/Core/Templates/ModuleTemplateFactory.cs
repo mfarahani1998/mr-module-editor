@@ -36,7 +36,7 @@ namespace MRModuleEditor.Core.Templates
             document.schemaVersion = "0.1";
             document.moduleId = "module.forward_kinematics_mini";
             document.title = "Forward Kinematics Mini Demo";
-            document.description = "A tiny sample that proves runtime step execution, image display, object binding, object motion, and MCQ feedback.";
+            document.description = "A tiny sample that proves runtime step execution, MR-style layout, robotics-lite joint motion, frame display, and MCQ feedback.";
             document.author = "Your Name";
             document.estimatedDurationSeconds = 420;
 
@@ -99,6 +99,14 @@ namespace MRModuleEditor.Core.Templates
                 Vec(0f, 0f, 0f),
                 Vec(0.75f, 0.75f, 0.75f)));
 
+            document.layouts.Add(Layout(
+                "layout.step.009.fk_callout",
+                "step.009",
+                "anchor.object.robot",
+                Vec(0f, 1.05f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(0.75f, 0.75f, 0.75f)));
+
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.object.robot",
@@ -135,7 +143,25 @@ namespace MRModuleEditor.Core.Templates
             concept.parameters["anchorId"] = JToken.FromObject("anchor.object.robot");
             document.steps.Add(concept);
 
-            ModuleStep mcq = Step("step.007", "mcq", "Quick Check", 0f);
+            ModuleStep showFrame = Step("step.007", "showFrame", "Show End-Effector Frame", 1.5f);
+            showFrame.parameters["objectId"] = JToken.FromObject("object.robot_preview");
+            showFrame.parameters["jointIndex"] = JToken.FromObject(2);
+            showFrame.parameters["visible"] = JToken.FromObject(true);
+            document.steps.Add(showFrame);
+
+            ModuleStep rotateJoint = Step("step.008", "rotateJoint", "Rotate Joint 1", 2.5f);
+            rotateJoint.parameters["objectId"] = JToken.FromObject("object.robot_preview");
+            rotateJoint.parameters["jointIndex"] = JToken.FromObject(0);
+            rotateJoint.parameters["angleDegrees"] = JToken.FromObject(50f);
+            rotateJoint.parameters["showFrame"] = JToken.FromObject(true);
+            document.steps.Add(rotateJoint);
+
+            ModuleStep fkIdea = Step("step.009", "text", "Forward Kinematics Idea", 3f);
+            fkIdea.parameters["text"] = JToken.FromObject("Forward kinematics uses the joint angles to compute the end-effector pose.");
+            fkIdea.parameters["anchorId"] = JToken.FromObject("anchor.object.robot");
+            document.steps.Add(fkIdea);
+
+            ModuleStep mcq = Step("step.010", "mcq", "Quick Check", 0f);
             mcq.parameters["question"] = JToken.FromObject("What does forward kinematics compute?");
             mcq.parameters["choices"] = new JArray(
                 "Joint angles from pose",
