@@ -220,11 +220,11 @@
     {
       "id": "step.008",
       "type": "rotateJoint",
-      "title": "Rotate Joint 1",
+      "title": "Rotate Joint 3",
       "durationSeconds": 2.5,
       "parameters": {
         "objectId": "object.robot_preview",
-        "jointIndex": 0,
+        "jointIndex": 2,
         "angleDegrees": 50.0,
         "showFrame": true
       }
