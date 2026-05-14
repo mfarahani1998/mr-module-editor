@@ -20,12 +20,22 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 context.DisplayPanel.ShowText(step.title, text);
             }
 
+            if (context.SpatialTextPanel != null)
+            {
+                context.SpatialTextPanel.ShowText(context.Module, step, text);
+            }
+
             if (context.LogInfo != null)
             {
                 context.LogInfo("Text step: " + step.title);
             }
 
             yield return context.WaitRespectingPause(duration);
+
+            if (context.SpatialTextPanel != null)
+            {
+                context.SpatialTextPanel.ClearIfShowingStep(step.id);
+            }
         }
     }
 }

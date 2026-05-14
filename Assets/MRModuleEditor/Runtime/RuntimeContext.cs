@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using MRModuleEditor.Core.Models;
+using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.UI;
 using UnityEngine;
@@ -18,6 +19,8 @@ namespace MRModuleEditor.Runtime
             string moduleDirectory,
             SceneBindingRegistry sceneBindings,
             RuntimeDisplayPanel displayPanel,
+            AnchorResolver anchorResolver,
+            SpatialTextPanel spatialTextPanel,
             Func<bool> isPaused,
             Func<bool> stopRequested,
             Action<string> logInfo,
@@ -27,6 +30,8 @@ namespace MRModuleEditor.Runtime
             ModuleDirectory = moduleDirectory ?? "";
             SceneBindings = sceneBindings;
             DisplayPanel = displayPanel;
+            AnchorResolver = anchorResolver;
+            SpatialTextPanel = spatialTextPanel;
             IsPaused = isPaused;
             StopRequested = stopRequested;
             LogInfo = logInfo;
@@ -39,6 +44,8 @@ namespace MRModuleEditor.Runtime
         public string ModuleDirectory { get; private set; }
         public SceneBindingRegistry SceneBindings { get; private set; }
         public RuntimeDisplayPanel DisplayPanel { get; private set; }
+        public AnchorResolver AnchorResolver { get; private set; }
+        public SpatialTextPanel SpatialTextPanel { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }
         public Action<string> LogInfo { get; private set; }

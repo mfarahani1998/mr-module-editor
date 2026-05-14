@@ -41,7 +41,18 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 context.DisplayPanel.ShowImage(step.title, caption, texture);
             }
 
+            if (context.SpatialTextPanel != null)
+            {
+                string spatialText = string.IsNullOrWhiteSpace(caption) ? step.title : caption;
+                context.SpatialTextPanel.ShowText(context.Module, step, spatialText);
+            }
+
             yield return context.WaitRespectingPause(duration);
+
+            if (context.SpatialTextPanel != null)
+            {
+                context.SpatialTextPanel.ClearIfShowingStep(step.id);
+            }
         }
     }
 }

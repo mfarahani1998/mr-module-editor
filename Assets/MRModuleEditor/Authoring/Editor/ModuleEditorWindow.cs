@@ -241,6 +241,7 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUILayout.LabelField("Assets", document.assets == null ? "0" : document.assets.Count.ToString());
             EditorGUILayout.LabelField("Objects", document.objects == null ? "0" : document.objects.Count.ToString());
             EditorGUILayout.LabelField("Anchors", document.anchors == null ? "0" : document.anchors.Count.ToString());
+            EditorGUILayout.LabelField("Layouts", document.layouts == null ? "0" : document.layouts.Count.ToString());
 
             EditorGUILayout.HelpBox(
                 "Phase C intentionally edits assets, objects, and anchors only through the template and ID text fields. A full asset browser comes later.",

@@ -47,11 +47,12 @@ namespace MRModuleEditor.Core.Validation
             HashSet<string> objectIds = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> assetIds = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> anchorIds = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> layoutTargetIds = CollectLayoutTargetIds(document);
 
             ValidateAssets(document, assetIds, seenIds, issues);
             ValidateObjects(document, objectIds, seenIds, issues);
             ValidateAnchors(document, objectIds, anchorIds, seenIds, issues);
-            ValidateLayouts(document, anchorIds, seenIds, issues);
+            ValidateLayouts(document, anchorIds, layoutTargetIds, seenIds, issues);
             ValidateSteps(document, objectIds, assetIds, anchorIds, seenIds, issues);
 
             return issues;
@@ -208,6 +209,7 @@ namespace MRModuleEditor.Core.Validation
         private static void ValidateLayouts(
             ModuleDocument document,
             HashSet<string> anchorIds,
+            HashSet<string> layoutTargetIds,
             Dictionary<string, string> seenIds,
             List<ValidationIssue> issues)
         {
@@ -236,6 +238,17 @@ namespace MRModuleEditor.Core.Validation
                         ValidationSeverity.Error,
                         "layout.anchorId.unknown",
                         "Layout references unknown anchor id '" + layout.anchorId + "'.",
+                        location));
+                }
+
+                CheckRequiredString(layout.targetId, "layout.targetId", "Layout targetId is missing.", location, issues);
+
+                if (!string.IsNullOrWhiteSpace(layout.targetId) && !layoutTargetIds.Contains(layout.targetId))
+                {
+                    issues.Add(new ValidationIssue(
+                        ValidationSeverity.Error,
+                        "layout.targetId.unknown",
+                        "Layout references unknown target id '" + layout.targetId + "'.",
                         location));
                 }
             }
@@ -455,6 +468,52 @@ namespace MRModuleEditor.Core.Validation
             }
 
             seenIds.Add(id, ownerKind);
+        }
+
+        private static HashSet<string> CollectLayoutTargetIds(ModuleDocument document)
+        {
+            HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
+
+            if (document == null)
+            {
+                return ids;
+            }
+
+            AddIfNotEmpty(ids, document.moduleId);
+
+            if (document.assets != null)
+            {
+                for (int i = 0; i < document.assets.Count; i++)
+                {
+                    if (document.assets[i] != null) AddIfNotEmpty(ids, document.assets[i].id);
+                }
+            }
+
+            if (document.objects != null)
+            {
+                for (int i = 0; i < document.objects.Count; i++)
+                {
+                    if (document.objects[i] != null) AddIfNotEmpty(ids, document.objects[i].id);
+                }
+            }
+
+            if (document.steps != null)
+            {
+                for (int i = 0; i < document.steps.Count; i++)
+                {
+                    if (document.steps[i] != null) AddIfNotEmpty(ids, document.steps[i].id);
+                }
+            }
+
+            return ids;
+        }
+
+        private static void AddIfNotEmpty(HashSet<string> ids, string id)
+        {
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                ids.Add(id);
+            }
         }
     }
 }

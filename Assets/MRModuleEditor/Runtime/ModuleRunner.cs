@@ -1,6 +1,7 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Validation;
+using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.StepHandlers;
 using MRModuleEditor.Runtime.UI;
@@ -21,6 +22,15 @@ namespace MRModuleEditor.Runtime
 
         [SerializeField]
         private RuntimeControlPanel controlPanel;
+
+        [SerializeField]
+        private AnchorResolver anchorResolver;
+
+        [SerializeField]
+        private RuntimeLayoutApplier layoutApplier;
+
+        [SerializeField]
+        private SpatialTextPanel spatialTextPanel;
 
         [SerializeField]
         private bool loadOnStart = true;
@@ -84,6 +94,21 @@ namespace MRModuleEditor.Runtime
                 controlPanel = FindFirstObjectByType<RuntimeControlPanel>();
             }
 
+            if (anchorResolver == null)
+            {
+                anchorResolver = FindFirstObjectByType<AnchorResolver>();
+            }
+
+            if (layoutApplier == null)
+            {
+                layoutApplier = FindFirstObjectByType<RuntimeLayoutApplier>();
+            }
+
+            if (spatialTextPanel == null)
+            {
+                spatialTextPanel = FindFirstObjectByType<SpatialTextPanel>(FindObjectsInactive.Include);
+            }
+
             if (controlPanel != null)
             {
                 controlPanel.Bind(this);
@@ -139,9 +164,19 @@ namespace MRModuleEditor.Runtime
                 sceneBindingRegistry.Rebuild();
             }
 
+            if (layoutApplier != null)
+            {
+                layoutApplier.ApplyObjectLayouts(CurrentModule);
+            }
+
             if (displayPanel != null)
             {
                 displayPanel.Clear();
+            }
+
+            if (spatialTextPanel != null)
+            {
+                spatialTextPanel.Clear();
             }
 
             State = RuntimeRunnerState.Loaded;
@@ -210,6 +245,11 @@ namespace MRModuleEditor.Runtime
             {
                 displayPanel.Clear();
             }
+
+            if (spatialTextPanel != null)
+            {
+                spatialTextPanel.Clear();
+            }
         }
 
         public void Restart()
@@ -228,6 +268,8 @@ namespace MRModuleEditor.Runtime
                 moduleLoader.LastLoadedDirectory,
                 sceneBindingRegistry,
                 displayPanel,
+                anchorResolver,
+                spatialTextPanel,
                 IsPaused,
                 IsStopRequested,
                 message => Debug.Log(message),

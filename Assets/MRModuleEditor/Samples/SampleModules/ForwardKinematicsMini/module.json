@@ -37,7 +37,88 @@
       "targetObjectId": "object.robot_preview"
     }
   ],
-  "layouts": [],
+  "layouts": [
+    {
+      "id": "layout.object.robot_world",
+      "targetId": "object.robot_preview",
+      "anchorId": "anchor.world.table",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.001.head_panel",
+      "targetId": "step.001",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.002.head_panel",
+      "targetId": "step.002",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.006.robot_callout",
+      "targetId": "step.006",
+      "anchorId": "anchor.object.robot",
+      "position": {
+        "x": 0.0,
+        "y": 0.75,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.75,
+        "y": 0.75,
+        "z": 0.75
+      }
+    }
+  ],
   "steps": [
     {
       "id": "step.001",
@@ -98,10 +179,11 @@
     {
       "id": "step.006",
       "type": "text",
-      "title": "Concept",
+      "title": "Robot Callout",
       "durationSeconds": 3.0,
       "parameters": {
-        "text": "Forward kinematics computes the end-effector pose from known joint values."
+        "text": "This callout follows the robot object through anchor.object.robot.",
+        "anchorId": "anchor.object.robot"
       }
     },
     {

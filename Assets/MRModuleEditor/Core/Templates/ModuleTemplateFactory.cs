@@ -67,6 +67,38 @@ namespace MRModuleEditor.Core.Templates
                 type = "world"
             });
 
+            document.layouts.Add(Layout(
+                "layout.object.robot_world",
+                "object.robot_preview",
+                "anchor.world.table",
+                Vec(0f, 0f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.001.head_panel",
+                "step.001",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.002.head_panel",
+                "step.002",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.006.robot_callout",
+                "step.006",
+                "anchor.object.robot",
+                Vec(0f, 0.75f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(0.75f, 0.75f, 0.75f)));
+
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.object.robot",
@@ -98,8 +130,9 @@ namespace MRModuleEditor.Core.Templates
             moveRobot.parameters["rotationEuler"] = Vector(0f, 45f, 0f);
             document.steps.Add(moveRobot);
 
-            ModuleStep concept = Step("step.006", "text", "Concept", 3f);
-            concept.parameters["text"] = JToken.FromObject("Forward kinematics computes the end-effector pose from known joint values.");
+            ModuleStep concept = Step("step.006", "text", "Robot Callout", 3f);
+            concept.parameters["text"] = JToken.FromObject("This callout follows the robot object through anchor.object.robot.");
+            concept.parameters["anchorId"] = JToken.FromObject("anchor.object.robot");
             document.steps.Add(concept);
 
             ModuleStep mcq = Step("step.007", "mcq", "Quick Check", 0f);
@@ -132,6 +165,29 @@ namespace MRModuleEditor.Core.Templates
             value["y"] = y;
             value["z"] = z;
             return value;
+        }
+
+        private static LayoutDefinition Layout(
+            string id,
+            string targetId,
+            string anchorId,
+            Vector3Data position,
+            Vector3Data rotationEuler,
+            Vector3Data scale)
+        {
+            LayoutDefinition layout = new LayoutDefinition();
+            layout.id = id;
+            layout.targetId = targetId;
+            layout.anchorId = anchorId;
+            layout.position = position;
+            layout.rotationEuler = rotationEuler;
+            layout.scale = scale;
+            return layout;
+        }
+
+        private static Vector3Data Vec(float x, float y, float z)
+        {
+            return new Vector3Data(x, y, z);
         }
     }
 }

@@ -22,6 +22,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 yield break;
             }
 
+            if (context.SpatialTextPanel != null)
+            {
+                context.SpatialTextPanel.Clear();
+            }
+
             context.DisplayPanel.ShowMCQ(step.title, question, choices, correctIndex);
 
             while (!context.DisplayPanel.HasMcqAnswer)
