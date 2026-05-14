@@ -84,7 +84,7 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            runner.Play();
+            Debug.Log("Preview loaded. Press Play in the runtime control panel to start the module.");
         }
 
         private static string ToRelativePathFromAssets(string absolutePath)

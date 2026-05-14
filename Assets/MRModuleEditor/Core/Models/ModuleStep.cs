@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -76,7 +77,14 @@ namespace MRModuleEditor.Core.Models
                 return fallback;
             }
 
-            return float.TryParse(value.ToString(), out global::System.Single parsed) ? parsed : fallback;
+            float parsed;
+            return float.TryParse(
+                value.ToString(),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out parsed)
+                ? parsed
+                : fallback;
         }
     }
 }

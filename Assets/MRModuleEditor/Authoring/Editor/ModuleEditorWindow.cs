@@ -14,6 +14,8 @@ namespace MRModuleEditor.Authoring.Editor
 {
     public class ModuleEditorWindow : EditorWindow
     {
+        private const string CurrentPathSessionKey = "MRModuleEditor.Authoring.CurrentPath";
+        private const string ReloadAfterPreviewKey = "MRModuleEditor.Authoring.ReloadAfterPreview";
         private ModuleDocument document;
         private string currentPath = "";
         private int selectedStepIndex = -1;
@@ -32,9 +34,57 @@ namespace MRModuleEditor.Authoring.Editor
 
         private void OnEnable()
         {
+            EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
+
+            string savedPath = SessionState.GetString(CurrentPathSessionKey, "");
+            if (!string.IsNullOrEmpty(savedPath))
+            {
+                currentPath = savedPath;
+            }
+
             if (document == null)
             {
-                NewTemplate(false);
+                if (!string.IsNullOrEmpty(currentPath) && File.Exists(currentPath))
+                {
+                    ReloadCurrentFile("Loaded module.");
+                }
+                else
+                {
+                    NewTemplate(false);
+                }
+            }
+        }
+
+        private void OnDisable()
+        {
+            EditorApplication.playModeStateChanged -= OnPlayModeChanged;
+        }
+
+        private void OnPlayModeChanged(PlayModeStateChange state)
+        {
+            if (state != PlayModeStateChange.EnteredEditMode)
+            {
+                return;
+            }
+
+            if (!SessionState.GetBool(ReloadAfterPreviewKey, false))
+            {
+                return;
+            }
+
+            SessionState.SetBool(ReloadAfterPreviewKey, false);
+
+            string savedPath = SessionState.GetString(CurrentPathSessionKey, "");
+            if (!string.IsNullOrEmpty(savedPath))
+            {
+                currentPath = savedPath;
+            }
+
+            if (!string.IsNullOrEmpty(currentPath) && File.Exists(currentPath))
+            {
+                ReloadCurrentFile("Reloaded saved module after preview.");
+                Repaint();
             }
         }
 
@@ -42,6 +92,14 @@ namespace MRModuleEditor.Authoring.Editor
         {
             DrawToolbar();
             DrawCurrentPath();
+
+            if (EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                EditorGUILayout.HelpBox(
+                    "Preview is running. Editing is disabled during Play Mode. Return to Edit Mode to continue editing the saved module.",
+                    MessageType.Info);
+                return;
+            }
 
             EditorGUILayout.BeginHorizontal();
 
@@ -94,6 +152,14 @@ namespace MRModuleEditor.Authoring.Editor
             if (GUILayout.Button("Load", EditorStyles.toolbarButton))
             {
                 if (ConfirmLoseUnsavedChanges()) Load();
+            }
+
+            if (GUILayout.Button("Reload From Disk", EditorStyles.toolbarButton))
+            {
+                if (!string.IsNullOrEmpty(currentPath) && File.Exists(currentPath))
+                {
+                    ReloadCurrentFile("Reloaded module from disk.");
+                }
             }
 
             if (GUILayout.Button("Save", EditorStyles.toolbarButton))
@@ -193,6 +259,7 @@ namespace MRModuleEditor.Authoring.Editor
                 currentPath = Path.Combine(
                     Directory.GetCurrentDirectory(),
                     "Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json");
+                RememberCurrentPath();
             }
         }
 
@@ -214,11 +281,9 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            document = ModuleJsonSerializer.LoadFromFile(path);
             currentPath = path;
-            selectedStepIndex = document.steps.Count > 0 ? 0 : -1;
-            isDirty = false;
-            status = "Loaded module.";
+            RememberCurrentPath();
+            ReloadCurrentFile("Loaded module.");
         }
 
         private bool Save()
@@ -254,6 +319,7 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             currentPath = path;
+            RememberCurrentPath();
             return Save();
         }
 
@@ -272,6 +338,8 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
+            RememberCurrentPath();
+            SessionState.SetBool(ReloadAfterPreviewKey, true);
             ModulePreviewLauncher.LaunchPreview(currentPath);
         }
 
@@ -347,6 +415,21 @@ namespace MRModuleEditor.Authoring.Editor
                 "Continue and lose unsaved changes?",
                 "Continue",
                 "Cancel");
+        }
+
+        private void RememberCurrentPath()
+        {
+            SessionState.SetString(CurrentPathSessionKey, currentPath ?? "");
+        }
+
+        private void ReloadCurrentFile(string message)
+        {
+            document = ModuleJsonSerializer.LoadFromFile(currentPath);
+            selectedStepIndex = document.steps.Count > 0
+                ? Mathf.Clamp(selectedStepIndex, 0, document.steps.Count - 1)
+                : -1;
+            isDirty = false;
+            status = message;
         }
     }
 }

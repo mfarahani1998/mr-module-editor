@@ -1,4 +1,5 @@
 using MRModuleEditor.Core.Models;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -66,7 +67,13 @@ namespace MRModuleEditor.Runtime.StepHandlers
             }
 
             float parsed;
-            return float.TryParse(token.ToString(), out parsed) ? parsed : fallback;
+            return float.TryParse(
+                token.ToString(),
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out parsed)
+                ? parsed
+                : fallback;
         }
     }
 }
