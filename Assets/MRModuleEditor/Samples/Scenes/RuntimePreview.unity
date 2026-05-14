@@ -119,6 +119,75 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &45373833
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 45373835}
+  - component: {fileID: 45373834}
+  m_Layer: 0
+  m_Name: SpatialTextPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &45373834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45373833}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchorResolver: {fileID: 0}
+  autoSizePanel: 1
+  panelSize: {x: 3.2, y: 0.58}
+  minimumPanelSize: {x: 2.2, y: 0.52}
+  maximumPanelSize: {x: 4.2, y: 2}
+  padding: {x: 0.18, y: 0.08}
+  textDepthOffset: 0.02
+  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
+  showAccentBar: 1
+  accentWidth: 0.035
+  accentGap: 0.1
+  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
+  wrapCharacters: 50
+  textFontSize: 64
+  titleCharacterSize: 0.035
+  bodyCharacterSize: 0.025
+  titleLineHeight: 0.18
+  bodyLineHeight: 0.13
+  titleBodyGap: 0.035
+  estimatedCharacterWidth: 2.8
+  titleColor: {r: 1, g: 1, b: 1, a: 1}
+  bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
+  smoothFollow: 1
+  followSharpness: 16
+  snapDistance: 2.5
+--- !u!4 &45373835
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 45373833}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.0777235, y: -1.5724163, z: -0.7084255}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -572,7 +641,7 @@ MonoBehaviour:
   controlPanel: {fileID: 1762172281}
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
-  spatialTextPanel: {fileID: 2044130264}
+  spatialTextPanel: {fileID: 45373834}
   loadOnStart: 1
   playOnStart: 0
 --- !u!114 &1762172281
@@ -655,8 +724,8 @@ MonoBehaviour:
   viewerCamera: {fileID: 961739752}
   sceneBindingRegistry: {fileID: 1762172283}
   simulatorWorldOrigin: {fileID: 840358894}
-  headDistance: 1.25
-  headOffset: {x: 0, y: -0.15, z: 0}
+  headDistance: 5
+  headOffset: {x: 0.5, y: 0, z: 0}
   defaultWorldDistance: 2
 --- !u!114 &1762172287
 MonoBehaviour:
@@ -685,53 +754,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
   sceneBindingRegistry: {fileID: 1762172283}
---- !u!1 &2044130263
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2044130265}
-  - component: {fileID: 2044130264}
-  m_Layer: 0
-  m_Name: SpatialTextPanel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &2044130264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2044130263}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  anchorResolver: {fileID: 1762172286}
-  panelSize: {x: 1.6, y: 0.55}
-  wrapCharacters: 42
---- !u!4 &2044130265
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2044130263}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -741,4 +763,4 @@ SceneRoots:
   - {fileID: 1221330253}
   - {fileID: 1762172285}
   - {fileID: 840358894}
-  - {fileID: 2044130265}
+  - {fileID: 45373835}

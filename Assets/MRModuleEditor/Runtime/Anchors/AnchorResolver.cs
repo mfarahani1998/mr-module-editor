@@ -15,12 +15,16 @@ namespace MRModuleEditor.Runtime.Anchors
         [SerializeField]
         private Transform simulatorWorldOrigin;
 
+        [Header("Head Anchor")]
         [SerializeField]
-        private float headDistance = 1.25f;
+        private float headDistance = 10f;
 
+        // For a subtitle-style panel, keep this centered and slightly below the user's view.
+        // X = right, Y = up, Z = extra forward, in viewer-camera space.
         [SerializeField]
-        private Vector3 headOffset = new Vector3(0f, -0.15f, 0f);
+        private Vector3 headOffset = new Vector3(0f, -0.75f, 0f);
 
+        [Header("World Anchor")]
         [SerializeField]
         private float defaultWorldDistance = 2f;
 
@@ -137,14 +141,21 @@ namespace MRModuleEditor.Runtime.Anchors
             }
 
             Transform cameraTransform = camera.transform;
+            Vector3 forward = cameraTransform.forward;
+            if (forward.sqrMagnitude < 0.0001f)
+            {
+                forward = Vector3.forward;
+            }
+
+            forward.Normalize();
+
             Vector3 position = cameraTransform.position
-                + cameraTransform.forward * headDistance
-                + cameraTransform.TransformVector(headOffset);
+                + forward * Mathf.Max(0.01f, headDistance)
+                + cameraTransform.right * headOffset.x
+                + cameraTransform.up * headOffset.y
+                + forward * headOffset.z;
 
-            Quaternion rotation = Quaternion.LookRotation(
-                cameraTransform.position - position,
-                Vector3.up);
-
+            Quaternion rotation = GetCameraFacingRotation(camera, position, cameraTransform.rotation);
             pose = new Pose(position, rotation);
             return true;
         }
@@ -180,18 +191,25 @@ namespace MRModuleEditor.Runtime.Anchors
             }
 
             Camera camera = ViewerCamera;
-            Quaternion rotation = target.transform.rotation;
-            if (camera != null)
-            {
-                Vector3 toCamera = camera.transform.position - target.transform.position;
-                if (toCamera.sqrMagnitude > 0.0001f)
-                {
-                    rotation = Quaternion.LookRotation(toCamera.normalized, Vector3.up);
-                }
-            }
-
+            Quaternion rotation = GetCameraFacingRotation(camera, target.transform.position, target.transform.rotation);
             pose = new Pose(target.transform.position, rotation);
             return true;
+        }
+
+        private static Quaternion GetCameraFacingRotation(Camera camera, Vector3 position, Quaternion fallback)
+        {
+            if (camera == null)
+            {
+                return fallback;
+            }
+
+            Vector3 awayFromCamera = position - camera.transform.position;
+            if (awayFromCamera.sqrMagnitude < 0.0001f)
+            {
+                return fallback;
+            }
+
+            return Quaternion.LookRotation(awayFromCamera.normalized, Vector3.up);
         }
 
         private static AnchorDefinition FindAnchor(ModuleDocument module, string anchorId)

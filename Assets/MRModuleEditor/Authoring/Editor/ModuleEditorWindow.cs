@@ -114,9 +114,16 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUILayout.EndScrollView();
 
             rightScroll = EditorGUILayout.BeginScrollView(rightScroll);
+            
+            EditorGUI.BeginChangeCheck();
             DrawModuleMetadata();
             EditorGUILayout.Space(8);
             StepInspectorView.Draw(document, selectedStepIndex);
+            if (EditorGUI.EndChangeCheck())
+            {
+                isDirty = true;
+            }
+
             EditorGUILayout.Space(8);
             DrawValidationSummary();
             DrawDataSummary();
@@ -127,11 +134,6 @@ namespace MRModuleEditor.Authoring.Editor
             if (!string.IsNullOrEmpty(status))
             {
                 EditorGUILayout.HelpBox(status, MessageType.Info);
-            }
-
-            if (GUI.changed)
-            {
-                isDirty = true;
             }
         }
 
