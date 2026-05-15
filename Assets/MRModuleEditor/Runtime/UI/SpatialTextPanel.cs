@@ -22,6 +22,9 @@ namespace MRModuleEditor.Runtime.UI
         private Vector3 panelLocalOffset = new Vector3(0f, -0.75f, 0f);
 
         [SerializeField]
+        private bool applyPanelLocalOffsetToAuthoredLayouts = false;
+
+        [SerializeField]
         private Vector2 minimumPanelSize = new Vector2(2.2f, 0.52f);
 
         [SerializeField]
@@ -225,7 +228,10 @@ namespace MRModuleEditor.Runtime.UI
                 ? Vector3.one
                 : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
 
-            localPosition += panelLocalOffset;
+            if (layout == null || applyPanelLocalOffsetToAuthoredLayouts)
+            {
+                localPosition += panelLocalOffset;
+            }
             
             Quaternion localRotation = Quaternion.Euler(localEuler);
             Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;

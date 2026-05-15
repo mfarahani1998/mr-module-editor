@@ -1,10 +1,11 @@
+using MRModuleEditor.Runtime;
 using MRModuleEditor.Runtime.SceneBinding;
 using UnityEngine;
 
 namespace MRModuleEditor.Domains.RoboticsLite
 {
     [RequireComponent(typeof(BindableObject))]
-    public class RobotLiteRig : MonoBehaviour
+    public class RobotLiteRig : MonoBehaviour, IRuntimeResettable
     {
         [SerializeField]
         private Transform[] jointTransforms = new Transform[0];
@@ -208,6 +209,32 @@ namespace MRModuleEditor.Domains.RoboticsLite
             {
                 Initialize();
             }
+        }
+
+        public void ResetRuntimeState()
+        {
+            ResetRig();
+        }
+
+        public void ResetRig()
+        {
+            EnsureInitialized();
+
+            for (int i = 0; i < JointCount; i++)
+            {
+                Transform joint = jointTransforms[i];
+                if (joint != null)
+                {
+                    joint.localRotation = initialLocalRotations[i];
+                }
+
+                if (currentAngles != null && i < currentAngles.Length)
+                {
+                    currentAngles[i] = 0f;
+                }
+            }
+
+            HideAllFrames();
         }
 
         private bool IsValidJointIndex(int index)

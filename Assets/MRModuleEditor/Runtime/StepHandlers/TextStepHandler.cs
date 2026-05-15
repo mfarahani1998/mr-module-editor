@@ -12,6 +12,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string text = step.GetString("text", "");
             float duration = StepParameterReader.GetDuration(step, 2f);
 
@@ -31,6 +36,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
             }
 
             yield return context.WaitRespectingPause(duration);
+
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
 
             if (context.SpatialTextPanel != null)
             {

@@ -25,6 +25,33 @@ namespace MRModuleEditor.Runtime
             Func<bool> stopRequested,
             Action<string> logInfo,
             Action<string> logError)
+            : this(
+                module,
+                moduleDirectory,
+                sceneBindings,
+                displayPanel,
+                anchorResolver,
+                spatialTextPanel,
+                new RuntimeExecutionToken(0),
+                isPaused,
+                stopRequested,
+                logInfo,
+                logError)
+        {
+        }
+
+        public RuntimeContext(
+            ModuleDocument module,
+            string moduleDirectory,
+            SceneBindingRegistry sceneBindings,
+            RuntimeDisplayPanel displayPanel,
+            AnchorResolver anchorResolver,
+            SpatialTextPanel spatialTextPanel,
+            RuntimeExecutionToken executionToken,
+            Func<bool> isPaused,
+            Func<bool> stopRequested,
+            Action<string> logInfo,
+            Action<string> logError)
         {
             Module = module;
             ModuleDirectory = moduleDirectory ?? "";
@@ -32,6 +59,7 @@ namespace MRModuleEditor.Runtime
             DisplayPanel = displayPanel;
             AnchorResolver = anchorResolver;
             SpatialTextPanel = spatialTextPanel;
+            ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             IsPaused = isPaused;
             StopRequested = stopRequested;
             LogInfo = logInfo;
@@ -46,15 +74,35 @@ namespace MRModuleEditor.Runtime
         public RuntimeDisplayPanel DisplayPanel { get; private set; }
         public AnchorResolver AnchorResolver { get; private set; }
         public SpatialTextPanel SpatialTextPanel { get; private set; }
+        public RuntimeExecutionToken ExecutionToken { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }
         public Action<string> LogInfo { get; private set; }
         public Action<string> LogError { get; private set; }
 
+        public bool IsCancellationRequested
+        {
+            get
+            {
+                if (ExecutionToken != null && ExecutionToken.IsCancellationRequested)
+                {
+                    return true;
+                }
+
+                return StopRequested != null && StopRequested();
+            }
+        }
+
         public bool TryResolveObject(string objectId, out GameObject result, out string error)
         {
             result = null;
             error = "";
+
+            if (IsCancellationRequested)
+            {
+                error = "The current module execution has been cancelled.";
+                return false;
+            }
 
             if (SceneBindings == null)
             {
@@ -69,6 +117,12 @@ namespace MRModuleEditor.Runtime
         {
             absolutePath = "";
             error = "";
+
+            if (IsCancellationRequested)
+            {
+                error = "The current module execution has been cancelled.";
+                return false;
+            }
 
             if (string.IsNullOrWhiteSpace(assetId))
             {
@@ -112,7 +166,7 @@ namespace MRModuleEditor.Runtime
             float elapsed = 0f;
             while (elapsed < seconds)
             {
-                if (StopRequested != null && StopRequested())
+                if (IsCancellationRequested)
                 {
                     yield break;
                 }
@@ -132,7 +186,7 @@ namespace MRModuleEditor.Runtime
         {
             while (IsPaused != null && IsPaused())
             {
-                if (StopRequested != null && StopRequested())
+                if (IsCancellationRequested)
                 {
                     yield break;
                 }

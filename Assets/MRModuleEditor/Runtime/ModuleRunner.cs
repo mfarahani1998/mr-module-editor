@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Validation;
 using MRModuleEditor.Runtime.Anchors;
@@ -40,6 +42,8 @@ namespace MRModuleEditor.Runtime
 
         private readonly StepHandlerRegistry handlers = new StepHandlerRegistry();
         private Coroutine runCoroutine;
+        private RuntimeExecutionToken activeExecutionToken;
+        private int nextExecutionId;
         private bool stopRequested;
         private bool paused;
 
@@ -47,6 +51,12 @@ namespace MRModuleEditor.Runtime
         public ModuleDocument CurrentModule { get; private set; }
         public int CurrentStepIndex { get; private set; } = -1;
         public string LastError { get; private set; } = "";
+
+        /// <summary>
+        /// Legacy extension point kept for existing sample/domain components.
+        /// Prefer implementing IRuntimeResettable on new runtime components.
+        /// </summary>
+        public event Action BeforeModuleRunReset;
 
         public string CurrentModuleTitle
         {
@@ -130,6 +140,11 @@ namespace MRModuleEditor.Runtime
             }
         }
 
+        private void OnDisable()
+        {
+            CancelActiveExecution("ModuleRunner disabled.");
+        }
+
         public void RegisterStepHandler(IStepHandler handler)
         {
             handlers.Register(handler);
@@ -137,8 +152,10 @@ namespace MRModuleEditor.Runtime
 
         public bool LoadModule()
         {
+            CancelActiveExecution("Loading module.");
             LastError = "";
             CurrentStepIndex = -1;
+            CurrentModule = null;
             stopRequested = false;
             paused = false;
 
@@ -156,7 +173,11 @@ namespace MRModuleEditor.Runtime
                 return false;
             }
 
-            if (ModuleValidator.HasError(new System.Collections.Generic.List<ValidationIssue>(moduleLoader.LastIssues)))
+            List<ValidationIssue> issues = moduleLoader.LastIssues == null
+                ? new List<ValidationIssue>()
+                : new List<ValidationIssue>(moduleLoader.LastIssues);
+
+            if (ModuleValidator.HasError(issues))
             {
                 SetError("Module validation has errors.");
                 return false;
@@ -174,15 +195,12 @@ namespace MRModuleEditor.Runtime
                 layoutApplier.ApplyObjectLayouts(CurrentModule);
             }
 
-            if (displayPanel != null)
+            if (sceneBindingRegistry != null)
             {
-                displayPanel.Clear();
+                sceneBindingRegistry.CaptureRuntimeBaseline();
             }
 
-            if (spatialTextPanel != null)
-            {
-                spatialTextPanel.Clear();
-            }
+            ClearRuntimePanels();
 
             State = RuntimeRunnerState.Loaded;
             Debug.Log("ModuleRunner loaded module: " + CurrentModule.title);
@@ -204,14 +222,16 @@ namespace MRModuleEditor.Runtime
                 }
             }
 
-            if (runCoroutine != null)
-            {
-                StopCoroutine(runCoroutine);
-            }
-
+            CancelActiveExecution("Starting a new run.");
+            LastError = "";
+            CurrentStepIndex = -1;
             stopRequested = false;
             paused = false;
-            runCoroutine = StartCoroutine(RunModule());
+
+            ResetRuntimeSceneForCleanRun();
+
+            activeExecutionToken = new RuntimeExecutionToken(++nextExecutionId);
+            runCoroutine = StartCoroutine(RunModule(activeExecutionToken));
         }
 
         public void Pause()
@@ -234,18 +254,222 @@ namespace MRModuleEditor.Runtime
 
         public void Stop()
         {
-            stopRequested = true;
+            CancelActiveExecution("Stopped by user.");
             paused = false;
+            CurrentStepIndex = -1;
+            State = CurrentModule == null ? RuntimeRunnerState.Idle : RuntimeRunnerState.Loaded;
+            ResetRuntimeSceneForCleanRun();
+        }
+
+        public void Restart()
+        {
+            Stop();
+            Play();
+        }
+
+        private IEnumerator RunModule(RuntimeExecutionToken executionToken)
+        {
+            if (!IsActiveExecution(executionToken))
+            {
+                yield break;
+            }
+
+            State = RuntimeRunnerState.Playing;
+            LastError = "";
+
+            string moduleDirectory = moduleLoader == null ? "" : moduleLoader.LastLoadedDirectory;
+            RuntimeContext context = new RuntimeContext(
+                CurrentModule,
+                moduleDirectory,
+                sceneBindingRegistry,
+                displayPanel,
+                anchorResolver,
+                spatialTextPanel,
+                executionToken,
+                () => IsPausedForExecution(executionToken),
+                () => IsStopRequestedForExecution(executionToken),
+                message => LogInfoForExecution(executionToken, message),
+                message => SetErrorForExecution(executionToken, message));
+
+            if (CurrentModule == null || CurrentModule.steps == null)
+            {
+                SetErrorForExecution(executionToken, "The current module has no step list.");
+                yield break;
+            }
+
+            for (int i = 0; i < CurrentModule.steps.Count; i++)
+            {
+                if (IsStopRequestedForExecution(executionToken))
+                {
+                    yield break;
+                }
+
+                CurrentStepIndex = i;
+                ModuleStep step = CurrentModule.steps[i];
+
+                if (step == null)
+                {
+                    SetErrorForExecution(executionToken, "Step " + i + " is null.");
+                    yield break;
+                }
+
+                IStepHandler handler;
+                if (!handlers.TryGet(step.type, out handler))
+                {
+                    SetErrorForExecution(executionToken, "No handler registered for step type '" + step.type + "'.");
+                    yield break;
+                }
+
+                Debug.Log("Running step " + (i + 1) + "/" + CurrentModule.steps.Count + ": " + step.type + " - " + step.title);
+                yield return RunStep(executionToken, handler, step, context);
+
+                if (State == RuntimeRunnerState.Error || IsStopRequestedForExecution(executionToken))
+                {
+                    yield break;
+                }
+            }
+
+            if (!IsActiveExecution(executionToken))
+            {
+                yield break;
+            }
+
+            CurrentStepIndex = CurrentModule.steps.Count - 1;
+            State = RuntimeRunnerState.Completed;
+            activeExecutionToken = null;
+            runCoroutine = null;
+
+            if (displayPanel != null)
+            {
+                displayPanel.ShowText("Complete", "Module finished.");
+            }
+        }
+
+        private IEnumerator RunStep(
+            RuntimeExecutionToken executionToken,
+            IStepHandler handler,
+            ModuleStep step,
+            RuntimeContext context)
+        {
+            IEnumerator routine;
+            try
+            {
+                routine = handler.Execute(step, context);
+            }
+            catch (Exception exception)
+            {
+                SetErrorForExecution(executionToken, "Step '" + step.id + "' failed before execution: " + exception.Message);
+                yield break;
+            }
+
+            if (routine == null)
+            {
+                yield break;
+            }
+
+            while (!IsStopRequestedForExecution(executionToken))
+            {
+                object current = null;
+                bool hasNext = false;
+                try
+                {
+                    hasNext = routine.MoveNext();
+                    current = hasNext ? routine.Current : null;
+                }
+                catch (Exception exception)
+                {
+                    SetErrorForExecution(executionToken, "Step '" + step.id + "' failed during execution: " + exception.Message);
+                    yield break;
+                }
+
+                if (!hasNext)
+                {
+                    yield break;
+                }
+
+                yield return current;
+            }
+        }
+
+        private void CancelActiveExecution(string reason)
+        {
+            stopRequested = true;
+
+            if (activeExecutionToken != null)
+            {
+                activeExecutionToken.Cancel(reason);
+                activeExecutionToken = null;
+            }
 
             if (runCoroutine != null)
             {
                 StopCoroutine(runCoroutine);
                 runCoroutine = null;
             }
+        }
 
-            CurrentStepIndex = -1;
-            State = CurrentModule == null ? RuntimeRunnerState.Idle : RuntimeRunnerState.Loaded;
+        private bool IsActiveExecution(RuntimeExecutionToken executionToken)
+        {
+            return executionToken != null
+                && activeExecutionToken == executionToken
+                && !executionToken.IsCancellationRequested;
+        }
 
+        private bool IsStopRequestedForExecution(RuntimeExecutionToken executionToken)
+        {
+            return stopRequested
+                || executionToken == null
+                || executionToken.IsCancellationRequested
+                || activeExecutionToken != executionToken;
+        }
+
+        private bool IsPausedForExecution(RuntimeExecutionToken executionToken)
+        {
+            return IsActiveExecution(executionToken) && paused;
+        }
+
+        private void ResetRuntimeSceneForCleanRun()
+        {
+            ClearRuntimePanels();
+
+            if (sceneBindingRegistry != null)
+            {
+                sceneBindingRegistry.ResetBindableObjectsToRuntimeBaseline();
+            }
+
+            if (BeforeModuleRunReset != null)
+            {
+                BeforeModuleRunReset.Invoke();
+            }
+
+            ResetRuntimeComponents();
+        }
+
+        private void ResetRuntimeComponents()
+        {
+            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = behaviours[i];
+                IRuntimeResettable resettable = behaviour as IRuntimeResettable;
+                if (resettable == null)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    resettable.ResetRuntimeState();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogError("Runtime reset failed on '" + behaviour.name + "': " + exception.Message, behaviour);
+                }
+            }
+        }
+
+        private void ClearRuntimePanels()
+        {
             if (displayPanel != null)
             {
                 displayPanel.Clear();
@@ -257,78 +481,28 @@ namespace MRModuleEditor.Runtime
             }
         }
 
-        public void Restart()
+        private void LogInfoForExecution(RuntimeExecutionToken executionToken, string message)
         {
-            Stop();
-            Play();
-        }
-
-        private IEnumerator RunModule()
-        {
-            State = RuntimeRunnerState.Playing;
-            LastError = "";
-
-            RuntimeContext context = new RuntimeContext(
-                CurrentModule,
-                moduleLoader.LastLoadedDirectory,
-                sceneBindingRegistry,
-                displayPanel,
-                anchorResolver,
-                spatialTextPanel,
-                IsPaused,
-                IsStopRequested,
-                message => Debug.Log(message),
-                SetError);
-
-            for (int i = 0; i < CurrentModule.steps.Count; i++)
+            if (!IsActiveExecution(executionToken))
             {
-                if (stopRequested)
-                {
-                    yield break;
-                }
-
-                CurrentStepIndex = i;
-                ModuleStep step = CurrentModule.steps[i];
-
-                if (step == null)
-                {
-                    SetError("Step " + i + " is null.");
-                    yield break;
-                }
-
-                IStepHandler handler;
-                if (!handlers.TryGet(step.type, out handler))
-                {
-                    SetError("No handler registered for step type '" + step.type + "'.");
-                    yield break;
-                }
-
-                Debug.Log("Running step " + (i + 1) + "/" + CurrentModule.steps.Count + ": " + step.type + " - " + step.title);
-                yield return StartCoroutine(handler.Execute(step, context));
-
-                if (State == RuntimeRunnerState.Error)
-                {
-                    yield break;
-                }
+                return;
             }
 
-            CurrentStepIndex = CurrentModule.steps.Count - 1;
-            State = RuntimeRunnerState.Completed;
+            Debug.Log(message);
+        }
 
-            if (displayPanel != null)
+        private void SetErrorForExecution(RuntimeExecutionToken executionToken, string message)
+        {
+            if (!IsActiveExecution(executionToken))
             {
-                displayPanel.ShowText("Complete", "Module finished.");
+                return;
             }
-        }
 
-        private bool IsPaused()
-        {
-            return paused;
-        }
-
-        private bool IsStopRequested()
-        {
-            return stopRequested;
+            LastError = message ?? "Unknown error.";
+            State = RuntimeRunnerState.Error;
+            executionToken.Cancel("Runtime error: " + LastError);
+            stopRequested = true;
+            Debug.LogError(LastError);
         }
 
         private void SetError(string message)

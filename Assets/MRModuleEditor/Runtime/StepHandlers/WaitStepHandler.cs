@@ -12,6 +12,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             float duration = StepParameterReader.GetDuration(step, 1f);
 
             if (context.LogInfo != null)

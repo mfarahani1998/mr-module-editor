@@ -15,6 +15,11 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string objectId = step.GetString("objectId", "object.robot_preview");
             int jointIndex = step.GetInt("jointIndex", 0);
             float targetAngle = step.GetFloat("angleDegrees", 0f);
@@ -25,7 +30,12 @@ namespace MRModuleEditor.Domains.RoboticsLite
             string error;
             if (!TryResolveRig(context, objectId, out rig, out error))
             {
-                if (context.LogError != null) context.LogError(error);
+                if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
+                yield break;
+            }
+
+            if (context.IsCancellationRequested)
+            {
                 yield break;
             }
 
@@ -39,7 +49,7 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
             while (elapsed < duration)
             {
-                if (context.StopRequested != null && context.StopRequested())
+                if (context.IsCancellationRequested)
                 {
                     yield break;
                 }
@@ -61,6 +71,11 @@ namespace MRModuleEditor.Domains.RoboticsLite
                 }
 
                 yield return null;
+            }
+
+            if (context.IsCancellationRequested)
+            {
+                yield break;
             }
 
             if (!rig.TrySetJointAngle(jointIndex, targetAngle, out error))

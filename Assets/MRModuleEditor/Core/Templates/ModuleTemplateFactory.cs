@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.001.head_panel",
                 "step.001",
                 "anchor.head.default",
-                Vec(0f, -0.15f, 0f),
+                Vec(0f, -0.75f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -87,7 +87,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.002.head_panel",
                 "step.002",
                 "anchor.head.default",
-                Vec(0f, -0.15f, 0f),
+                Vec(0f, -0.75f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -95,7 +95,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.006.robot_callout",
                 "step.006",
                 "anchor.object.robot",
-                Vec(0f, 0.75f, 0f),
+                Vec(0f, -0.75f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(0.75f, 0.75f, 0.75f)));
 
@@ -103,7 +103,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.009.fk_callout",
                 "step.009",
                 "anchor.object.robot",
-                Vec(0f, 1.05f, 0f),
+                Vec(0f, 1.5f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(0.75f, 0.75f, 0.75f)));
 
@@ -124,7 +124,7 @@ namespace MRModuleEditor.Core.Templates
             image.parameters["caption"] = JToken.FromObject("This placeholder image proves that the runtime can resolve an image asset from the module folder.");
             document.steps.Add(image);
 
-            ModuleStep wait = Step("step.003", "wait", "Pause", 1f);
+            ModuleStep wait = Step("step.003", "wait", "Pause", 5f);
             document.steps.Add(wait);
 
             ModuleStep showRobot = Step("step.004", "showObject", "Show Robot", 0f);
@@ -149,9 +149,9 @@ namespace MRModuleEditor.Core.Templates
             showFrame.parameters["visible"] = JToken.FromObject(true);
             document.steps.Add(showFrame);
 
-            ModuleStep rotateJoint = Step("step.008", "rotateJoint", "Rotate Joint 1", 2.5f);
+            ModuleStep rotateJoint = Step("step.008", "rotateJoint", "Rotate Joint 3", 2.5f);
             rotateJoint.parameters["objectId"] = JToken.FromObject("object.robot_preview");
-            rotateJoint.parameters["jointIndex"] = JToken.FromObject(0);
+            rotateJoint.parameters["jointIndex"] = JToken.FromObject(2);
             rotateJoint.parameters["angleDegrees"] = JToken.FromObject(50f);
             rotateJoint.parameters["showFrame"] = JToken.FromObject(true);
             document.steps.Add(rotateJoint);

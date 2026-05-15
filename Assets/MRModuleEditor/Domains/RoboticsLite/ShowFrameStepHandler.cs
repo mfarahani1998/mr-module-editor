@@ -15,6 +15,11 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string objectId = step.GetString("objectId", "object.robot_preview");
             int jointIndex = step.GetInt("jointIndex", 0);
             bool visible = step.GetBool("visible", true);
@@ -24,7 +29,12 @@ namespace MRModuleEditor.Domains.RoboticsLite
             string error;
             if (!TryResolveRig(context, objectId, out rig, out error))
             {
-                if (context.LogError != null) context.LogError(error);
+                if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
+                yield break;
+            }
+
+            if (context.IsCancellationRequested)
+            {
                 yield break;
             }
 

@@ -28,6 +28,8 @@ namespace MRModuleEditor.Runtime.SceneBinding
                     continue;
                 }
 
+                bindable.CaptureRuntimeBaselineIfNeeded();
+
                 if (byBindingKey.ContainsKey(bindable.BindingKey))
                 {
                     Debug.LogWarning("Duplicate bindingKey found in scene: " + bindable.BindingKey);
@@ -38,6 +40,28 @@ namespace MRModuleEditor.Runtime.SceneBinding
             }
 
             Debug.Log("SceneBindingRegistry registered " + byBindingKey.Count + " bindable object(s).");
+        }
+
+        public void CaptureRuntimeBaseline()
+        {
+            foreach (KeyValuePair<string, BindableObject> pair in byBindingKey)
+            {
+                if (pair.Value != null)
+                {
+                    pair.Value.CaptureRuntimeBaseline();
+                }
+            }
+        }
+
+        public void ResetBindableObjectsToRuntimeBaseline()
+        {
+            foreach (KeyValuePair<string, BindableObject> pair in byBindingKey)
+            {
+                if (pair.Value != null)
+                {
+                    pair.Value.ResetToRuntimeBaseline();
+                }
+            }
         }
 
         public bool TryGetByBindingKey(string bindingKey, out GameObject result)

@@ -13,13 +13,18 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string objectId = step.GetString("objectId", "");
 
             GameObject target;
             string error;
             if (!context.TryResolveObject(objectId, out target, out error))
             {
-                if (context.LogError != null) context.LogError(error);
+                if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
                 yield break;
             }
 
@@ -37,7 +42,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
             float elapsed = 0f;
             while (elapsed < duration)
             {
-                if (context.StopRequested != null && context.StopRequested())
+                if (context.IsCancellationRequested)
                 {
                     yield break;
                 }
@@ -53,6 +58,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 transform.localPosition = Vector3.Lerp(startPosition, targetPosition, t);
                 transform.localRotation = Quaternion.Slerp(startRotation, targetRotation, t);
                 yield return null;
+            }
+
+            if (context.IsCancellationRequested)
+            {
+                yield break;
             }
 
             transform.localPosition = targetPosition;

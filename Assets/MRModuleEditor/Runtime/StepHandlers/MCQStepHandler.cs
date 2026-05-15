@@ -12,6 +12,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string question = step.GetString("question", "");
             string[] choices = StepParameterReader.GetStringArray(step, "choices");
             int correctIndex = step.GetInt("correctIndex", -1);
@@ -31,7 +36,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             while (!context.DisplayPanel.HasMcqAnswer)
             {
-                if (context.StopRequested != null && context.StopRequested())
+                if (context.IsCancellationRequested)
                 {
                     yield break;
                 }
@@ -43,6 +48,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 }
 
                 yield return null;
+            }
+
+            if (context.IsCancellationRequested)
+            {
+                yield break;
             }
 
             bool correct = context.DisplayPanel.SelectedMcqAnswer == correctIndex;

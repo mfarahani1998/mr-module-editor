@@ -14,6 +14,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string assetId = step.GetString("assetId", "");
             string caption = step.GetString("caption", "");
             float duration = StepParameterReader.GetDuration(step, 3f);
@@ -22,7 +27,12 @@ namespace MRModuleEditor.Runtime.StepHandlers
             string error;
             if (!context.TryResolveAssetPath(assetId, out absolutePath, out error))
             {
-                if (context.LogError != null) context.LogError(error);
+                if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
+                yield break;
+            }
+
+            if (context.IsCancellationRequested)
+            {
                 yield break;
             }
 
@@ -48,6 +58,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
             }
 
             yield return context.WaitRespectingPause(duration);
+
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
 
             if (context.SpatialTextPanel != null)
             {
