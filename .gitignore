@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # QoL
 .unity-bundle-include
+
+# build results
+App/
