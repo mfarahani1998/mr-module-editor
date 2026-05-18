@@ -173,7 +173,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 41839399}
-  - component: {fileID: 41839400}
   m_Layer: 0
   m_Name: Joint2_Elbow
   m_TagString: Untagged
@@ -198,22 +197,6 @@ Transform:
   - {fileID: 1717172580}
   m_Father: {fileID: 1765668234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &41839400
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 41839398}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf3c1943d0e5aa289a01b96a73ca5a24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rig: {fileID: 2072459198}
-  jointIndex: 2
-  localOffset: {x: 0, y: 0.35, z: 0}
-  prefix: Joint
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -365,10 +348,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
-  panelSize: {x: 1.35, y: 0.95}
-  imageSize: {x: 1.05, y: 0.52}
+  panelSize: {x: 1.6, y: 0.95}
+  imageSize: {x: 1.2, y: 0.52}
   defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
-  wrapCharacters: 42
+  wrapCharacters: 50
   titleCharacterSize: 0.035
   captionCharacterSize: 0.023
   panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
@@ -1067,7 +1050,7 @@ MonoBehaviour:
   spatialTextPanel: {fileID: 2146630565}
   spatialImagePanel: {fileID: 671819798}
   spatialMcqPanel: {fileID: 1930746979}
-  loadOnStart: 1
+  loadOnStart: 0
   playOnStart: 0
 --- !u!114 &1762172281
 MonoBehaviour:
@@ -1081,7 +1064,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84399aa3411b9bb798c7bf492eac4be0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugOverlay: 1
+  showDebugOverlay: 0
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1094,7 +1077,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c19095b441e0e5cebfa359fea55c202, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugOverlay: 1
+  showDebugOverlay: 0
   enableKeyboardNumbers: 1
 --- !u!114 &1762172283
 MonoBehaviour:
@@ -1120,7 +1103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6f1bf63e8b9f06f5a3cdc3f08310653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loadMode: 0
+  loadMode: 1
   relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
   relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
   absoluteModulePath: 
@@ -1218,6 +1201,54 @@ Transform:
   - {fileID: 1074175500}
   m_Father: {fileID: 1075753859}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1806163722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1806163724}
+  - component: {fileID: 1806163723}
+  m_Layer: 0
+  m_Name: RuntimeBuildAutoStarter
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1806163723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806163722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7f8ebae491aa9ad4b6e70e3599f343e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moduleLoader: {fileID: 1762172284}
+  moduleRunner: {fileID: 1762172280}
+  playAfterLoad: 1
+  delayBeforePlaySeconds: 0.25
+--- !u!4 &1806163724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1806163722}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1930746978
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,11 +1279,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
-  panelSize: {x: 1.45, y: 1.15}
+  panelSize: {x: 1.75, y: 1.15}
   defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
   choiceHeight: 0.16
   choiceGap: 0.035
-  wrapCharacters: 45
+  wrapCharacters: 50
   enableGazeDwell: 1
   gazeDwellMode: 1
   gazeDwellSeconds: 1
@@ -1436,3 +1467,4 @@ SceneRoots:
   - {fileID: 2146630566}
   - {fileID: 671819799}
   - {fileID: 1930746980}
+  - {fileID: 1806163724}

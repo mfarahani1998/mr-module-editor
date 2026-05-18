@@ -4,7 +4,16 @@ namespace MRModuleEditor.Runtime.UI
 {
     public class RuntimeControlPanel : MonoBehaviour
     {
+        [SerializeField]
+        private bool showDebugOverlay = true;
+
         private ModuleRunner runner;
+
+        public bool ShowDebugOverlay
+        {
+            get { return showDebugOverlay; }
+            set { showDebugOverlay = value; }
+        }
 
         public void Bind(ModuleRunner moduleRunner)
         {
@@ -13,7 +22,7 @@ namespace MRModuleEditor.Runtime.UI
 
         private void OnGUI()
         {
-            if (runner == null)
+            if (!showDebugOverlay || runner == null)
             {
                 return;
             }
@@ -31,30 +40,11 @@ namespace MRModuleEditor.Runtime.UI
 
             GUILayout.BeginHorizontal();
 
-            if (GUILayout.Button("Play"))
-            {
-                runner.Play();
-            }
-
-            if (GUILayout.Button("Pause"))
-            {
-                runner.Pause();
-            }
-
-            if (GUILayout.Button("Resume"))
-            {
-                runner.Resume();
-            }
-
-            if (GUILayout.Button("Stop"))
-            {
-                runner.Stop();
-            }
-
-            if (GUILayout.Button("Restart"))
-            {
-                runner.Restart();
-            }
+            if (GUILayout.Button("Play")) runner.Play();
+            if (GUILayout.Button("Pause")) runner.Pause();
+            if (GUILayout.Button("Resume")) runner.Resume();
+            if (GUILayout.Button("Stop")) runner.Stop();
+            if (GUILayout.Button("Restart")) runner.Restart();
 
             GUILayout.EndHorizontal();
             GUILayout.EndArea();

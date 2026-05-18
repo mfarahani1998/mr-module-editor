@@ -35,6 +35,12 @@ namespace MRModuleEditor.Runtime
         private SpatialTextPanel spatialTextPanel;
 
         [SerializeField]
+        private SpatialImagePanel spatialImagePanel;
+
+        [SerializeField]
+        private SpatialMCQPanel spatialMcqPanel;
+
+        [SerializeField]
         private bool loadOnStart = true;
 
         [SerializeField]
@@ -119,6 +125,16 @@ namespace MRModuleEditor.Runtime
                 spatialTextPanel = FindFirstObjectByType<SpatialTextPanel>(FindObjectsInactive.Include);
             }
 
+            if (spatialImagePanel == null)
+            {
+                spatialImagePanel = FindFirstObjectByType<SpatialImagePanel>(FindObjectsInactive.Include);
+            }
+
+            if (spatialMcqPanel == null)
+            {
+                spatialMcqPanel = FindFirstObjectByType<SpatialMCQPanel>(FindObjectsInactive.Include);
+            }
+
             if (controlPanel != null)
             {
                 controlPanel.Bind(this);
@@ -165,10 +181,18 @@ namespace MRModuleEditor.Runtime
                 return false;
             }
 
-            bool ok = moduleLoader.LoadAndValidate();
+            if (moduleLoader.IsLoading)
+            {
+                SetError("RuntimeModuleLoader is still loading. Wait for the async load to finish before starting the runner.");
+                return false;
+            }
+
+            bool ok = moduleLoader.LoadedModule != null || moduleLoader.LoadAndValidate();
             if (!ok || moduleLoader.LoadedModule == null)
             {
-                string issueText = moduleLoader.LastIssues == null ? "Unknown load error." : "Module load/validation failed.";
+                string issueText = moduleLoader.LastIssues == null
+                    ? "Unknown load error."
+                    : "Module load/validation failed.";
                 SetError(issueText);
                 return false;
             }
@@ -285,6 +309,8 @@ namespace MRModuleEditor.Runtime
                 displayPanel,
                 anchorResolver,
                 spatialTextPanel,
+                spatialImagePanel,
+                spatialMcqPanel,
                 executionToken,
                 () => IsPausedForExecution(executionToken),
                 () => IsStopRequestedForExecution(executionToken),
@@ -478,6 +504,16 @@ namespace MRModuleEditor.Runtime
             if (spatialTextPanel != null)
             {
                 spatialTextPanel.Clear();
+            }
+
+            if (spatialImagePanel != null)
+            {
+                spatialImagePanel.Clear();
+            }
+
+            if (spatialMcqPanel != null)
+            {
+                spatialMcqPanel.Clear();
             }
         }
 

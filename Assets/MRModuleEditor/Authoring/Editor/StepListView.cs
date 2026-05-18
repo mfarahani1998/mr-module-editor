@@ -60,6 +60,11 @@ namespace MRModuleEditor.Authoring.Editor
             if (GUILayout.Button("MCQ")) selectedStepIndex = Add(addStep, document, "mcq");
             EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Show Frame")) selectedStepIndex = Add(addStep, document, "showFrame");
+            if (GUILayout.Button("Rotate Joint")) selectedStepIndex = Add(addStep, document, "rotateJoint");
+            EditorGUILayout.EndHorizontal();
+
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Selected Step", EditorStyles.boldLabel);
 
