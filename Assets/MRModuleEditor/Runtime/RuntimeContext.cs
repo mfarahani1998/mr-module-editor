@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
+using MRModuleEditor.Runtime.IO;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.UI;
 using UnityEngine;
@@ -32,6 +33,8 @@ namespace MRModuleEditor.Runtime
                 displayPanel,
                 anchorResolver,
                 spatialTextPanel,
+                null,
+                null,
                 new RuntimeExecutionToken(0),
                 isPaused,
                 stopRequested,
@@ -52,6 +55,37 @@ namespace MRModuleEditor.Runtime
             Func<bool> stopRequested,
             Action<string> logInfo,
             Action<string> logError)
+            : this(
+                module,
+                moduleDirectory,
+                sceneBindings,
+                displayPanel,
+                anchorResolver,
+                spatialTextPanel,
+                null,
+                null,
+                executionToken,
+                isPaused,
+                stopRequested,
+                logInfo,
+                logError)
+        {
+        }
+
+        public RuntimeContext(
+            ModuleDocument module,
+            string moduleDirectory,
+            SceneBindingRegistry sceneBindings,
+            RuntimeDisplayPanel displayPanel,
+            AnchorResolver anchorResolver,
+            SpatialTextPanel spatialTextPanel,
+            SpatialImagePanel spatialImagePanel,
+            SpatialMCQPanel spatialMcqPanel,
+            RuntimeExecutionToken executionToken,
+            Func<bool> isPaused,
+            Func<bool> stopRequested,
+            Action<string> logInfo,
+            Action<string> logError)
         {
             Module = module;
             ModuleDirectory = moduleDirectory ?? "";
@@ -59,6 +93,8 @@ namespace MRModuleEditor.Runtime
             DisplayPanel = displayPanel;
             AnchorResolver = anchorResolver;
             SpatialTextPanel = spatialTextPanel;
+            SpatialImagePanel = spatialImagePanel;
+            SpatialMCQPanel = spatialMcqPanel;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             IsPaused = isPaused;
             StopRequested = stopRequested;
@@ -74,6 +110,8 @@ namespace MRModuleEditor.Runtime
         public RuntimeDisplayPanel DisplayPanel { get; private set; }
         public AnchorResolver AnchorResolver { get; private set; }
         public SpatialTextPanel SpatialTextPanel { get; private set; }
+        public SpatialImagePanel SpatialImagePanel { get; private set; }
+        public SpatialMCQPanel SpatialMCQPanel { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }
@@ -113,9 +151,9 @@ namespace MRModuleEditor.Runtime
             return SceneBindings.TryGetObjectByModuleObjectId(Module, objectId, out result, out error);
         }
 
-        public bool TryResolveAssetPath(string assetId, out string absolutePath, out string error)
+        public bool TryResolveAssetPath(string assetId, out string resolvedPathOrUrl, out string error)
         {
-            absolutePath = "";
+            resolvedPathOrUrl = "";
             error = "";
 
             if (IsCancellationRequested)
@@ -143,18 +181,14 @@ namespace MRModuleEditor.Runtime
                 return false;
             }
 
-            if (Path.IsPathRooted(asset.path))
-            {
-                absolutePath = asset.path;
-            }
-            else
-            {
-                absolutePath = Path.Combine(ModuleDirectory, asset.path);
-            }
+            resolvedPathOrUrl = RuntimePathUtility.ResolveRelativeToModuleDirectory(
+                ModuleDirectory,
+                asset.path);
 
-            if (!File.Exists(absolutePath))
+            if (!RuntimePathUtility.RequiresUnityWebRequest(resolvedPathOrUrl)
+                && !File.Exists(resolvedPathOrUrl))
             {
-                error = "Asset file not found: " + absolutePath;
+                error = "Asset file not found: " + resolvedPathOrUrl;
                 return false;
             }
 

@@ -51,16 +51,21 @@ namespace MRModuleEditor.Authoring.Editor
             step.id = EditorGUILayout.TextField("ID", step.id);
 
             int currentTypeIndex = System.Array.IndexOf(StepTypes, step.type);
+
+            if (currentTypeIndex < 0)
+            {
+                EditorGUILayout.HelpBox(
+                    "Unknown step type: " + step.type + "\nChoose a valid type from the popup to repair this step.",
+                    MessageType.Warning);
+            }
+
             int shownTypeIndex = currentTypeIndex < 0 ? 0 : currentTypeIndex;
             int nextTypeIndex = EditorGUILayout.Popup("Type", shownTypeIndex, StepTypes);
-            if (currentTypeIndex >= 0 && nextTypeIndex != currentTypeIndex)
+
+            if (currentTypeIndex < 0 || nextTypeIndex != currentTypeIndex)
             {
                 step.type = StepTypes[nextTypeIndex];
                 EnsureDefaultsForType(step);
-            }
-            else if (currentTypeIndex < 0)
-            {
-                EditorGUILayout.HelpBox("Unknown step type: " + step.type, MessageType.Warning);
             }
 
             step.title = EditorGUILayout.TextField("Title", step.title);

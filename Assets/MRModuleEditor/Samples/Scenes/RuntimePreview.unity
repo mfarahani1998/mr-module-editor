@@ -119,6 +119,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &37466583
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 37466585}
+  - component: {fileID: 37466584}
+  m_Layer: 0
+  m_Name: RoboticsLiteInstaller
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &37466584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37466583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c021fa81b76e24bfbcca864c92b4a47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moduleRunner: {fileID: 1762172280}
+--- !u!4 &37466585
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37466583}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &41839398
 GameObject:
   m_ObjectHideFlags: 0
@@ -128,6 +173,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 41839399}
+  - component: {fileID: 41839400}
   m_Layer: 0
   m_Name: Joint2_Elbow
   m_TagString: Untagged
@@ -152,6 +198,22 @@ Transform:
   - {fileID: 1717172580}
   m_Father: {fileID: 1765668234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &41839400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 41839398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf3c1943d0e5aa289a01b96a73ca5a24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rig: {fileID: 2072459198}
+  jointIndex: 2
+  localOffset: {x: 0, y: 0.35, z: 0}
+  prefix: Joint
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,6 +335,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &671819797
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 671819799}
+  - component: {fileID: 671819798}
+  m_Layer: 0
+  m_Name: SpatialImagePanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &671819798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 671819797}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 006d7ca8dd414bf58adf6c3c4b70e7d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchorResolver: {fileID: 1762172286}
+  panelSize: {x: 1.35, y: 0.95}
+  imageSize: {x: 1.05, y: 0.52}
+  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
+  wrapCharacters: 42
+  titleCharacterSize: 0.035
+  captionCharacterSize: 0.023
+  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
+  titleColor: {r: 1, g: 1, b: 1, a: 1}
+  captionColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
+--- !u!4 &671819799
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 671819797}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &701381732
 GameObject:
   m_ObjectHideFlags: 0
@@ -798,76 +914,6 @@ Transform:
   - {fileID: 826853847}
   m_Father: {fileID: 2072459200}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1119514458
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1119514460}
-  - component: {fileID: 1119514459}
-  m_Layer: 0
-  m_Name: SpatialTextPanel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1119514459
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1119514458}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  anchorResolver: {fileID: 0}
-  autoSizePanel: 1
-  panelSize: {x: 3.2, y: 0.58}
-  panelLocalOffset: {x: 0, y: -0.75, z: 0}
-  minimumPanelSize: {x: 2.2, y: 0.52}
-  maximumPanelSize: {x: 4.2, y: 2}
-  padding: {x: 0.18, y: 0.08}
-  textDepthOffset: 0.01
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
-  showAccentBar: 1
-  accentWidth: 0.035
-  accentGap: 0.1
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  wrapCharacters: 50
-  textFontSize: 64
-  titleCharacterSize: 0.035
-  bodyCharacterSize: 0.025
-  titleLineHeight: 0.29
-  bodyLineHeight: 0.18
-  titleBodyGap: 0.035
-  estimatedCharacterWidth: 2.95
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
---- !u!4 &1119514460
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1119514458}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.0777235, y: -1.5724163, z: -0.7084255}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1717172579
 GameObject:
   m_ObjectHideFlags: 0
@@ -993,7 +1039,6 @@ GameObject:
   - component: {fileID: 1762172286}
   - component: {fileID: 1762172288}
   - component: {fileID: 1762172287}
-  - component: {fileID: 1762172289}
   m_Layer: 0
   m_Name: RuntimeServices
   m_TagString: Untagged
@@ -1019,7 +1064,9 @@ MonoBehaviour:
   controlPanel: {fileID: 1762172281}
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
-  spatialTextPanel: {fileID: 1119514459}
+  spatialTextPanel: {fileID: 2146630565}
+  spatialImagePanel: {fileID: 671819798}
+  spatialMcqPanel: {fileID: 1930746979}
   loadOnStart: 1
   playOnStart: 0
 --- !u!114 &1762172281
@@ -1034,6 +1081,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84399aa3411b9bb798c7bf492eac4be0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  showDebugOverlay: 1
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1046,6 +1094,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c19095b441e0e5cebfa359fea55c202, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  showDebugOverlay: 1
+  enableKeyboardNumbers: 1
 --- !u!114 &1762172283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1070,7 +1120,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6f1bf63e8b9f06f5a3cdc3f08310653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  loadMode: 0
   relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
+  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
+  absoluteModulePath: 
   loadOnStart: 0
 --- !u!4 &1762172285
 Transform:
@@ -1132,19 +1185,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
   sceneBindingRegistry: {fileID: 1762172283}
---- !u!114 &1762172289
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1762172279}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6c021fa81b76e24bfbcca864c92b4a47, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moduleRunner: {fileID: 1762172280}
 --- !u!1 &1765668233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1177,6 +1217,69 @@ Transform:
   - {fileID: 41839399}
   - {fileID: 1074175500}
   m_Father: {fileID: 1075753859}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1930746978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1930746980}
+  - component: {fileID: 1930746979}
+  m_Layer: 0
+  m_Name: SpatialMCQPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1930746979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930746978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8146d30e8e2999ffdb2e1e5712048478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchorResolver: {fileID: 1762172286}
+  panelSize: {x: 1.45, y: 1.15}
+  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
+  choiceHeight: 0.16
+  choiceGap: 0.035
+  wrapCharacters: 45
+  enableGazeDwell: 1
+  gazeDwellMode: 1
+  gazeDwellSeconds: 1
+  gazeInputArmDelaySeconds: 0.35
+  requireFreshGazeTarget: 1
+  lockHeadAnchoredPanelForGaze: 1
+  gazeRayDistance: 10
+  enableKeyboardNumbers: 1
+  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.9}
+  choiceColor: {r: 0.16, g: 0.2, b: 0.26, a: 0.96}
+  gazeColor: {r: 0.25, g: 0.42, b: 0.72, a: 0.96}
+  selectedColor: {r: 0.2, g: 0.55, b: 0.35, a: 0.96}
+  wrongColor: {r: 0.62, g: 0.2, b: 0.2, a: 0.96}
+--- !u!4 &1930746980
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930746978}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2072459197
 GameObject:
@@ -1249,6 +1352,77 @@ Transform:
   - {fileID: 1075753859}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2146630564
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2146630566}
+  - component: {fileID: 2146630565}
+  m_Layer: 0
+  m_Name: SpatialTextPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2146630565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146630564}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchorResolver: {fileID: 1762172286}
+  autoSizePanel: 1
+  panelSize: {x: 3.2, y: 0.58}
+  panelLocalOffset: {x: 0, y: -0.75, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 2.2, y: 0.52}
+  maximumPanelSize: {x: 4.2, y: 2}
+  padding: {x: 0.18, y: 0.08}
+  textDepthOffset: 0.01
+  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
+  showAccentBar: 1
+  accentWidth: 0.035
+  accentGap: 0.1
+  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
+  wrapCharacters: 50
+  textFontSize: 64
+  titleCharacterSize: 0.035
+  bodyCharacterSize: 0.025
+  titleLineHeight: 0.29
+  bodyLineHeight: 0.18
+  titleBodyGap: 0.035
+  estimatedCharacterWidth: 2.95
+  titleColor: {r: 1, g: 1, b: 1, a: 1}
+  bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
+  smoothFollow: 1
+  followSharpness: 16
+  snapDistance: 2.5
+--- !u!4 &2146630566
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146630564}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1257,5 +1431,8 @@ SceneRoots:
   - {fileID: 203844589}
   - {fileID: 1762172285}
   - {fileID: 840358894}
-  - {fileID: 1119514460}
   - {fileID: 2072459200}
+  - {fileID: 37466585}
+  - {fileID: 2146630566}
+  - {fileID: 671819799}
+  - {fileID: 1930746980}

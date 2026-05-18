@@ -12,6 +12,12 @@ namespace MRModuleEditor.Runtime.UI
             MCQ
         }
 
+        [SerializeField]
+        private bool showDebugOverlay = true;
+
+        [SerializeField]
+        private bool enableKeyboardNumbers = true;
+
         private PanelMode mode = PanelMode.None;
         private string title = "";
         private string body = "";
@@ -20,6 +26,12 @@ namespace MRModuleEditor.Runtime.UI
         private int correctIndex = -1;
         private int selectedIndex = -1;
         private string feedback = "";
+
+        public bool ShowDebugOverlay
+        {
+            get { return showDebugOverlay; }
+            set { showDebugOverlay = value; }
+        }
 
         public bool HasMcqAnswer
         {
@@ -77,14 +89,45 @@ namespace MRModuleEditor.Runtime.UI
             feedback = "";
         }
 
+        public void SubmitMcqAnswer(int answerIndex)
+        {
+            if (mode != PanelMode.MCQ || selectedIndex >= 0)
+            {
+                return;
+            }
+
+            if (answerIndex < 0 || answerIndex >= choices.Length)
+            {
+                return;
+            }
+
+            selectedIndex = answerIndex;
+            feedback = selectedIndex == correctIndex
+                ? "Correct."
+                : "Not quite. Correct answer: " + SafeChoice(correctIndex);
+        }
+
         public void ShowFeedback(string message)
         {
             feedback = message ?? "";
         }
 
+        private void Update()
+        {
+            if (!enableKeyboardNumbers || mode != PanelMode.MCQ || selectedIndex >= 0)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) SubmitMcqAnswer(0);
+            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) SubmitMcqAnswer(1);
+            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) SubmitMcqAnswer(2);
+            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) SubmitMcqAnswer(3);
+        }
+
         private void OnGUI()
         {
-            if (mode == PanelMode.None)
+            if (!showDebugOverlay || mode == PanelMode.None)
             {
                 return;
             }
@@ -113,10 +156,10 @@ namespace MRModuleEditor.Runtime.UI
                 for (int i = 0; i < choices.Length; i++)
                 {
                     GUI.enabled = selectedIndex < 0;
-                    if (GUILayout.Button(choices[i], GUILayout.Height(32)))
+                    string label = (i + 1) + ". " + choices[i];
+                    if (GUILayout.Button(label, GUILayout.Height(32)))
                     {
-                        selectedIndex = i;
-                        feedback = selectedIndex == correctIndex ? "Correct." : "Not quite. Correct answer: " + SafeChoice(correctIndex);
+                        SubmitMcqAnswer(i);
                     }
                     GUI.enabled = true;
                 }
