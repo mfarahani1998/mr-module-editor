@@ -1173,14 +1173,14 @@ def resolve_repo_root(script_path: Path, explicit_repo_root: Optional[Path]) -> 
     return Path.cwd().resolve()
 
 
-def resolve_project_dir(repo_root: Path, source_root: Path, project_arg: str) -> Path:
+def resolve_project_dir(repo_root: Path, project_arg: str) -> Path:
     project_path = Path(project_arg)
     candidates: list[Path] = []
 
     if project_path.is_absolute():
         candidates.append(project_path)
     else:
-        candidates.append(repo_root / source_root / project_path)
+        candidates.append(repo_root.parent / project_path)
         candidates.append(repo_root / project_path)
         candidates.append(Path.cwd() / project_path)
 
@@ -1795,10 +1795,7 @@ def summarize(
 def build_bundle(args: argparse.Namespace) -> tuple[Path, dict]:
     script_path = Path(__file__).resolve()
     repo_root = resolve_repo_root(script_path, args.repo_root)
-    source_root = Path(args.source_root)
-    if source_root.is_absolute():
-        source_root = source_root.resolve()
-    project_dir = resolve_project_dir(repo_root, source_root, args.project)
+    project_dir = resolve_project_dir(repo_root, args.project)
     validate_unity_project(project_dir, args.allow_non_unity)
 
     out_dir = args.out_dir if args.out_dir else repo_root / "artifacts" / "bundles"
@@ -2052,12 +2049,6 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         type=Path,
         default=None,
         help="Repository/workspace root. Defaults to parent of tools/.",
-    )
-    parser.add_argument(
-        "--source-root",
-        type=Path,
-        default=Path("Source"),
-        help="Directory containing Unity projects, relative to repo root unless absolute.",
     )
     parser.add_argument(
         "--out-dir",
