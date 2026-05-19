@@ -17,12 +17,12 @@ namespace MRModuleEditor.Runtime.Anchors
 
         [Header("Head Anchor")]
         [SerializeField]
-        private float headDistance = 10f;
+        private float headDistance = 2f;
 
         // For a subtitle-style panel, keep this centered and slightly below the user's view.
         // X = right, Y = up, Z = extra forward, in viewer-camera space.
         [SerializeField]
-        private Vector3 headOffset = new Vector3(0f, -0.75f, 0f);
+        private Vector3 headOffset = new Vector3(0f, 0f, 0f);
 
         [Header("World Anchor")]
         [SerializeField]

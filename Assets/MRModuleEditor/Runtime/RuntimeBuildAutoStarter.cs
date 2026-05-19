@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using MRModuleEditor.Runtime.Anchors;
 
 namespace MRModuleEditor.Runtime
 {
@@ -17,6 +18,15 @@ namespace MRModuleEditor.Runtime
         [SerializeField]
         private float delayBeforePlaySeconds = 0.25f;
 
+        [SerializeField]
+        private AnchorResolver anchorResolver;
+
+        [SerializeField]
+        private bool recenterWorldBeforePlay = true;
+
+        [SerializeField]
+        private int framesBeforeRecenter = 2;
+
         private IEnumerator Start()
         {
             if (moduleLoader == null)
@@ -27,6 +37,11 @@ namespace MRModuleEditor.Runtime
             if (moduleRunner == null)
             {
                 moduleRunner = FindFirstObjectByType<ModuleRunner>();
+            }
+
+            if (anchorResolver == null)
+            {
+                anchorResolver = FindFirstObjectByType<AnchorResolver>();
             }
 
             if (moduleLoader == null || moduleRunner == null)
@@ -42,6 +57,16 @@ namespace MRModuleEditor.Runtime
             {
                 Debug.LogError("RuntimeBuildAutoStarter stopped because the module failed to load.");
                 yield break;
+            }
+
+            for (int i = 0; i < framesBeforeRecenter; i++)
+            {
+                yield return null;
+            }
+
+            if (recenterWorldBeforePlay && anchorResolver != null)
+            {
+                anchorResolver.RecenterSimulatorWorldOrigin();
             }
 
             bool runnerLoaded = moduleRunner.LoadModule();
