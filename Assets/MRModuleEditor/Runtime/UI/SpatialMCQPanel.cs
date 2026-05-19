@@ -590,7 +590,11 @@ namespace MRModuleEditor.Runtime.UI
             Renderer renderer = quad.GetComponent<Renderer>();
             if (renderer != null)
             {
-                renderer.sharedMaterial = material;
+                if (material != null)
+                {
+                    renderer.sharedMaterial = material;
+                }
+
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
             }
@@ -623,28 +627,12 @@ namespace MRModuleEditor.Runtime.UI
 
         private static Material MakeMaterial(Color color)
         {
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
-
-            Material material = new Material(shader);
-            material.renderQueue = (int)RenderQueue.Transparent;
-            if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1f);
-            if (material.HasProperty("_SrcBlend")) material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-            if (material.HasProperty("_DstBlend")) material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-            if (material.HasProperty("_ZWrite")) material.SetInt("_ZWrite", 0);
-            SetMaterialColor(material, color);
-            return material;
+            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialMCQPanel));
         }
 
         private static void SetMaterialColor(Material material, Color color)
         {
-            if (material == null)
-            {
-                return;
-            }
-
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
+            SpatialMaterialUtility.SetMaterialColor(material, color);
         }
 
         private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)

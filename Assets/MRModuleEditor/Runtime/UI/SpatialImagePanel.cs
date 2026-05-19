@@ -199,7 +199,11 @@ namespace MRModuleEditor.Runtime.UI
             Renderer renderer = quad.GetComponent<Renderer>();
             if (renderer != null)
             {
-                renderer.sharedMaterial = material;
+                if (material != null)
+                {
+                    renderer.sharedMaterial = material;
+                }
+
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
             }
@@ -232,29 +236,12 @@ namespace MRModuleEditor.Runtime.UI
 
         private static Material MakeColorMaterial(Color color)
         {
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
-
-            Material material = new Material(shader);
-            material.renderQueue = (int)RenderQueue.Transparent;
-            if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1f);
-            if (material.HasProperty("_SrcBlend")) material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-            if (material.HasProperty("_DstBlend")) material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-            if (material.HasProperty("_ZWrite")) material.SetInt("_ZWrite", 0);
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", color);
-            return material;
+            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialImagePanel));
         }
 
         private static Material MakeImageMaterial()
         {
-            Shader shader = Shader.Find("Unlit/Texture");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
-
-            Material material = new Material(shader);
-            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", Color.white);
-            if (material.HasProperty("_Color")) material.SetColor("_Color", Color.white);
-            return material;
+            return SpatialMaterialUtility.CreateTextureMaterial(nameof(SpatialImagePanel));
         }
 
         private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)

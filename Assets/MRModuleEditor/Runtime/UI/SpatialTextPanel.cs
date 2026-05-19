@@ -304,7 +304,12 @@ namespace MRModuleEditor.Runtime.UI
             Renderer renderer = quad.GetComponent<Renderer>();
             if (renderer != null)
             {
-                renderer.sharedMaterial = MakeMaterial(color);
+                Material material = MakeMaterial(color);
+                if (material != null)
+                {
+                    renderer.sharedMaterial = material;
+                }
+
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
                 renderer.sortingOrder = sortingOrder;
@@ -479,16 +484,7 @@ namespace MRModuleEditor.Runtime.UI
 
         private static Material MakeMaterial(Color color)
         {
-            Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null)
-            {
-                shader = Shader.Find("Unlit/Color");
-            }
-
-            Material material = new Material(shader);
-            ConfigureTransparentMaterial(material);
-            SetMaterialColor(material, color);
-            return material;
+            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialTextPanel));
         }
 
         private static void ConfigureTransparentMaterial(Material material)
