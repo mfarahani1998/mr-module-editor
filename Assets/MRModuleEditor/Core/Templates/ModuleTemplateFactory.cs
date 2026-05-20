@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.001.head_panel",
                 "step.001",
                 "anchor.head.default",
-                Vec(0f, -0.25f, 0.2f),
+                Vec(0f, -3f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -87,7 +87,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.002.head_panel",
                 "step.002",
                 "anchor.head.default",
-                Vec(0f, -0.25f, 0.2f),
+                Vec(0f, -0.25f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -106,6 +106,14 @@ namespace MRModuleEditor.Core.Templates
                 Vec(0f, 1.5f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(0.75f, 0.75f, 0.75f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.010.head_mcq",
+                "step.010",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
 
             document.anchors.Add(new AnchorDefinition
             {

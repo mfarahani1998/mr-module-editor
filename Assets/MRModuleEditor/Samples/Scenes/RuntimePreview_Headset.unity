@@ -410,10 +410,10 @@ MonoBehaviour:
   anchorResolver: {fileID: 1762172286}
   panelSize: {x: 1.6, y: 0.95}
   imageSize: {x: 1.2, y: 0.52}
-  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
+  defaultLocalOffset: {x: 0, y: -0.15, z: 0}
   wrapCharacters: 50
-  titleCharacterSize: 0.035
-  captionCharacterSize: 0.023
+  titleCharacterSize: 0.03
+  captionCharacterSize: 0.015
   panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
   titleColor: {r: 1, g: 1, b: 1, a: 1}
   captionColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
@@ -1331,6 +1331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugOverlay: 1
+  recenterController: {fileID: 1762172287}
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1404,7 +1405,7 @@ MonoBehaviour:
   viewerCamera: {fileID: 1675253197}
   sceneBindingRegistry: {fileID: 1762172283}
   simulatorWorldOrigin: {fileID: 840358894}
-  headDistance: 1.5
+  headDistance: 2
   headOffset: {x: 0, y: 0, z: 0}
   defaultWorldDistance: 2
 --- !u!114 &1762172287
@@ -1420,6 +1421,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
+  showOnGuiButton: 1
+  enableKeyboardShortcut: 1
+  recenterKey: 114
 --- !u!114 &1762172288
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1549,7 +1553,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
   panelSize: {x: 1.75, y: 1.15}
-  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
+  defaultLocalOffset: {x: 0, y: -0.15, z: 0}
   choiceHeight: 0.16
   choiceGap: 0.035
   wrapCharacters: 50
@@ -1684,25 +1688,25 @@ MonoBehaviour:
   anchorResolver: {fileID: 1762172286}
   autoSizePanel: 1
   panelSize: {x: 3.2, y: 0.58}
-  panelLocalOffset: {x: 0, y: -0.75, z: 0}
+  panelLocalOffset: {x: 0, y: -1, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
-  minimumPanelSize: {x: 2.2, y: 0.52}
-  maximumPanelSize: {x: 4.2, y: 2}
-  padding: {x: 0.18, y: 0.08}
+  minimumPanelSize: {x: 0.8, y: 0.2}
+  maximumPanelSize: {x: 2, y: 0.6}
+  padding: {x: 0.09, y: 0.06}
   textDepthOffset: 0.01
   panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
   showAccentBar: 1
   accentWidth: 0.035
-  accentGap: 0.1
+  accentGap: 0.06
   accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
   wrapCharacters: 50
-  textFontSize: 64
+  textFontSize: 32
   titleCharacterSize: 0.035
   bodyCharacterSize: 0.025
-  titleLineHeight: 0.29
-  bodyLineHeight: 0.18
-  titleBodyGap: 0.035
-  estimatedCharacterWidth: 2.95
+  titleLineHeight: 0.15
+  bodyLineHeight: 0.1
+  titleBodyGap: 0.03
+  estimatedCharacterWidth: 1.5
   titleColor: {r: 1, g: 1, b: 1, a: 1}
   bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
   smoothFollow: 1

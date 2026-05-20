@@ -11,22 +11,22 @@ namespace MRModuleEditor.Runtime.UI
         private AnchorResolver anchorResolver;
 
         [SerializeField]
-        private Vector2 panelSize = new Vector2(1.35f, 0.95f);
+        private Vector2 panelSize = new Vector2(1.5f, 0.95f);
 
         [SerializeField]
         private Vector2 imageSize = new Vector2(1.05f, 0.52f);
 
         [SerializeField]
-        private Vector3 defaultLocalOffset = new Vector3(0f, -0.15f, 1.35f);
+        private Vector3 defaultLocalOffset = new Vector3(0f, -0.15f, 0f);
 
         [SerializeField]
         private int wrapCharacters = 42;
 
         [SerializeField]
-        private float titleCharacterSize = 0.035f;
+        private float titleCharacterSize = 0.025f;
 
         [SerializeField]
-        private float captionCharacterSize = 0.023f;
+        private float captionCharacterSize = 0.015f;
 
         [SerializeField]
         private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.88f);
@@ -153,14 +153,14 @@ namespace MRModuleEditor.Runtime.UI
                 imageMaterial = MakeImageMaterial();
                 imageQuad = CreateQuad("Image", imageMaterial, false);
                 imageQuad.transform.SetParent(transform, false);
-                imageQuad.transform.localPosition = new Vector3(0f, 0.08f, 0.01f);
+                imageQuad.transform.localPosition = new Vector3(0f, 0f, 0.01f);
                 imageQuad.transform.localScale = new Vector3(imageSize.x, imageSize.y, 1f);
             }
 
             if (titleText == null)
             {
                 titleText = CreateText("Title", titleCharacterSize, titleColor);
-                titleText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.08f, 0.02f);
+                titleText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.05f, 0.02f);
             }
 
             if (captionText == null)
@@ -219,7 +219,7 @@ namespace MRModuleEditor.Runtime.UI
             TextMesh textMesh = textObject.AddComponent<TextMesh>();
             textMesh.anchor = TextAnchor.UpperLeft;
             textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = 64;
+            textMesh.fontSize = 32;
             textMesh.characterSize = characterSize;
             textMesh.color = color;
             textMesh.text = "";

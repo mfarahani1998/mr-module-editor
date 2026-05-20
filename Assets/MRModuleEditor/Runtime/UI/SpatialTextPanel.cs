@@ -19,16 +19,16 @@ namespace MRModuleEditor.Runtime.UI
         private Vector2 panelSize = new Vector2(3.2f, 0.58f);
 
         [SerializeField]
-        private Vector3 panelLocalOffset = new Vector3(0f, -0.75f, 0f);
+        private Vector3 panelLocalOffset = new Vector3(0f, -1f, 0f);
 
         [SerializeField]
         private bool applyPanelLocalOffsetToAuthoredLayouts = false;
 
         [SerializeField]
-        private Vector2 minimumPanelSize = new Vector2(2.2f, 0.52f);
+        private Vector2 minimumPanelSize = new Vector2(0.8f, 0.25f);
 
         [SerializeField]
-        private Vector2 maximumPanelSize = new Vector2(4.2f, 2.0f);
+        private Vector2 maximumPanelSize = new Vector2(1.5f, 0.6f);
 
         [SerializeField]
         private Vector2 padding = new Vector2(0.18f, 0.08f);
@@ -56,7 +56,7 @@ namespace MRModuleEditor.Runtime.UI
         private int wrapCharacters = 50;
 
         [SerializeField]
-        private int textFontSize = 64;
+        private int textFontSize = 32;
 
         [SerializeField]
         private float titleCharacterSize = 0.035f;

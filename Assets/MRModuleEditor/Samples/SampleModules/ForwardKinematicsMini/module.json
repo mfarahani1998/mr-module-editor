@@ -64,8 +64,8 @@
       "anchorId": "anchor.head.default",
       "position": {
         "x": 0.0,
-        "y": -0.25,
-        "z": 0.2
+        "y": -3.0,
+        "z": 0.0
       },
       "rotationEuler": {
         "x": 0.0,
@@ -85,7 +85,7 @@
       "position": {
         "x": 0.0,
         "y": -0.25,
-        "z": 0.2
+        "z": 0.0
       },
       "rotationEuler": {
         "x": 0.0,
@@ -136,6 +136,26 @@
         "x": 0.75,
         "y": 0.75,
         "z": 0.75
+      }
+    },
+    {
+      "id": "layout.step.010.head_mcq",
+      "targetId": "step.010",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
       }
     }
   ],

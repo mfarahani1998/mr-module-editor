@@ -23,23 +23,44 @@ namespace MRModuleEditor.Runtime.UI
             public Renderer renderer;
         }
 
+        private const float LocalZBackground = 0f;
+        private const float LocalZChoiceCard = 0.01f;
+        private const float LocalZTitleQuestion = 0.02f;
+        private const float LocalZChoiceText = 0.03f;
+        private const float LocalZFeedbackText = 0.03f;
+        private const float ColliderDepth = 0.04f;
+
+        private const int SortingBackground = 0;
+        private const int SortingChoiceCard = 1;
+        private const int SortingText = 2;
+
+        private const float PaddingX = 0.08f;
+        private const float PaddingY = 0.08f;
+        private const float TitleLineHeight = 0.13f;
+        private const float QuestionLineHeight = 0.12f;
+        private const float TitleQuestionGap = 0.055f;
+        private const float QuestionChoiceGap = 0.09f;
+        private const float ChoiceTextInsetX = 0.055f;
+        private const float ChoiceTextTopOffset = 0.045f;
+        private const float FeedbackGapBelowChoices = 0.045f;
+
         [SerializeField]
         private AnchorResolver anchorResolver;
 
         [SerializeField]
-        private Vector2 panelSize = new Vector2(1.45f, 1.15f);
+        private Vector2 panelSize = new Vector2(1.75f, 1.45f);
 
         [SerializeField]
-        private Vector3 defaultLocalOffset = new Vector3(0f, -0.15f, 1.35f);
+        private Vector3 defaultLocalOffset = new Vector3(0f, -0.15f, 0f);
 
         [SerializeField]
-        private float choiceHeight = 0.16f;
+        private float choiceHeight = 0.18f;
 
         [SerializeField]
-        private float choiceGap = 0.035f;
+        private float choiceGap = 0.04f;
 
         [SerializeField]
-        private int wrapCharacters = 45;
+        private int wrapCharacters = 44;
 
         [SerializeField]
         private bool enableGazeDwell = true;
@@ -142,6 +163,7 @@ namespace MRModuleEditor.Runtime.UI
             feedbackText.text = BuildInputInstruction();
 
             RebuildChoiceVisuals();
+            UpdateVisualLayout();
             gameObject.SetActive(true);
 
             bool poseApplied = ApplyAnchoredPose();
@@ -156,6 +178,7 @@ namespace MRModuleEditor.Runtime.UI
             if (feedbackText != null)
             {
                 feedbackText.text = message ?? "";
+                UpdateVisualLayout();
             }
         }
 
@@ -461,48 +484,47 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (background == null)
             {
-                background = CreateQuad("MCQ Background", MakeMaterial(panelColor), false);
+                background = CreateQuad("MCQ Background", MakeMaterial(panelColor), false, SortingBackground);
                 background.transform.SetParent(transform, false);
                 background.transform.localScale = new Vector3(panelSize.x, panelSize.y, 1f);
             }
 
             if (titleText == null)
             {
-                titleText = CreateText("Title", 0.035f, Color.white);
+                titleText = CreateText("Title", 0.035f, Color.white, SortingText);
                 titleText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.07f, 0.02f);
             }
 
             if (questionText == null)
             {
-                questionText = CreateText("Question", 0.025f, new Color(0.94f, 0.94f, 0.94f, 1f));
+                questionText = CreateText("Question", 0.025f, new Color(0.94f, 0.94f, 0.94f, 1f), SortingText);
                 questionText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.18f, 0.02f);
             }
 
             if (feedbackText == null)
             {
-                feedbackText = CreateText("Feedback", 0.022f, new Color(0.82f, 0.90f, 1f, 1f));
+                feedbackText = CreateText("Feedback", 0.022f, new Color(0.82f, 0.90f, 1f, 1f), SortingText);
                 feedbackText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, -panelSize.y * 0.5f + 0.11f, 0.02f);
             }
+
+            UpdateVisualLayout();
         }
 
         private void RebuildChoiceVisuals()
         {
             ClearChoiceVisuals();
 
-            float topY = 0.18f;
-            float width = panelSize.x - 0.16f;
-
             for (int i = 0; i < choices.Length; i++)
             {
-                GameObject card = CreateQuad("Choice " + (i + 1), MakeMaterial(choiceColor), true);
+                GameObject card = CreateQuad(
+                    "Choice " + (i + 1),
+                    MakeMaterial(choiceColor),
+                    true,
+                    SortingChoiceCard);
                 card.transform.SetParent(transform, false);
-                card.transform.localPosition = new Vector3(0f, topY - i * (choiceHeight + choiceGap), 0.025f);
-                card.transform.localScale = new Vector3(width, choiceHeight, 1f);
 
-                TextMesh text = CreateText("Choice Text " + (i + 1), 0.022f, Color.white);
-                text.transform.localPosition = card.transform.localPosition
-                    + new Vector3(-width * 0.5f + 0.055f, choiceHeight * 0.22f, 0.015f);
-                text.text = (i + 1) + ". " + Wrap(choices[i], 48);
+                TextMesh text = CreateText("Choice Text " + (i + 1), 0.022f, Color.white, SortingText);
+                text.text = (i + 1) + ". " + Wrap(choices[i], wrapCharacters);
 
                 ChoiceVisual visual = new ChoiceVisual();
                 visual.card = card;
@@ -511,7 +533,84 @@ namespace MRModuleEditor.Runtime.UI
                 choiceVisuals.Add(visual);
             }
 
+            UpdateVisualLayout();
             UpdateChoiceColors();
+        }
+
+        private void UpdateVisualLayout()
+        {
+            if (background == null || titleText == null || questionText == null || feedbackText == null)
+            {
+                return;
+            }
+
+            background.transform.localPosition = new Vector3(0f, 0f, LocalZBackground);
+            background.transform.localRotation = Quaternion.identity;
+            background.transform.localScale = new Vector3(panelSize.x, panelSize.y, 1f);
+
+            float left = -panelSize.x * 0.5f + PaddingX;
+            float top = panelSize.y * 0.5f - PaddingY;
+            float choiceWidth = panelSize.x - PaddingX * 2f;
+
+            titleText.transform.localPosition = new Vector3(left, top, LocalZTitleQuestion);
+
+            int titleLines = Mathf.Max(1, CountLines(titleText.text));
+            float questionY = top - titleLines * TitleLineHeight - TitleQuestionGap;
+            questionText.transform.localPosition = new Vector3(left, questionY, LocalZTitleQuestion);
+
+            int questionLines = Mathf.Max(1, CountLines(questionText.text));
+            float firstChoiceCenterY = questionY
+                - questionLines * QuestionLineHeight
+                - QuestionChoiceGap
+                - choiceHeight * 0.5f;
+
+            float lastChoiceBottomY = firstChoiceCenterY;
+
+            for (int i = 0; i < choiceVisuals.Count; i++)
+            {
+                ChoiceVisual visual = choiceVisuals[i];
+                float centerY = firstChoiceCenterY - i * (choiceHeight + choiceGap);
+                lastChoiceBottomY = centerY - choiceHeight * 0.5f;
+
+                if (visual.card != null)
+                {
+                    visual.card.transform.localPosition = new Vector3(0f, centerY, LocalZChoiceCard);
+                    visual.card.transform.localRotation = Quaternion.identity;
+                    visual.card.transform.localScale = new Vector3(choiceWidth, choiceHeight, 1f);
+                }
+
+                if (visual.text != null)
+                {
+                    visual.text.transform.localPosition = new Vector3(
+                        -choiceWidth * 0.5f + ChoiceTextInsetX,
+                        centerY + choiceHeight * 0.5f - ChoiceTextTopOffset,
+                        LocalZChoiceText);
+                }
+            }
+
+            float feedbackY = lastChoiceBottomY - FeedbackGapBelowChoices;
+            float bottomSafeY = -panelSize.y * 0.5f + PaddingY + 0.08f;
+            feedbackY = Mathf.Max(bottomSafeY, feedbackY);
+            feedbackText.transform.localPosition = new Vector3(left, feedbackY, LocalZFeedbackText);
+        }
+
+        private static int CountLines(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return 0;
+            }
+
+            int count = 1;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
+                {
+                    count++;
+                }
+            }
+
+            return count;
         }
 
         private void ClearChoiceVisuals()
@@ -561,7 +660,11 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
-        private GameObject CreateQuad(string objectName, Material material, bool keepCollider)
+        private GameObject CreateQuad(
+            string objectName,
+            Material material,
+            bool keepCollider,
+            int sortingOrder)
         {
             GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             quad.name = objectName;
@@ -576,33 +679,32 @@ namespace MRModuleEditor.Runtime.UI
             }
             else
             {
-                // Use a BoxCollider instead of relying on the Quad mesh collider.
-                // This makes gaze selection more reliable from either side.
                 if (collider != null)
                 {
                     Destroy(collider);
                 }
 
                 BoxCollider boxCollider = quad.AddComponent<BoxCollider>();
-                boxCollider.size = new Vector3(1f, 1f, 0.04f);
+                boxCollider.size = new Vector3(1f, 1f, ColliderDepth);
             }
 
             Renderer renderer = quad.GetComponent<Renderer>();
             if (renderer != null)
             {
-                if (material != null)
-                {
-                    renderer.sharedMaterial = material;
-                }
-
+                renderer.sharedMaterial = material;
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
+                renderer.sortingOrder = sortingOrder;
             }
 
             return quad;
         }
 
-        private TextMesh CreateText(string objectName, float characterSize, Color color)
+        private TextMesh CreateText(
+            string objectName,
+            float characterSize,
+            Color color,
+            int sortingOrder)
         {
             GameObject textObject = new GameObject(objectName);
             textObject.transform.SetParent(transform, false);
@@ -620,6 +722,7 @@ namespace MRModuleEditor.Runtime.UI
             {
                 renderer.shadowCastingMode = ShadowCastingMode.Off;
                 renderer.receiveShadows = false;
+                renderer.sortingOrder = sortingOrder;
             }
 
             return textMesh;
@@ -705,6 +808,22 @@ namespace MRModuleEditor.Runtime.UI
             }
 
             return builder.ToString();
+        }
+
+        private void OnValidate()
+        {
+            panelSize = new Vector2(Mathf.Max(0.1f, panelSize.x), Mathf.Max(0.1f, panelSize.y));
+            choiceHeight = Mathf.Max(0.02f, choiceHeight);
+            choiceGap = Mathf.Max(0f, choiceGap);
+            wrapCharacters = Mathf.Max(8, wrapCharacters);
+            gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
+            gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
+            gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
+
+            if (background != null)
+            {
+                UpdateVisualLayout();
+            }
         }
     }
 }
