@@ -64,8 +64,8 @@
       "anchorId": "anchor.head.default",
       "position": {
         "x": 0.0,
-        "y": -0.75,
-        "z": 0.0
+        "y": -0.25,
+        "z": 0.2
       },
       "rotationEuler": {
         "x": 0.0,
@@ -84,8 +84,8 @@
       "anchorId": "anchor.head.default",
       "position": {
         "x": 0.0,
-        "y": -0.75,
-        "z": 0.0
+        "y": -0.25,
+        "z": 0.2
       },
       "rotationEuler": {
         "x": 0.0,
@@ -144,7 +144,7 @@
       "id": "step.001",
       "type": "text",
       "title": "Welcome",
-      "durationSeconds": 3.0,
+      "durationSeconds": 10.0,
       "parameters": {
         "text": "Welcome to the forward kinematics mini demo.",
         "anchorId": "anchor.head.default"
@@ -154,7 +154,7 @@
       "id": "step.002",
       "type": "image",
       "title": "Module Overview",
-      "durationSeconds": 3.0,
+      "durationSeconds": 10.0,
       "parameters": {
         "assetId": "asset.intro_image",
         "caption": "This placeholder image proves that the runtime can resolve an image asset from the module folder."
@@ -181,7 +181,7 @@
       "id": "step.005",
       "type": "moveObject",
       "title": "Move Robot Preview",
-      "durationSeconds": 2.0,
+      "durationSeconds": 3.0,
       "parameters": {
         "objectId": "object.robot_preview",
         "position": {
@@ -200,7 +200,7 @@
       "id": "step.006",
       "type": "text",
       "title": "Robot Callout",
-      "durationSeconds": 3.0,
+      "durationSeconds": 5.0,
       "parameters": {
         "text": "This callout follows the robot object through anchor.object.robot.",
         "anchorId": "anchor.object.robot"
@@ -233,7 +233,7 @@
       "id": "step.009",
       "type": "text",
       "title": "Forward Kinematics Idea",
-      "durationSeconds": 3.0,
+      "durationSeconds": 5.0,
       "parameters": {
         "text": "Forward kinematics uses the joint angles to compute the end-effector pose.",
         "anchorId": "anchor.object.robot"

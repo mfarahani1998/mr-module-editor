@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.001.head_panel",
                 "step.001",
                 "anchor.head.default",
-                Vec(0f, -0.75f, 0f),
+                Vec(0f, -0.25f, 0.2f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -87,7 +87,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.002.head_panel",
                 "step.002",
                 "anchor.head.default",
-                Vec(0f, -0.75f, 0f),
+                Vec(0f, -0.25f, 0.2f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -114,12 +114,12 @@ namespace MRModuleEditor.Core.Templates
                 targetObjectId = "object.robot_preview"
             });
 
-            ModuleStep welcome = Step("step.001", "text", "Welcome", 3f);
+            ModuleStep welcome = Step("step.001", "text", "Welcome", 10f);
             welcome.parameters["text"] = JToken.FromObject("Welcome to the forward kinematics mini demo.");
             welcome.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             document.steps.Add(welcome);
 
-            ModuleStep image = Step("step.002", "image", "Module Overview", 3f);
+            ModuleStep image = Step("step.002", "image", "Module Overview", 10f);
             image.parameters["assetId"] = JToken.FromObject("asset.intro_image");
             image.parameters["caption"] = JToken.FromObject("This placeholder image proves that the runtime can resolve an image asset from the module folder.");
             document.steps.Add(image);
@@ -132,13 +132,13 @@ namespace MRModuleEditor.Core.Templates
             showRobot.parameters["visible"] = JToken.FromObject(true);
             document.steps.Add(showRobot);
 
-            ModuleStep moveRobot = Step("step.005", "moveObject", "Move Robot Preview", 2f);
+            ModuleStep moveRobot = Step("step.005", "moveObject", "Move Robot Preview", 3f);
             moveRobot.parameters["objectId"] = JToken.FromObject("object.robot_preview");
             moveRobot.parameters["position"] = Vector(0f, 0f, 1.5f);
             moveRobot.parameters["rotationEuler"] = Vector(0f, 45f, 0f);
             document.steps.Add(moveRobot);
 
-            ModuleStep concept = Step("step.006", "text", "Robot Callout", 3f);
+            ModuleStep concept = Step("step.006", "text", "Robot Callout", 5f);
             concept.parameters["text"] = JToken.FromObject("This callout follows the robot object through anchor.object.robot.");
             concept.parameters["anchorId"] = JToken.FromObject("anchor.object.robot");
             document.steps.Add(concept);
@@ -156,7 +156,7 @@ namespace MRModuleEditor.Core.Templates
             rotateJoint.parameters["showFrame"] = JToken.FromObject(true);
             document.steps.Add(rotateJoint);
 
-            ModuleStep fkIdea = Step("step.009", "text", "Forward Kinematics Idea", 3f);
+            ModuleStep fkIdea = Step("step.009", "text", "Forward Kinematics Idea", 5f);
             fkIdea.parameters["text"] = JToken.FromObject("Forward kinematics uses the joint angles to compute the end-effector pose.");
             fkIdea.parameters["anchorId"] = JToken.FromObject("anchor.object.robot");
             document.steps.Add(fkIdea);
