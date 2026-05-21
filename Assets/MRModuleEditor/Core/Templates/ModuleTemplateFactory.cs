@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.001.head_panel",
                 "step.001",
                 "anchor.head.default",
-                Vec(0f, -1f, 0f),
+                Vec(0f, -0.9f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 

@@ -3,6 +3,7 @@ using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.XR;
 
 namespace MRModuleEditor.Runtime.UI
@@ -21,9 +22,11 @@ namespace MRModuleEditor.Runtime.UI
             public GameObject card;
             public TextMesh text;
             public Renderer renderer;
+            public float height;
         }
 
         private const float LocalZBackground = 0f;
+        private const float LocalZAccent = 0.005f;
         private const float LocalZChoiceCard = 0.01f;
         private const float LocalZTitleQuestion = 0.02f;
         private const float LocalZChoiceText = 0.03f;
@@ -31,37 +34,148 @@ namespace MRModuleEditor.Runtime.UI
         private const float ColliderDepth = 0.04f;
 
         private const int SortingBackground = 0;
+        private const int SortingAccent = 1;
         private const int SortingChoiceCard = 1;
         private const int SortingText = 2;
-
-        private const float PaddingX = 0.08f;
-        private const float PaddingY = 0.08f;
-        private const float TitleLineHeight = 0.13f;
-        private const float QuestionLineHeight = 0.12f;
-        private const float TitleQuestionGap = 0.055f;
-        private const float QuestionChoiceGap = 0.09f;
-        private const float ChoiceTextInsetX = 0.055f;
-        private const float ChoiceTextTopOffset = 0.045f;
-        private const float FeedbackGapBelowChoices = 0.045f;
 
         [SerializeField]
         private AnchorResolver anchorResolver;
 
+        [Header("Panel")]
+        [SerializeField]
+        private bool autoSizePanel = true;
+
+        // Used as the fixed size when autoSizePanel is disabled.
         [SerializeField]
         private Vector2 panelSize = new Vector2(1.75f, 1.45f);
 
+        [FormerlySerializedAs("defaultLocalOffset")]
         [SerializeField]
-        private Vector3 defaultLocalOffset = new Vector3(0f, -0.15f, 0f);
+        private Vector3 panelLocalOffset = new Vector3(0f, -0.15f, 0f);
 
         [SerializeField]
+        private bool applyPanelLocalOffsetToAuthoredLayouts = false;
+
+        [SerializeField]
+        private Vector2 minimumPanelSize = new Vector2(1.0f, 0.65f);
+
+        [SerializeField]
+        private Vector2 maximumPanelSize = new Vector2(2.1f, 2.0f);
+
+        [SerializeField]
+        private Vector2 padding = new Vector2(0.08f, 0.08f);
+
+        [SerializeField]
+        private float textDepthOffset = 0.02f;
+
+        [SerializeField]
+        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.90f);
+
+        [SerializeField]
+        private bool showAccentBar = false;
+
+        [SerializeField]
+        private float accentWidth = 0.035f;
+
+        [SerializeField]
+        private float accentGap = 0.08f;
+
+        [SerializeField]
+        private Color accentColor = new Color(0.28f, 0.68f, 1.0f, 0.95f);
+
+        [Header("Text")]
+        [SerializeField]
+        private int wrapCharacters = 50;
+
+        [SerializeField]
+        private int textFontSize = 32;
+
+        [SerializeField]
+        private float titleCharacterSize = 0.022f;
+
+        [SerializeField]
+        private float questionCharacterSize = 0.03f;
+
+        [SerializeField]
+        private float choiceCharacterSize = 0.022f;
+
+        [SerializeField]
+        private float feedbackCharacterSize = 0.022f;
+
+        [SerializeField]
+        private float titleLineHeight = 0.11f;
+
+        [SerializeField]
+        private float questionLineHeight = 0.14f;
+
+        [SerializeField]
+        private float choiceLineHeight = 0.065f;
+
+        [SerializeField]
+        private float feedbackLineHeight = 0.095f;
+
+        [SerializeField]
+        private float titleQuestionGap = 0.055f;
+
+        [SerializeField]
+        private float questionChoiceGap = 0.09f;
+
+        [SerializeField]
+        private float feedbackGapBelowChoices = 0.045f;
+
+        // TextMesh is not layout-aware. This multiplier is an intentionally simple
+        // approximation used to size primitive backgrounds from character counts.
+        [SerializeField]
+        private float estimatedCharacterWidth = 1.8f;
+
+        [SerializeField]
+        private Color titleColor = Color.white;
+
+        [SerializeField]
+        private Color questionColor = new Color(0.94f, 0.94f, 0.94f, 1f);
+
+        [SerializeField]
+        private Color choiceTextColor = Color.white;
+
+        [SerializeField]
+        private Color feedbackColor = new Color(0.82f, 0.90f, 1f, 1f);
+
+        [Header("Choices")]
+        [SerializeField]
+        private bool autoSizeChoiceCards = true;
+
+        // Used as the fixed choice height when autoSizeChoiceCards is disabled.
+        [SerializeField]
         private float choiceHeight = 0.18f;
+
+        [SerializeField]
+        private float minimumChoiceHeight = 0.18f;
+
+        [SerializeField]
+        private float choiceVerticalPadding = 0.075f;
 
         [SerializeField]
         private float choiceGap = 0.04f;
 
         [SerializeField]
-        private int wrapCharacters = 44;
+        private float choiceTextInsetX = 0.055f;
 
+        [SerializeField]
+        private float choiceTextTopOffset = 0.045f;
+
+        [SerializeField]
+        private Color choiceColor = new Color(0.16f, 0.20f, 0.26f, 0.96f);
+
+        [SerializeField]
+        private Color gazeColor = new Color(0.25f, 0.42f, 0.72f, 0.96f);
+
+        [SerializeField]
+        private Color selectedColor = new Color(0.20f, 0.55f, 0.35f, 0.96f);
+
+        [SerializeField]
+        private Color wrongColor = new Color(0.62f, 0.20f, 0.20f, 0.96f);
+
+        [Header("Input")]
         [SerializeField]
         private bool enableGazeDwell = true;
 
@@ -86,22 +200,18 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private bool enableKeyboardNumbers = true;
 
+        [Header("Head Follow")]
         [SerializeField]
-        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.90f);
+        private bool smoothFollow = true;
 
         [SerializeField]
-        private Color choiceColor = new Color(0.16f, 0.20f, 0.26f, 0.96f);
+        private float followSharpness = 16f;
 
         [SerializeField]
-        private Color gazeColor = new Color(0.25f, 0.42f, 0.72f, 0.96f);
-
-        [SerializeField]
-        private Color selectedColor = new Color(0.20f, 0.55f, 0.35f, 0.96f);
-
-        [SerializeField]
-        private Color wrongColor = new Color(0.62f, 0.20f, 0.20f, 0.96f);
+        private float snapDistance = 2.5f;
 
         private GameObject background;
+        private GameObject accentBar;
         private TextMesh titleText;
         private TextMesh questionText;
         private TextMesh feedbackText;
@@ -119,6 +229,7 @@ namespace MRModuleEditor.Runtime.UI
         private bool gazeEnabledForCurrentQuestion;
         private bool gazeNeedsFreshTarget;
         private bool poseLockedForCurrentQuestion;
+        private bool hasAppliedPose;
 
         public bool HasAnswer
         {
@@ -133,7 +244,52 @@ namespace MRModuleEditor.Runtime.UI
         private void Awake()
         {
             EnsureBaseVisuals();
-            gameObject.SetActive(false);
+            Clear();
+        }
+
+        private void OnValidate()
+        {
+            panelSize = ClampVector(panelSize, new Vector2(0.1f, 0.1f));
+            minimumPanelSize = ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
+            maximumPanelSize = new Vector2(
+                Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
+                Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
+            padding = ClampVector(padding, Vector2.zero);
+            textDepthOffset = Mathf.Max(0.001f, textDepthOffset);
+            wrapCharacters = Mathf.Max(1, wrapCharacters);
+            textFontSize = Mathf.Max(1, textFontSize);
+            titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
+            questionCharacterSize = Mathf.Max(0.001f, questionCharacterSize);
+            choiceCharacterSize = Mathf.Max(0.001f, choiceCharacterSize);
+            feedbackCharacterSize = Mathf.Max(0.001f, feedbackCharacterSize);
+            titleLineHeight = Mathf.Max(0.001f, titleLineHeight);
+            questionLineHeight = Mathf.Max(0.001f, questionLineHeight);
+            choiceLineHeight = Mathf.Max(0.001f, choiceLineHeight);
+            feedbackLineHeight = Mathf.Max(0.001f, feedbackLineHeight);
+            titleQuestionGap = Mathf.Max(0f, titleQuestionGap);
+            questionChoiceGap = Mathf.Max(0f, questionChoiceGap);
+            feedbackGapBelowChoices = Mathf.Max(0f, feedbackGapBelowChoices);
+            estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
+            accentWidth = Mathf.Max(0f, accentWidth);
+            accentGap = Mathf.Max(0f, accentGap);
+            choiceHeight = Mathf.Max(0.02f, choiceHeight);
+            minimumChoiceHeight = Mathf.Max(0.02f, minimumChoiceHeight);
+            choiceVerticalPadding = Mathf.Max(0f, choiceVerticalPadding);
+            choiceGap = Mathf.Max(0f, choiceGap);
+            choiceTextInsetX = Mathf.Max(0f, choiceTextInsetX);
+            choiceTextTopOffset = Mathf.Max(0f, choiceTextTopOffset);
+            gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
+            gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
+            gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
+            followSharpness = Mathf.Max(0.01f, followSharpness);
+            snapDistance = Mathf.Max(0.01f, snapDistance);
+
+            if (background != null && titleText != null && questionText != null && feedbackText != null)
+            {
+                ApplyTextSettings();
+                UpdateMaterialColors();
+                UpdateVisualLayout();
+            }
         }
 
         public void ShowMCQ(
@@ -157,11 +313,14 @@ namespace MRModuleEditor.Runtime.UI
             gazeEnabledForCurrentQuestion = IsGazeDwellAvailable();
             gazeNeedsFreshTarget = requireFreshGazeTarget && gazeEnabledForCurrentQuestion;
             poseLockedForCurrentQuestion = false;
+            hasAppliedPose = false;
 
-            titleText.text = step == null ? "Quick Check" : step.title ?? "Quick Check";
-            questionText.text = Wrap(question ?? "", wrapCharacters);
-            feedbackText.text = BuildInputInstruction();
+            titleText.text = Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(titleCharacterSize, 0f));
+            questionText.text = Wrap(question ?? "", GetEffectiveWrapCharacters(questionCharacterSize, 0f));
+            feedbackText.text = Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
 
+            ApplyTextSettings();
+            UpdateMaterialColors();
             RebuildChoiceVisuals();
             UpdateVisualLayout();
             gameObject.SetActive(true);
@@ -177,7 +336,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (feedbackText != null)
             {
-                feedbackText.text = message ?? "";
+                feedbackText.text = Wrap(message ?? "", GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
                 UpdateVisualLayout();
             }
         }
@@ -200,10 +359,12 @@ namespace MRModuleEditor.Runtime.UI
 
         public void ClearIfShowingStep(string stepId)
         {
-            if (!string.IsNullOrEmpty(stepId) && showingStepId == stepId)
+            if (string.IsNullOrEmpty(stepId) || showingStepId != stepId)
             {
-                Clear();
+                return;
             }
+
+            Clear();
         }
 
         public void Clear()
@@ -220,12 +381,14 @@ namespace MRModuleEditor.Runtime.UI
             gazeEnabledForCurrentQuestion = false;
             gazeNeedsFreshTarget = false;
             poseLockedForCurrentQuestion = false;
+            hasAppliedPose = false;
 
             if (titleText != null) titleText.text = "";
             if (questionText != null) questionText.text = "";
             if (feedbackText != null) feedbackText.text = "";
 
             ClearChoiceVisuals();
+            if (background != null) UpdateVisualLayout();
             gameObject.SetActive(false);
         }
 
@@ -291,9 +454,15 @@ namespace MRModuleEditor.Runtime.UI
                 return false;
             }
 
+            ApplyPose(anchorPose, layout);
+            return true;
+        }
+
+        private void ApplyPose(Pose anchorPose, LayoutDefinition layout)
+        {
             Vector3 localPosition = layout == null
-                ? defaultLocalOffset
-                : RuntimeLayoutApplier.ToVector3(layout.position, defaultLocalOffset);
+                ? Vector3.zero
+                : RuntimeLayoutApplier.ToVector3(layout.position, Vector3.zero);
 
             Vector3 localEuler = layout == null
                 ? Vector3.zero
@@ -303,10 +472,36 @@ namespace MRModuleEditor.Runtime.UI
                 ? Vector3.one
                 : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
 
-            transform.position = anchorPose.position + anchorPose.rotation * localPosition;
-            transform.rotation = anchorPose.rotation * Quaternion.Euler(localEuler);
+            if (layout == null || applyPanelLocalOffsetToAuthoredLayouts)
+            {
+                localPosition += panelLocalOffset;
+            }
+
+            Quaternion localRotation = Quaternion.Euler(localEuler);
+            Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;
+            Quaternion targetRotation = anchorPose.rotation * localRotation;
+
             transform.localScale = localScale;
-            return true;
+
+            if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
+            {
+                transform.position = targetPosition;
+                transform.rotation = targetRotation;
+                hasAppliedPose = true;
+                return;
+            }
+
+            float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetPosition) > snapDistance)
+            {
+                transform.position = targetPosition;
+            }
+            else
+            {
+                transform.position = Vector3.Lerp(transform.position, targetPosition, t);
+            }
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
         }
 
         private void UpdateKeyboardNumbers()
@@ -411,11 +606,15 @@ namespace MRModuleEditor.Runtime.UI
 
         private string BuildInputInstruction()
         {
-            if (gazeEnabledForCurrentQuestion && enableKeyboardNumbers)
+            string keyboardInstruction = BuildKeyboardInstruction();
+            bool hasKeyboardInstruction = !string.IsNullOrEmpty(keyboardInstruction);
+
+            if (gazeEnabledForCurrentQuestion && hasKeyboardInstruction)
             {
                 return "Look away once, then look at an answer for "
                     + gazeDwellSeconds.ToString("0.0")
-                    + "s; or press 1-4.";
+                    + "s; or "
+                    + keyboardInstruction;
             }
 
             if (gazeEnabledForCurrentQuestion)
@@ -425,12 +624,38 @@ namespace MRModuleEditor.Runtime.UI
                     + "s.";
             }
 
-            if (enableKeyboardNumbers)
+            if (hasKeyboardInstruction)
             {
-                return "Press 1-4 to answer.";
+                return UppercaseFirst(keyboardInstruction);
             }
 
             return "Choose an answer.";
+        }
+
+        private string BuildKeyboardInstruction()
+        {
+            if (!enableKeyboardNumbers || choices == null || choices.Length <= 0)
+            {
+                return "";
+            }
+
+            int keyboardChoiceCount = Mathf.Min(choices.Length, 4);
+            if (keyboardChoiceCount == 1)
+            {
+                return "press 1 to answer.";
+            }
+
+            return "press 1-" + keyboardChoiceCount + " to answer.";
+        }
+
+        private static string UppercaseFirst(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value ?? "";
+            }
+
+            return char.ToUpperInvariant(value[0]) + value.Substring(1);
         }
 
         private bool IsCurrentStepHeadAnchored()
@@ -486,27 +711,31 @@ namespace MRModuleEditor.Runtime.UI
             {
                 background = CreateQuad("MCQ Background", MakeMaterial(panelColor), false, SortingBackground);
                 background.transform.SetParent(transform, false);
-                background.transform.localScale = new Vector3(panelSize.x, panelSize.y, 1f);
+            }
+
+            if (accentBar == null)
+            {
+                accentBar = CreateQuad("MCQ Accent", MakeMaterial(accentColor), false, SortingAccent);
+                accentBar.transform.SetParent(transform, false);
             }
 
             if (titleText == null)
             {
-                titleText = CreateText("Title", 0.035f, Color.white, SortingText);
-                titleText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.07f, 0.02f);
+                titleText = CreateText("Title", titleCharacterSize, titleColor, SortingText);
             }
 
             if (questionText == null)
             {
-                questionText = CreateText("Question", 0.025f, new Color(0.94f, 0.94f, 0.94f, 1f), SortingText);
-                questionText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, panelSize.y * 0.5f - 0.18f, 0.02f);
+                questionText = CreateText("Question", questionCharacterSize, questionColor, SortingText);
             }
 
             if (feedbackText == null)
             {
-                feedbackText = CreateText("Feedback", 0.022f, new Color(0.82f, 0.90f, 1f, 1f), SortingText);
-                feedbackText.transform.localPosition = new Vector3(-panelSize.x * 0.5f + 0.08f, -panelSize.y * 0.5f + 0.11f, 0.02f);
+                feedbackText = CreateText("Feedback", feedbackCharacterSize, feedbackColor, SortingText);
             }
 
+            ApplyTextSettings();
+            UpdateMaterialColors();
             UpdateVisualLayout();
         }
 
@@ -523,17 +752,58 @@ namespace MRModuleEditor.Runtime.UI
                     SortingChoiceCard);
                 card.transform.SetParent(transform, false);
 
-                TextMesh text = CreateText("Choice Text " + (i + 1), 0.022f, Color.white, SortingText);
-                text.text = (i + 1) + ". " + Wrap(choices[i], wrapCharacters);
+                TextMesh text = CreateText("Choice Text " + (i + 1), choiceCharacterSize, choiceTextColor, SortingText);
+                text.text = BuildChoiceText(i);
 
                 ChoiceVisual visual = new ChoiceVisual();
                 visual.card = card;
                 visual.text = text;
                 visual.renderer = card.GetComponent<Renderer>();
+                visual.height = GetChoiceCardHeight(text.text);
                 choiceVisuals.Add(visual);
             }
 
             UpdateVisualLayout();
+            UpdateChoiceColors();
+        }
+
+        private string BuildChoiceText(int index)
+        {
+            string choice = choices != null && index >= 0 && index < choices.Length ? choices[index] ?? "" : "";
+            string label = (index + 1) + ". " + choice;
+            return Wrap(label, GetEffectiveWrapCharacters(choiceCharacterSize, choiceTextInsetX * 2f));
+        }
+
+        private void ApplyTextSettings()
+        {
+            ConfigureText(titleText, titleCharacterSize, titleColor);
+            ConfigureText(questionText, questionCharacterSize, questionColor);
+            ConfigureText(feedbackText, feedbackCharacterSize, feedbackColor);
+
+            for (int i = 0; i < choiceVisuals.Count; i++)
+            {
+                ConfigureText(choiceVisuals[i].text, choiceCharacterSize, choiceTextColor);
+            }
+        }
+
+        private void ConfigureText(TextMesh textMesh, float characterSize, Color color)
+        {
+            if (textMesh == null)
+            {
+                return;
+            }
+
+            textMesh.anchor = TextAnchor.UpperLeft;
+            textMesh.alignment = TextAlignment.Left;
+            textMesh.fontSize = textFontSize;
+            textMesh.characterSize = characterSize;
+            textMesh.color = color;
+        }
+
+        private void UpdateMaterialColors()
+        {
+            SetRendererColor(background, panelColor);
+            SetRendererColor(accentBar, accentColor);
             UpdateChoiceColors();
         }
 
@@ -544,54 +814,224 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
+            string title = titleText.text ?? "";
+            string question = questionText.text ?? "";
+            string feedback = feedbackText.text ?? "";
+            bool hasTitle = !string.IsNullOrWhiteSpace(title);
+            bool hasQuestion = !string.IsNullOrWhiteSpace(question);
+            bool hasFeedback = !string.IsNullOrWhiteSpace(feedback);
+
+            Vector2 actualSize = autoSizePanel ? CalculatePanelSize(title, question, feedback, hasTitle, hasQuestion, hasFeedback) : panelSize;
+            actualSize = new Vector2(Mathf.Max(0.1f, actualSize.x), Mathf.Max(0.1f, actualSize.y));
+
             background.transform.localPosition = new Vector3(0f, 0f, LocalZBackground);
             background.transform.localRotation = Quaternion.identity;
-            background.transform.localScale = new Vector3(panelSize.x, panelSize.y, 1f);
+            background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
-            float left = -panelSize.x * 0.5f + PaddingX;
-            float top = panelSize.y * 0.5f - PaddingY;
-            float choiceWidth = panelSize.x - PaddingX * 2f;
+            float extraLeftInset = GetExtraLeftInset();
+            float contentLeft = -actualSize.x * 0.5f + padding.x + extraLeftInset;
+            float contentTop = actualSize.y * 0.5f - padding.y;
+            float contentWidth = Mathf.Max(0.01f, actualSize.x - padding.x * 2f - extraLeftInset);
+            float contentCenterX = contentLeft + contentWidth * 0.5f;
+            float choiceWidth = contentWidth;
 
-            titleText.transform.localPosition = new Vector3(left, top, LocalZTitleQuestion);
+            if (accentBar != null)
+            {
+                accentBar.SetActive(showAccentBar);
+                accentBar.transform.localPosition = new Vector3(
+                    -actualSize.x * 0.5f + padding.x * 0.5f,
+                    0f,
+                    LocalZAccent);
+                accentBar.transform.localRotation = Quaternion.identity;
+                accentBar.transform.localScale = new Vector3(
+                    accentWidth,
+                    Mathf.Max(0.01f, actualSize.y - padding.y * 1.5f),
+                    1f);
+            }
 
-            int titleLines = Mathf.Max(1, CountLines(titleText.text));
-            float questionY = top - titleLines * TitleLineHeight - TitleQuestionGap;
-            questionText.transform.localPosition = new Vector3(left, questionY, LocalZTitleQuestion);
+            float cursorY = contentTop;
+            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            if (hasTitle)
+            {
+                cursorY -= CountLines(title) * titleLineHeight;
+            }
 
-            int questionLines = Mathf.Max(1, CountLines(questionText.text));
-            float firstChoiceCenterY = questionY
-                - questionLines * QuestionLineHeight
-                - QuestionChoiceGap
-                - choiceHeight * 0.5f;
+            if (hasTitle && hasQuestion)
+            {
+                cursorY -= titleQuestionGap;
+            }
 
-            float lastChoiceBottomY = firstChoiceCenterY;
+            questionText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            if (hasQuestion)
+            {
+                cursorY -= CountLines(question) * questionLineHeight;
+            }
+
+            if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
+            {
+                cursorY -= questionChoiceGap;
+            }
 
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
                 ChoiceVisual visual = choiceVisuals[i];
-                float centerY = firstChoiceCenterY - i * (choiceHeight + choiceGap);
-                lastChoiceBottomY = centerY - choiceHeight * 0.5f;
+                float cardHeight = GetChoiceCardHeight(visual.text == null ? "" : visual.text.text);
+                visual.height = cardHeight;
+
+                if (i > 0)
+                {
+                    cursorY -= choiceGap;
+                }
+
+                float centerY = cursorY - cardHeight * 0.5f;
 
                 if (visual.card != null)
                 {
-                    visual.card.transform.localPosition = new Vector3(0f, centerY, LocalZChoiceCard);
+                    visual.card.transform.localPosition = new Vector3(contentCenterX, centerY, LocalZChoiceCard);
                     visual.card.transform.localRotation = Quaternion.identity;
-                    visual.card.transform.localScale = new Vector3(choiceWidth, choiceHeight, 1f);
+                    visual.card.transform.localScale = new Vector3(choiceWidth, cardHeight, 1f);
                 }
 
                 if (visual.text != null)
                 {
                     visual.text.transform.localPosition = new Vector3(
-                        -choiceWidth * 0.5f + ChoiceTextInsetX,
-                        centerY + choiceHeight * 0.5f - ChoiceTextTopOffset,
+                        contentLeft + choiceTextInsetX,
+                        centerY + cardHeight * 0.5f - choiceTextTopOffset,
                         LocalZChoiceText);
+                }
+
+                cursorY -= cardHeight;
+            }
+
+            if (hasFeedback)
+            {
+                if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
+                {
+                    cursorY -= feedbackGapBelowChoices;
                 }
             }
 
-            float feedbackY = lastChoiceBottomY - FeedbackGapBelowChoices;
-            float bottomSafeY = -panelSize.y * 0.5f + PaddingY + 0.08f;
-            feedbackY = Mathf.Max(bottomSafeY, feedbackY);
-            feedbackText.transform.localPosition = new Vector3(left, feedbackY, LocalZFeedbackText);
+            feedbackText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZFeedbackText);
+        }
+
+        private Vector2 CalculatePanelSize(
+            string title,
+            string question,
+            string feedback,
+            bool hasTitle,
+            bool hasQuestion,
+            bool hasFeedback)
+        {
+            float extraLeftInset = GetExtraLeftInset();
+            float titleWidth = LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
+            float questionWidth = LongestLineLength(question) * questionCharacterSize * estimatedCharacterWidth;
+            float feedbackWidth = LongestLineLength(feedback) * feedbackCharacterSize * estimatedCharacterWidth;
+            float choiceWidth = GetDesiredChoicesWidth();
+
+            float desiredContentWidth = Mathf.Max(
+                Mathf.Max(titleWidth, questionWidth),
+                Mathf.Max(choiceWidth, feedbackWidth));
+            float desiredWidth = desiredContentWidth + padding.x * 2f + extraLeftInset;
+            desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
+
+            float desiredHeight = padding.y * 2f;
+            if (hasTitle)
+            {
+                desiredHeight += CountLines(title) * titleLineHeight;
+            }
+
+            if (hasTitle && hasQuestion)
+            {
+                desiredHeight += titleQuestionGap;
+            }
+
+            if (hasQuestion)
+            {
+                desiredHeight += CountLines(question) * questionLineHeight;
+            }
+
+            if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
+            {
+                desiredHeight += questionChoiceGap;
+            }
+
+            for (int i = 0; i < choiceVisuals.Count; i++)
+            {
+                if (i > 0)
+                {
+                    desiredHeight += choiceGap;
+                }
+
+                desiredHeight += GetChoiceCardHeight(choiceVisuals[i].text == null ? "" : choiceVisuals[i].text.text);
+            }
+
+            if (hasFeedback)
+            {
+                if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
+                {
+                    desiredHeight += feedbackGapBelowChoices;
+                }
+
+                desiredHeight += CountLines(feedback) * feedbackLineHeight;
+            }
+
+            if (!hasTitle && !hasQuestion && choiceVisuals.Count == 0 && !hasFeedback)
+            {
+                desiredHeight += questionLineHeight;
+            }
+
+            desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
+            return new Vector2(desiredWidth, desiredHeight);
+        }
+
+        private float GetDesiredChoicesWidth()
+        {
+            float result = 0f;
+            for (int i = 0; i < choiceVisuals.Count; i++)
+            {
+                string text = choiceVisuals[i].text == null ? "" : choiceVisuals[i].text.text ?? "";
+                float width = LongestLineLength(text) * choiceCharacterSize * estimatedCharacterWidth + choiceTextInsetX * 2f;
+                result = Mathf.Max(result, width);
+            }
+
+            return result;
+        }
+
+        private float GetChoiceCardHeight(string choiceText)
+        {
+            if (!autoSizeChoiceCards)
+            {
+                return choiceHeight;
+            }
+
+            int lineCount = Mathf.Max(1, CountLines(choiceText));
+            float desiredHeight = lineCount * choiceLineHeight + choiceVerticalPadding * 2f;
+            return Mathf.Max(minimumChoiceHeight, desiredHeight);
+        }
+
+        private int GetEffectiveWrapCharacters(float characterSize, float extraHorizontalInset)
+        {
+            int result = Mathf.Max(1, wrapCharacters);
+            if (!autoSizePanel)
+            {
+                return result;
+            }
+
+            float contentWidth = maximumPanelSize.x - padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
+            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * estimatedCharacterWidth);
+            int fitAtMaxWidth = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
+
+            if (fitAtMaxWidth > 0)
+            {
+                result = Mathf.Min(result, fitAtMaxWidth);
+            }
+
+            return Mathf.Max(12, result);
+        }
+
+        private float GetExtraLeftInset()
+        {
+            return showAccentBar ? accentWidth + accentGap : 0f;
         }
 
         private static int CountLines(string text)
@@ -668,6 +1108,8 @@ namespace MRModuleEditor.Runtime.UI
         {
             GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             quad.name = objectName;
+            quad.transform.localPosition = Vector3.zero;
+            quad.transform.localRotation = Quaternion.identity;
 
             Collider collider = quad.GetComponent<Collider>();
             if (!keepCollider)
@@ -708,11 +1150,13 @@ namespace MRModuleEditor.Runtime.UI
         {
             GameObject textObject = new GameObject(objectName);
             textObject.transform.SetParent(transform, false);
+            textObject.transform.localPosition = Vector3.zero;
+            textObject.transform.localRotation = Quaternion.identity;
 
             TextMesh textMesh = textObject.AddComponent<TextMesh>();
             textMesh.anchor = TextAnchor.UpperLeft;
             textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = 64;
+            textMesh.fontSize = textFontSize;
             textMesh.characterSize = characterSize;
             textMesh.color = color;
             textMesh.text = "";
@@ -733,8 +1177,29 @@ namespace MRModuleEditor.Runtime.UI
             return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialMCQPanel));
         }
 
+        private static void SetRendererColor(GameObject target, Color color)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            Renderer renderer = target.GetComponent<Renderer>();
+            if (renderer == null || renderer.sharedMaterial == null)
+            {
+                return;
+            }
+
+            SetMaterialColor(renderer.sharedMaterial, color);
+        }
+
         private static void SetMaterialColor(Material material, Color color)
         {
+            if (material == null)
+            {
+                return;
+            }
+
             SpatialMaterialUtility.SetMaterialColor(material, color);
         }
 
@@ -784,46 +1249,99 @@ namespace MRModuleEditor.Runtime.UI
             }
 
             text = text.Replace("\r\n", "\n").Replace('\r', '\n');
-            string[] words = text.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+            string[] paragraphs = text.Split('\n');
             System.Text.StringBuilder builder = new System.Text.StringBuilder();
-            int lineLength = 0;
 
-            for (int i = 0; i < words.Length; i++)
+            for (int p = 0; p < paragraphs.Length; p++)
             {
-                string word = words[i];
-                if (lineLength > 0 && lineLength + word.Length + 1 > maxCharactersPerLine)
+                if (p > 0)
                 {
                     builder.Append('\n');
-                    lineLength = 0;
                 }
 
-                if (lineLength > 0)
+                string paragraph = paragraphs[p];
+                if (string.IsNullOrWhiteSpace(paragraph))
                 {
-                    builder.Append(' ');
-                    lineLength++;
+                    continue;
                 }
 
-                builder.Append(word);
-                lineLength += word.Length;
+                string[] words = paragraph.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+                int currentLineLength = 0;
+
+                for (int i = 0; i < words.Length; i++)
+                {
+                    string word = words[i];
+
+                    while (word.Length > maxCharactersPerLine)
+                    {
+                        if (currentLineLength > 0)
+                        {
+                            builder.Append('\n');
+                            currentLineLength = 0;
+                        }
+
+                        builder.Append(word.Substring(0, maxCharactersPerLine));
+                        word = word.Substring(maxCharactersPerLine);
+
+                        if (word.Length > 0)
+                        {
+                            builder.Append('\n');
+                        }
+                    }
+
+                    if (word.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    if (currentLineLength > 0 && currentLineLength + word.Length + 1 > maxCharactersPerLine)
+                    {
+                        builder.Append('\n');
+                        currentLineLength = 0;
+                    }
+                    else if (currentLineLength > 0)
+                    {
+                        builder.Append(' ');
+                        currentLineLength++;
+                    }
+
+                    builder.Append(word);
+                    currentLineLength += word.Length;
+                }
             }
 
             return builder.ToString();
         }
 
-        private void OnValidate()
+        private static int LongestLineLength(string text)
         {
-            panelSize = new Vector2(Mathf.Max(0.1f, panelSize.x), Mathf.Max(0.1f, panelSize.y));
-            choiceHeight = Mathf.Max(0.02f, choiceHeight);
-            choiceGap = Mathf.Max(0f, choiceGap);
-            wrapCharacters = Mathf.Max(8, wrapCharacters);
-            gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
-            gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
-            gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
-
-            if (background != null)
+            if (string.IsNullOrEmpty(text))
             {
-                UpdateVisualLayout();
+                return 0;
             }
+
+            int longest = 0;
+            int current = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '\n')
+                {
+                    longest = Mathf.Max(longest, current);
+                    current = 0;
+                }
+                else if (c != '\r')
+                {
+                    current++;
+                }
+            }
+
+            return Mathf.Max(longest, current);
+        }
+
+        private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
+        {
+            return new Vector2(Mathf.Max(minimum.x, value.x), Mathf.Max(minimum.y, value.y));
         }
     }
 }
