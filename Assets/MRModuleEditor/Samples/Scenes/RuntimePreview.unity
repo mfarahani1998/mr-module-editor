@@ -1070,6 +1070,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugOverlay: 1
+  recenterController: {fileID: 0}
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1159,6 +1160,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
+  showOnGuiButton: 1
+  enableKeyboardShortcut: 1
+  recenterKey: 114
 --- !u!114 &1762172288
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1286,7 +1290,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2072459198
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -59,6 +59,23 @@ namespace MRModuleEditor.Runtime.StepHandlers
             return result;
         }
 
+        public static bool GetBool(ModuleStep step, string key, bool fallback)
+        {
+            if (step == null)
+            {
+                return fallback;
+            }
+
+            JToken token = step.GetToken(key);
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                return fallback;
+            }
+
+            bool parsed;
+            return bool.TryParse(token.ToString(), out parsed) ? parsed : fallback;
+        }
+
         private static float ReadFloat(JToken token, float fallback)
         {
             if (token == null || token.Type == JTokenType.Null)

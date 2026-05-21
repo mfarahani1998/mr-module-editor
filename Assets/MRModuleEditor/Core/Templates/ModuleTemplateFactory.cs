@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.step.001.head_panel",
                 "step.001",
                 "anchor.head.default",
-                Vec(0f, -3f, 0f),
+                Vec(0f, -1f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -142,8 +142,9 @@ namespace MRModuleEditor.Core.Templates
 
             ModuleStep moveRobot = Step("step.005", "moveObject", "Move Robot Preview", 3f);
             moveRobot.parameters["objectId"] = JToken.FromObject("object.robot_preview");
-            moveRobot.parameters["position"] = Vector(0f, 0f, 1.5f);
-            moveRobot.parameters["rotationEuler"] = Vector(0f, 45f, 0f);
+            moveRobot.parameters["isRelative"] = JToken.FromObject(true);
+            moveRobot.parameters["positionDelta"] = Vector(1f, 0f, 0f);
+            moveRobot.parameters["rotationEulerDelta"] = Vector(0f, 45f, 0f);
             document.steps.Add(moveRobot);
 
             ModuleStep concept = Step("step.006", "text", "Robot Callout", 5f);

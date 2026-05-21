@@ -64,7 +64,7 @@
       "anchorId": "anchor.head.default",
       "position": {
         "x": 0.0,
-        "y": -0.45,
+        "y": -1.0,
         "z": 0.0
       },
       "rotationEuler": {
@@ -204,12 +204,13 @@
       "durationSeconds": 3.0,
       "parameters": {
         "objectId": "object.robot_preview",
-        "position": {
-          "x": 0.0,
+        "isRelative": true,
+        "positionDelta": {
+          "x": 1.0,
           "y": 0.0,
-          "z": 1.5
+          "z": 0.0
         },
-        "rotationEuler": {
+        "rotationEulerDelta": {
           "x": 0.0,
           "y": 45.0,
           "z": 0.0

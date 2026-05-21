@@ -885,7 +885,7 @@ Transform:
   m_GameObject: {fileID: 1075753858}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.5, y: -3, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1330,7 +1330,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84399aa3411b9bb798c7bf492eac4be0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugOverlay: 1
+  showDebugOverlay: 0
   recenterController: {fileID: 1762172287}
 --- !u!114 &1762172282
 MonoBehaviour:
@@ -1344,7 +1344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c19095b441e0e5cebfa359fea55c202, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showDebugOverlay: 1
+  showDebugOverlay: 0
   enableKeyboardNumbers: 1
 --- !u!114 &1762172283
 MonoBehaviour:
@@ -1649,7 +1649,7 @@ Transform:
   m_GameObject: {fileID: 2072459197}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.5, y: -1.2, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
