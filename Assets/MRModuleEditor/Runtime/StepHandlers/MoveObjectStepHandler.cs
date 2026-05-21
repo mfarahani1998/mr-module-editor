@@ -39,6 +39,13 @@ namespace MRModuleEditor.Runtime.StepHandlers
             Vector3 targetEuler = StepParameterReader.GetVector3(step, "rotationEuler", transform.localEulerAngles);
             Quaternion targetRotation = Quaternion.Euler(targetEuler);
 
+            if (StepParameterReader.GetBool(step, "isRelative", false))
+            {
+                targetPosition += StepParameterReader.GetVector3(step, "positionDelta", Vector3.zero);
+                Vector3 rotationDeltaEuler = StepParameterReader.GetVector3(step, "rotationEulerDelta", Vector3.zero);
+                targetRotation *= Quaternion.Euler(rotationDeltaEuler);
+            }
+
             float elapsed = 0f;
             while (elapsed < duration)
             {

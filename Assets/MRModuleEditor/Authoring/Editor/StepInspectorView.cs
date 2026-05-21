@@ -115,6 +115,7 @@ namespace MRModuleEditor.Authoring.Editor
             else if (step.type == "moveObject")
             {
                 SetIfMissing(step, "objectId", "object.robot_preview");
+                SetIfMissing(step, "isRelative", false);
                 SetVectorIfMissing(step, "position", new Vector3(0f, 0f, 1.5f));
                 SetVectorIfMissing(step, "rotationEuler", new Vector3(0f, 45f, 0f));
                 if (string.IsNullOrWhiteSpace(step.title)) step.title = "Move Object";
@@ -175,8 +176,17 @@ namespace MRModuleEditor.Authoring.Editor
             else if (step.type == "moveObject")
             {
                 DrawString(step, "objectId", "Object ID");
-                DrawVector3(step, "position", "Target Local Position");
-                DrawVector3(step, "rotationEuler", "Target Local Rotation Euler");
+                DrawBool(step, "isRelative", "Is Relative", false);
+                if (step.GetBool("isRelative", false))
+                {
+                    DrawVector3(step, "positionDelta", "Relative Position");
+                    DrawVector3(step, "rotationEulerDelta", "Relative Rotation Euler");
+                }
+                else
+                {
+                    DrawVector3(step, "position", "Target Local Position");
+                    DrawVector3(step, "rotationEuler", "Target Local Rotation Euler");
+                }
             }
             else if (step.type == "showFrame")
             {

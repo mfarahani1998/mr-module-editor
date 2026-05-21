@@ -13,7 +13,7 @@ OcclusionCullingSettings:
 --- !u!104 &2
 RenderSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 10
+  serializedVersion: 9
   m_Fog: 0
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
@@ -42,8 +42,8 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 13
-  m_BakeOnSceneLoad: 0
+  serializedVersion: 12
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -66,6 +66,9 @@ LightmapSettings:
     m_LightmapParameters: {fileID: 0}
     m_LightmapsBakeMode: 1
     m_TextureCompression: 1
+    m_FinalGather: 0
+    m_FinalGatherFiltering: 1
+    m_FinalGatherRayCount: 256
     m_ReflectionCompression: 2
     m_MixedBakeMode: 2
     m_BakeBackend: 1
@@ -263,8 +266,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 203844586}
   m_Enabled: 1
-  serializedVersion: 11
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
@@ -314,12 +318,8 @@ Light:
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
 --- !u!4 &203844589
 Transform:
   m_ObjectHideFlags: 0
@@ -365,15 +365,36 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
-  panelSize: {x: 1.35, y: 0.95}
-  imageSize: {x: 1.05, y: 0.52}
-  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
-  wrapCharacters: 42
-  titleCharacterSize: 0.035
-  captionCharacterSize: 0.023
+  autoSizePanel: 1
+  panelSize: {x: 1.5, y: 0.95}
+  panelLocalOffset: {x: 0, y: -0.15, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.85, y: 0.55}
+  maximumPanelSize: {x: 1.8, y: 1.35}
+  padding: {x: 0.1, y: 0.08}
+  textDepthOffset: 0.02
   panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
+  showAccentBar: 0
+  accentWidth: 0.035
+  accentGap: 0.08
+  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
+  imageSize: {x: 1.05, y: 0.52}
+  minimumImageSize: {x: 0.35, y: 0.22}
+  preserveImageAspectRatio: 1
+  titleImageGap: 0.055
+  imageCaptionGap: 0.055
+  wrapCharacters: 50
+  textFontSize: 32
+  titleCharacterSize: 0.025
+  captionCharacterSize: 0.018
+  titleLineHeight: 0.12
+  captionLineHeight: 0.075
+  estimatedCharacterWidth: 1.5
   titleColor: {r: 1, g: 1, b: 1, a: 1}
   captionColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
+  smoothFollow: 1
+  followSharpness: 16
+  snapDistance: 2.5
 --- !u!4 &671819799
 Transform:
   m_ObjectHideFlags: 0
@@ -461,9 +482,6 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -569,9 +587,6 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -845,9 +860,6 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -986,9 +998,6 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1082,6 +1091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugOverlay: 1
+  recenterController: {fileID: 0}
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1155,7 +1165,7 @@ MonoBehaviour:
   viewerCamera: {fileID: 961739752}
   sceneBindingRegistry: {fileID: 1762172283}
   simulatorWorldOrigin: {fileID: 840358894}
-  headDistance: 5
+  headDistance: 1.7
   headOffset: {x: 0.5, y: 0, z: 0}
   defaultWorldDistance: 2
 --- !u!114 &1762172287
@@ -1171,6 +1181,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
+  showOnGuiButton: 1
+  enableKeyboardShortcut: 1
+  recenterKey: 114
 --- !u!114 &1762172288
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1248,11 +1261,48 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
-  panelSize: {x: 1.45, y: 1.15}
-  defaultLocalOffset: {x: 0, y: -0.15, z: 1.35}
-  choiceHeight: 0.16
-  choiceGap: 0.035
-  wrapCharacters: 45
+  autoSizePanel: 1
+  panelSize: {x: 1.75, y: 1.45}
+  panelLocalOffset: {x: 0, y: -0.15, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 1, y: 0.65}
+  maximumPanelSize: {x: 2.1, y: 2}
+  padding: {x: 0.08, y: 0.08}
+  textDepthOffset: 0.02
+  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.9}
+  showAccentBar: 0
+  accentWidth: 0.035
+  accentGap: 0.08
+  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
+  wrapCharacters: 50
+  textFontSize: 32
+  titleCharacterSize: 0.022
+  questionCharacterSize: 0.03
+  choiceCharacterSize: 0.022
+  feedbackCharacterSize: 0.022
+  titleLineHeight: 0.11
+  questionLineHeight: 0.14
+  choiceLineHeight: 0.065
+  feedbackLineHeight: 0.095
+  titleQuestionGap: 0.055
+  questionChoiceGap: 0.09
+  feedbackGapBelowChoices: 0.045
+  estimatedCharacterWidth: 1.8
+  titleColor: {r: 1, g: 1, b: 1, a: 1}
+  questionColor: {r: 0.94, g: 0.94, b: 0.94, a: 1}
+  choiceTextColor: {r: 1, g: 1, b: 1, a: 1}
+  feedbackColor: {r: 0.82, g: 0.9, b: 1, a: 1}
+  autoSizeChoiceCards: 1
+  choiceHeight: 0.18
+  minimumChoiceHeight: 0.18
+  choiceVerticalPadding: 0.075
+  choiceGap: 0.04
+  choiceTextInsetX: 0.055
+  choiceTextTopOffset: 0.045
+  choiceColor: {r: 0.16, g: 0.2, b: 0.26, a: 0.96}
+  gazeColor: {r: 0.25, g: 0.42, b: 0.72, a: 0.96}
+  selectedColor: {r: 0.2, g: 0.55, b: 0.35, a: 0.96}
+  wrongColor: {r: 0.62, g: 0.2, b: 0.2, a: 0.96}
   enableGazeDwell: 1
   gazeDwellMode: 1
   gazeDwellSeconds: 1
@@ -1261,11 +1311,9 @@ MonoBehaviour:
   lockHeadAnchoredPanelForGaze: 1
   gazeRayDistance: 10
   enableKeyboardNumbers: 1
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.9}
-  choiceColor: {r: 0.16, g: 0.2, b: 0.26, a: 0.96}
-  gazeColor: {r: 0.25, g: 0.42, b: 0.72, a: 0.96}
-  selectedColor: {r: 0.2, g: 0.55, b: 0.35, a: 0.96}
-  wrongColor: {r: 0.62, g: 0.2, b: 0.2, a: 0.96}
+  smoothFollow: 1
+  followSharpness: 16
+  snapDistance: 2.5
 --- !u!4 &1930746980
 Transform:
   m_ObjectHideFlags: 0
@@ -1275,7 +1323,7 @@ Transform:
   m_GameObject: {fileID: 1930746978}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1298,7 +1346,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2072459198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1417,7 +1465,7 @@ Transform:
   m_GameObject: {fileID: 2146630564}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -1,4 +1,5 @@
 using UnityEngine;
+using MRModuleEditor.Runtime.Anchors;
 
 namespace MRModuleEditor.Runtime.UI
 {
@@ -6,6 +7,9 @@ namespace MRModuleEditor.Runtime.UI
     {
         [SerializeField]
         private bool showDebugOverlay = true;
+
+        [SerializeField]
+        private SimulatorRecenterController recenterController;
 
         private ModuleRunner runner;
 
@@ -27,7 +31,7 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            GUILayout.BeginArea(new Rect(20, Screen.height - 180, 520, 160), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(20, Screen.height - 220, 560, 200), GUI.skin.box);
             GUILayout.Label("<b>Runtime Controls</b>");
             GUILayout.Label("State: " + runner.State);
             GUILayout.Label("Module: " + runner.CurrentModuleTitle);
@@ -45,9 +49,21 @@ namespace MRModuleEditor.Runtime.UI
             if (GUILayout.Button("Resume")) runner.Resume();
             if (GUILayout.Button("Stop")) runner.Stop();
             if (GUILayout.Button("Restart")) runner.Restart();
+            if (GUILayout.Button("Recenter") && recenterController != null)
+            {
+                recenterController.RecenterWorld();
+            }
 
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
+        }
+
+        private void Awake()
+        {
+            if (recenterController == null)
+            {
+                recenterController = FindFirstObjectByType<SimulatorRecenterController>();
+            }
         }
     }
 }

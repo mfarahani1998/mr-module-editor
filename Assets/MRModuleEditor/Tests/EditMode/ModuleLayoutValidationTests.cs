@@ -49,5 +49,22 @@ namespace MRModuleEditor.Tests.EditMode
 
             Assert.IsTrue(issues.Any(issue => issue.code == "layout.anchorId.unknown"));
         }
+
+        public void ForwardKinematicsTemplate_HasExplicitHeadLayoutsForImageAndMcq()
+        {
+            ModuleDocument document = ModuleTemplateFactory.CreateForwardKinematicsMini();
+
+            Assert.IsTrue(document.layouts.Any(layout =>
+                layout.targetId == "step.002"
+                && layout.anchorId == "anchor.head.default"
+                && layout.position != null
+                && layout.position.z == 0f));
+
+            Assert.IsTrue(document.layouts.Any(layout =>
+                layout.targetId == "step.010"
+                && layout.anchorId == "anchor.head.default"
+                && layout.position != null
+                && layout.position.z == 0f));
+        }
     }
 }
