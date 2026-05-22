@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MRModuleEditor.Authoring.Editor
 {
-    public static class PhaseFRepairMenu
+    public static class TemporaryHelperMenu
     {
         private const string SampleModuleFolder =
             "Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini";
@@ -14,7 +14,7 @@ namespace MRModuleEditor.Authoring.Editor
 
         private const string IntroImageRelativePath = "assets/images/intro.png";
 
-        [MenuItem("MR Module Editor/Phase F/Create Placeholder Intro Image")]
+        [MenuItem("MR Module Editor/Templates/Create Placeholder Intro Image")]
         public static void CreatePlaceholderIntroImage()
         {
             string imagePath = Path.Combine(SampleModuleFolder, IntroImageRelativePath)
@@ -60,7 +60,7 @@ namespace MRModuleEditor.Authoring.Editor
             Debug.Log("Created placeholder intro image at: " + imagePath);
         }
 
-        [MenuItem("MR Module Editor/Phase F/Copy FK Sample To StreamingAssets")]
+        [MenuItem("MR Module Editor/Authoring/Copy FK Sample To StreamingAssets")]
         public static void CopyForwardKinematicsSampleToStreamingAssets()
         {
             string sampleImagePath = Path.Combine(SampleModuleFolder, IntroImageRelativePath)

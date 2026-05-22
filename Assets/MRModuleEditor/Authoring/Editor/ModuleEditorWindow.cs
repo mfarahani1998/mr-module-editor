@@ -23,8 +23,9 @@ namespace MRModuleEditor.Authoring.Editor
         private Vector2 rightScroll;
         private string status = "";
         private bool isDirty;
+        private bool showModuleDataEditors = true;
 
-        [MenuItem("MR Module Editor/Phase C/Module Editor")]
+        [MenuItem("MR Module Editor/Authoring/Module Editor")]
         public static void Open()
         {
             ModuleEditorWindow window = GetWindow<ModuleEditorWindow>("MR Module Editor");
@@ -114,12 +115,19 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUILayout.EndScrollView();
 
             rightScroll = EditorGUILayout.BeginScrollView(rightScroll);
+
+            bool changedByButtons = false;
             
             EditorGUI.BeginChangeCheck();
             DrawModuleMetadata();
             EditorGUILayout.Space(8);
             StepInspectorView.Draw(document, selectedStepIndex);
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.Space(8);
+            changedByButtons |= LayoutInspectorView.Draw(document, selectedStepIndex);
+            EditorGUILayout.Space(8);
+            changedByButtons |= DrawModuleDataEditors();
+            
+            if (EditorGUI.EndChangeCheck() || changedByButtons)
             {
                 isDirty = true;
             }
@@ -238,16 +246,49 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("Template Data Summary", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Assets", document.assets == null ? "0" : document.assets.Count.ToString());
-            EditorGUILayout.LabelField("Objects", document.objects == null ? "0" : document.objects.Count.ToString());
-            EditorGUILayout.LabelField("Anchors", document.anchors == null ? "0" : document.anchors.Count.ToString());
-            EditorGUILayout.LabelField("Layouts", document.layouts == null ? "0" : document.layouts.Count.ToString());
+            EditorGUILayout.HelpBox(
+                "Phase I Editor currently can edit steps and their directly associated layouts, as well as providing dropdowns for object/anchor references.",
+                MessageType.Info);
+        }
+
+        private bool DrawModuleDataEditors()
+        {
+            if (document == null)
+            {
+                return false;
+            }
+
+            EditorModuleDataUtility.EnsureLists(document);
+
+            bool changed = false;
+
+            showModuleDataEditors = EditorGUILayout.Foldout(
+                showModuleDataEditors,
+                "Assets, Objects, and Anchors",
+                true);
+
+            if (!showModuleDataEditors)
+            {
+                EditorGUILayout.LabelField("Assets", document.assets.Count.ToString());
+                EditorGUILayout.LabelField("Objects", document.objects.Count.ToString());
+                EditorGUILayout.LabelField("Anchors", document.anchors.Count.ToString());
+                EditorGUILayout.LabelField("Layouts", document.layouts.Count.ToString());
+                return false;
+            }
+
+            EditorGUI.indentLevel++;
+            changed |= AssetListView.Draw(document);
+            EditorGUILayout.Space(6);
+            changed |= ObjectListView.Draw(document);
+            EditorGUILayout.Space(6);
+            changed |= AnchorListView.Draw(document);
+            EditorGUI.indentLevel--;
 
             EditorGUILayout.HelpBox(
-                "Phase C intentionally edits assets, objects, and anchors only through the template and ID text fields. A full asset browser comes later.",
+                "Layouts are edited per selected step below. Object layouts are still edited through JSON for now.",
                 MessageType.Info);
+
+            return changed;
         }
 
         private void NewTemplate(bool setDefaultPath)
@@ -372,7 +413,16 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
+            ModuleStep removedStep = document.steps[selectedStepIndex];
+            string removedStepId = removedStep == null ? "" : removedStep.id;
+
             document.steps.RemoveAt(selectedStepIndex);
+
+            if (!string.IsNullOrWhiteSpace(removedStepId) && document.layouts != null)
+            {
+                document.layouts.RemoveAll(layout => layout != null && layout.targetId == removedStepId);
+            }
+
             selectedStepIndex = Mathf.Clamp(selectedStepIndex, 0, document.steps.Count - 1);
             if (document.steps.Count == 0) selectedStepIndex = -1;
             isDirty = true;
