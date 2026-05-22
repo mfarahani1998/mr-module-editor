@@ -1,7 +1,6 @@
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace MRModuleEditor.Runtime.UI
 {
@@ -65,18 +64,18 @@ namespace MRModuleEditor.Runtime.UI
         private float bodyCharacterSize = 0.025f;
 
         [SerializeField]
-        private float titleLineHeight = 0.29f;
+        private float titleLineHeight = 0.2f;
 
         [SerializeField]
-        private float bodyLineHeight = 0.18f;
+        private float bodyLineHeight = 0.12f;
 
         [SerializeField]
-        private float titleBodyGap = 0.035f;
+        private float titleBodyGap = 0.01f;
 
         // TextMesh is not layout-aware. This multiplier is an intentionally simple
         // approximation used to size the primitive background from character counts.
         [SerializeField]
-        private float estimatedCharacterWidth = 2.95f;
+        private float estimatedCharacterWidth = 1.5f;
 
         [SerializeField]
         private Color titleColor = Color.white;
@@ -289,59 +288,27 @@ namespace MRModuleEditor.Runtime.UI
 
         private GameObject CreateQuad(string objectName, Color color, int sortingOrder)
         {
-            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            quad.name = objectName;
-            quad.transform.SetParent(transform, false);
-            quad.transform.localPosition = Vector3.zero;
-            quad.transform.localRotation = Quaternion.identity;
-
-            Collider collider = quad.GetComponent<Collider>();
-            if (collider != null)
-            {
-                Destroy(collider);
-            }
-
-            Renderer renderer = quad.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                Material material = MakeMaterial(color);
-                if (material != null)
-                {
-                    renderer.sharedMaterial = material;
-                }
-
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return quad;
+            return SpatialRenderUtility.CreateQuad(
+                transform,
+                objectName,
+                MakeMaterial(color),
+                false,
+                sortingOrder
+            );
         }
 
         private TextMesh CreateText(string objectName, float characterSize, Color color, int sortingOrder)
         {
-            GameObject textObject = new GameObject(objectName);
-            textObject.transform.SetParent(transform, false);
-            textObject.transform.localPosition = Vector3.zero;
-            textObject.transform.localRotation = Quaternion.identity;
-
-            TextMesh textMesh = textObject.AddComponent<TextMesh>();
-            textMesh.anchor = TextAnchor.UpperLeft;
-            textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = textFontSize;
-            textMesh.characterSize = characterSize;
-            textMesh.color = color;
-            textMesh.text = "";
-
-            Renderer renderer = textObject.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return textMesh;
+            return SpatialRenderUtility.CreateText(
+                transform,
+                objectName,
+                characterSize,
+                textFontSize,
+                color,
+                TextAnchor.UpperLeft,
+                TextAlignment.Left,
+                sortingOrder
+            );
         }
 
         private void ApplyTextSettings()
@@ -484,60 +451,12 @@ namespace MRModuleEditor.Runtime.UI
 
         private static Material MakeMaterial(Color color)
         {
-            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialTextPanel));
-        }
-
-        private static void ConfigureTransparentMaterial(Material material)
-        {
-            if (material == null)
-            {
-                return;
-            }
-
-            material.renderQueue = (int)RenderQueue.Transparent;
-
-            if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 1f);
-            if (material.HasProperty("_Blend")) material.SetFloat("_Blend", 0f);
-            if (material.HasProperty("_SrcBlend")) material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-            if (material.HasProperty("_DstBlend")) material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-            if (material.HasProperty("_ZWrite")) material.SetInt("_ZWrite", 0);
-
-            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            material.DisableKeyword("_ALPHATEST_ON");
-            material.EnableKeyword("_ALPHABLEND_ON");
+            return SpatialRenderUtility.CreateTransparentColorMaterial(color, nameof(SpatialTextPanel));
         }
 
         private static void SetRendererColor(GameObject target, Color color)
         {
-            if (target == null)
-            {
-                return;
-            }
-
-            Renderer renderer = target.GetComponent<Renderer>();
-            if (renderer == null || renderer.sharedMaterial == null)
-            {
-                return;
-            }
-
-            SetMaterialColor(renderer.sharedMaterial, color);
-        }
-
-        private static void SetMaterialColor(Material material, Color color)
-        {
-            if (material == null)
-            {
-                return;
-            }
-
-            if (material.HasProperty("_BaseColor"))
-            {
-                material.SetColor("_BaseColor", color);
-            }
-            else if (material.HasProperty("_Color"))
-            {
-                material.SetColor("_Color", color);
-            }
+            SpatialRenderUtility.SetRendererColor(target, color);
         }
 
         private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
@@ -561,124 +480,22 @@ namespace MRModuleEditor.Runtime.UI
 
         private static string Wrap(string text, int maxCharactersPerLine)
         {
-            if (string.IsNullOrEmpty(text) || maxCharactersPerLine <= 0)
-            {
-                return text ?? "";
-            }
-
-            text = text.Replace("\r\n", "\n").Replace('\r', '\n');
-            string[] paragraphs = text.Split('\n');
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-
-            for (int p = 0; p < paragraphs.Length; p++)
-            {
-                if (p > 0)
-                {
-                    builder.Append('\n');
-                }
-
-                string paragraph = paragraphs[p];
-                if (string.IsNullOrWhiteSpace(paragraph))
-                {
-                    continue;
-                }
-
-                string[] words = paragraph.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                int currentLineLength = 0;
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    string word = words[i];
-
-                    while (word.Length > maxCharactersPerLine)
-                    {
-                        if (currentLineLength > 0)
-                        {
-                            builder.Append('\n');
-                            currentLineLength = 0;
-                        }
-
-                        builder.Append(word.Substring(0, maxCharactersPerLine));
-                        word = word.Substring(maxCharactersPerLine);
-
-                        if (word.Length > 0)
-                        {
-                            builder.Append('\n');
-                        }
-                    }
-
-                    if (word.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    if (currentLineLength > 0 && currentLineLength + word.Length + 1 > maxCharactersPerLine)
-                    {
-                        builder.Append('\n');
-                        currentLineLength = 0;
-                    }
-                    else if (currentLineLength > 0)
-                    {
-                        builder.Append(' ');
-                        currentLineLength++;
-                    }
-
-                    builder.Append(word);
-                    currentLineLength += word.Length;
-                }
-            }
-
-            return builder.ToString();
+            return SpatialRenderUtility.Wrap(text, maxCharactersPerLine);
         }
 
         private static int CountLines(string text)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int count = 1;
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == '\n')
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return SpatialRenderUtility.CountLines(text);
         }
 
         private static int LongestLineLength(string text)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int longest = 0;
-            int current = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '\n')
-                {
-                    longest = Mathf.Max(longest, current);
-                    current = 0;
-                }
-                else if (c != '\r')
-                {
-                    current++;
-                }
-            }
-
-            return Mathf.Max(longest, current);
+            return SpatialRenderUtility.LongestLineLength(text);
         }
 
         private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
         {
-            return new Vector2(Mathf.Max(minimum.x, value.x), Mathf.Max(minimum.y, value.y));
+            return SpatialRenderUtility.ClampVector(value, minimum);
         }
     }
 }
