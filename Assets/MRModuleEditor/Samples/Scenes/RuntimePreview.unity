@@ -642,6 +642,7 @@ GameObject:
   - component: {fileID: 945083563}
   - component: {fileID: 945083562}
   - component: {fileID: 945083561}
+  - component: {fileID: 945083564}
   m_Layer: 0
   m_Name: RuntimeInteraction
   m_TagString: Untagged
@@ -691,6 +692,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &945083564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945083560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30e621831ccaf5ceaa9f334543f9abd1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionContext: {fileID: 945083562}
+  enableGazeDwell: 1
+  gazeDwellMode: 1
+  dwellSeconds: 1
+  inputArmDelaySeconds: 0.35
+  requireFreshTarget: 1
+  rayDistance: 10
 --- !u!1 &961739749
 GameObject:
   m_ObjectHideFlags: 0

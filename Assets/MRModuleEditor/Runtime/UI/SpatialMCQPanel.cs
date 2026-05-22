@@ -4,19 +4,11 @@ using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.Interaction;
 using UnityEngine;
 using UnityEngine.Serialization;
-using UnityEngine.XR;
 
 namespace MRModuleEditor.Runtime.UI
 {
     public class SpatialMCQPanel : MonoBehaviour
     {
-        private enum GazeDwellMode
-        {
-            Disabled,
-            HeadsetOnly,
-            Always
-        }
-
         private class ChoiceVisual
         {
             public GameObject card;
@@ -46,10 +38,6 @@ namespace MRModuleEditor.Runtime.UI
         [Header("Interaction")]
         [SerializeField]
         private InteractionContext interactionContext;
-
-        private InteractionContext subscribedInteractionContext;
-        private int hoveredChoiceIndex = -1;
-        private float hoverProgress;
 
         [Header("Panel")]
         [SerializeField]
@@ -97,25 +85,7 @@ namespace MRModuleEditor.Runtime.UI
 
         [Header("Input")]
         [SerializeField]
-        private bool enableGazeDwell = true;
-
-        [SerializeField]
-        private GazeDwellMode gazeDwellMode = GazeDwellMode.HeadsetOnly;
-
-        [SerializeField]
-        private float gazeDwellSeconds = 1.0f;
-
-        [SerializeField]
-        private float gazeInputArmDelaySeconds = 0.35f;
-
-        [SerializeField]
-        private bool requireFreshGazeTarget = true;
-
-        [SerializeField]
         private bool lockHeadAnchoredPanelForGaze = true;
-
-        [SerializeField]
-        private float gazeRayDistance = 10f;
 
         private GameObject background;
         private GameObject accentBar;
@@ -130,11 +100,9 @@ namespace MRModuleEditor.Runtime.UI
         private string[] choices = new string[0];
         private int correctIndex = -1;
         private int selectedIndex = -1;
-        private int gazedIndex = -1;
-        private float gazeTimer;
-        private float shownTime;
-        private bool gazeEnabledForCurrentQuestion;
-        private bool gazeNeedsFreshTarget;
+        private InteractionContext subscribedInteractionContext;
+        private int hoveredChoiceIndex = -1;
+        private float hoverProgress;
         private bool poseLockedForCurrentQuestion;
         private bool hasAppliedPose;
 
@@ -213,9 +181,6 @@ namespace MRModuleEditor.Runtime.UI
             choiceGap = Mathf.Max(0f, choiceGap);
             choiceTextInsetX = Mathf.Max(0f, choiceTextInsetX);
             choiceTextTopOffset = Mathf.Max(0f, choiceTextTopOffset);
-            gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
-            gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
-            gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
 
             if (background != null && titleText != null && questionText != null && feedbackText != null)
             {
@@ -240,11 +205,8 @@ namespace MRModuleEditor.Runtime.UI
             choices = newChoices ?? new string[0];
             correctIndex = newCorrectIndex;
             selectedIndex = -1;
-            gazedIndex = -1;
-            gazeTimer = 0f;
-            shownTime = Time.time;
-            gazeEnabledForCurrentQuestion = IsGazeDwellAvailable();
-            gazeNeedsFreshTarget = requireFreshGazeTarget && gazeEnabledForCurrentQuestion;
+            hoveredChoiceIndex = -1;
+            hoverProgress = 0f;
             poseLockedForCurrentQuestion = false;
             hasAppliedPose = false;
 
@@ -262,7 +224,6 @@ namespace MRModuleEditor.Runtime.UI
 
             bool poseApplied = ApplyAnchoredPose();
             poseLockedForCurrentQuestion = poseApplied
-                && gazeEnabledForCurrentQuestion
                 && lockHeadAnchoredPanelForGaze
                 && IsCurrentStepHeadAnchored();
         }
@@ -314,11 +275,6 @@ namespace MRModuleEditor.Runtime.UI
             selectedIndex = -1;
             hoveredChoiceIndex = -1;
             hoverProgress = 0f;
-            gazedIndex = -1;
-            gazeTimer = 0f;
-            shownTime = 0f;
-            gazeEnabledForCurrentQuestion = false;
-            gazeNeedsFreshTarget = false;
             poseLockedForCurrentQuestion = false;
             hasAppliedPose = false;
 
@@ -337,11 +293,6 @@ namespace MRModuleEditor.Runtime.UI
             {
                 return;
             }
-
-            if (gazeEnabledForCurrentQuestion)
-            {
-                UpdateGazeDwell();
-            }
         }
 
         private void LateUpdate()
@@ -353,7 +304,6 @@ namespace MRModuleEditor.Runtime.UI
 
             bool poseApplied = ApplyAnchoredPose();
             if (poseApplied
-                && gazeEnabledForCurrentQuestion
                 && lockHeadAnchoredPanelForGaze
                 && IsCurrentStepHeadAnchored())
             {
@@ -425,98 +375,6 @@ namespace MRModuleEditor.Runtime.UI
             transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
         }
 
-        private void UpdateGazeDwell()
-        {
-            if (Time.time - shownTime < Mathf.Max(0f, gazeInputArmDelaySeconds))
-            {
-                gazedIndex = -1;
-                gazeTimer = 0f;
-                UpdateChoiceColors();
-                return;
-            }
-
-            Camera camera = Camera.main;
-            if (camera == null)
-            {
-                return;
-            }
-
-            Ray ray = new Ray(camera.transform.position, camera.transform.forward);
-            int hitIndex = FindChoiceHitIndex(ray);
-
-            if (hitIndex < 0)
-            {
-                gazedIndex = -1;
-                gazeTimer = 0f;
-                gazeNeedsFreshTarget = false;
-                UpdateChoiceColors();
-                return;
-            }
-
-            if (gazeNeedsFreshTarget)
-            {
-                gazedIndex = -1;
-                gazeTimer = 0f;
-                UpdateChoiceColors();
-                return;
-            }
-
-            if (hitIndex != gazedIndex)
-            {
-                gazedIndex = hitIndex;
-                gazeTimer = 0f;
-            }
-
-            gazeTimer += Time.deltaTime;
-            UpdateChoiceColors();
-
-            if (gazeTimer >= gazeDwellSeconds)
-            {
-                SubmitAnswer(gazedIndex);
-            }
-        }
-
-        private int FindChoiceHitIndex(Ray ray)
-        {
-            RaycastHit[] hits = Physics.RaycastAll(ray, gazeRayDistance);
-            int hitIndex = -1;
-            float closestDistance = float.MaxValue;
-
-            for (int i = 0; i < hits.Length; i++)
-            {
-                Collider collider = hits[i].collider;
-                int index = IndexOfChoiceCard(collider == null ? null : collider.gameObject);
-                if (index < 0 || hits[i].distance >= closestDistance)
-                {
-                    continue;
-                }
-
-                hitIndex = index;
-                closestDistance = hits[i].distance;
-            }
-
-            return hitIndex;
-        }
-
-        private bool IsGazeDwellAvailable()
-        {
-            if (!enableGazeDwell || gazeDwellMode == GazeDwellMode.Disabled)
-            {
-                return false;
-            }
-
-            if (gazeDwellMode == GazeDwellMode.Always)
-            {
-                return true;
-            }
-
-#if UNITY_EDITOR
-            return false;
-#else
-            return XRSettings.isDeviceActive;
-#endif
-        }
-
         private string BuildInputInstruction()
         {
 
@@ -535,24 +393,6 @@ namespace MRModuleEditor.Runtime.UI
                 currentModule,
                 currentStep,
                 currentStep.GetString("anchorId", "anchor.head.default"));
-        }
-
-        private int IndexOfChoiceCard(GameObject hitObject)
-        {
-            if (hitObject == null)
-            {
-                return -1;
-            }
-
-            for (int i = 0; i < choiceVisuals.Count; i++)
-            {
-                if (choiceVisuals[i].card == hitObject)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         private void EnsureBaseVisuals()
@@ -974,9 +814,9 @@ namespace MRModuleEditor.Runtime.UI
                         color = ChoiceStyle.selectedColor;
                     }
                 }
-                else if (i == gazedIndex)
+                else if (i == hoveredChoiceIndex)
                 {
-                    color = Color.Lerp(ChoiceStyle.gazeColor, ChoiceStyle.selectedColor, Mathf.Clamp01(gazeTimer / Mathf.Max(0.01f, gazeDwellSeconds)));
+                    color = Color.Lerp(ChoiceStyle.gazeColor, ChoiceStyle.selectedColor, Mathf.Clamp01(hoverProgress));
                 }
 
                 if (choiceVisuals[i].renderer != null && choiceVisuals[i].renderer.sharedMaterial != null)
