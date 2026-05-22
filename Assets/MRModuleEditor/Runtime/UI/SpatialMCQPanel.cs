@@ -27,9 +27,6 @@ namespace MRModuleEditor.Runtime.UI
         private const float LocalZBackground = 0f;
         private const float LocalZAccent = 0.005f;
         private const float LocalZChoiceCard = 0.01f;
-        private const float LocalZTitleQuestion = 0.02f;
-        private const float LocalZChoiceText = 0.03f;
-        private const float LocalZFeedbackText = 0.03f;
         private const float ColliderDepth = 0.04f;
 
         private const int SortingBackground = 0;
@@ -39,6 +36,10 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private SpatialLayoutResolver spatialLayoutResolver;
+
+        [Header("Style")]
+        [SerializeField]
+        private SpatialPanelStyle style;
 
         [Header("Panel")]
         [SerializeField]
@@ -60,84 +61,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private Vector2 maximumPanelSize = new Vector2(2.1f, 2.0f);
-
-        [SerializeField]
-        private Vector2 padding = new Vector2(0.08f, 0.08f);
-
-        [SerializeField]
-        private float textDepthOffset = 0.02f;
-
-        [SerializeField]
-        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.90f);
-
-        [SerializeField]
-        private bool showAccentBar = false;
-
-        [SerializeField]
-        private float accentWidth = 0.035f;
-
-        [SerializeField]
-        private float accentGap = 0.08f;
-
-        [SerializeField]
-        private Color accentColor = new Color(0.28f, 0.68f, 1.0f, 0.95f);
-
-        [Header("Text")]
-        [SerializeField]
-        private int wrapCharacters = 50;
-
-        [SerializeField]
-        private int textFontSize = 32;
-
-        [SerializeField]
-        private float titleCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float questionCharacterSize = 0.03f;
-
-        [SerializeField]
-        private float choiceCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float feedbackCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float titleLineHeight = 0.11f;
-
-        [SerializeField]
-        private float questionLineHeight = 0.14f;
-
-        [SerializeField]
-        private float choiceLineHeight = 0.065f;
-
-        [SerializeField]
-        private float feedbackLineHeight = 0.095f;
-
-        [SerializeField]
-        private float titleQuestionGap = 0.055f;
-
-        [SerializeField]
-        private float questionChoiceGap = 0.09f;
-
-        [SerializeField]
-        private float feedbackGapBelowChoices = 0.045f;
-
-        // TextMesh is not layout-aware. This multiplier is an intentionally simple
-        // approximation used to size primitive backgrounds from character counts.
-        [SerializeField]
-        private float estimatedCharacterWidth = 1.8f;
-
-        [SerializeField]
-        private Color titleColor = Color.white;
-
-        [SerializeField]
-        private Color questionColor = new Color(0.94f, 0.94f, 0.94f, 1f);
-
-        [SerializeField]
-        private Color choiceTextColor = Color.white;
-
-        [SerializeField]
-        private Color feedbackColor = new Color(0.82f, 0.90f, 1f, 1f);
 
         [Header("Choices")]
         [SerializeField]
@@ -161,18 +84,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private float choiceTextTopOffset = 0.045f;
-
-        [SerializeField]
-        private Color choiceColor = new Color(0.16f, 0.20f, 0.26f, 0.96f);
-
-        [SerializeField]
-        private Color gazeColor = new Color(0.25f, 0.42f, 0.72f, 0.96f);
-
-        [SerializeField]
-        private Color selectedColor = new Color(0.20f, 0.55f, 0.35f, 0.96f);
-
-        [SerializeField]
-        private Color wrongColor = new Color(0.62f, 0.20f, 0.20f, 0.96f);
 
         [Header("Input")]
         [SerializeField]
@@ -198,16 +109,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private bool enableKeyboardNumbers = true;
-
-        [Header("Head Follow")]
-        [SerializeField]
-        private bool smoothFollow = true;
-
-        [SerializeField]
-        private float followSharpness = 16f;
-
-        [SerializeField]
-        private float snapDistance = 2.5f;
 
         private GameObject background;
         private GameObject accentBar;
@@ -243,6 +144,26 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        private SpatialPanelStyle Style
+        {
+            get { return style == null ? SpatialPanelStyle.Fallback : style; }
+        }
+
+        private SpatialPanelStyle.MCQPanelStyle MCQStyle
+        {
+            get { return Style.MCQPanel; }
+        }
+
+        private SpatialPanelStyle.PanelChromeStyle Chrome
+        {
+            get { return MCQStyle.chrome; }
+        }
+
+        private SpatialPanelStyle.ChoiceCardStyle ChoiceStyle
+        {
+            get { return Style.ChoiceCards; }
+        }
+
         public bool HasAnswer
         {
             get { return selectedIndex >= 0; }
@@ -266,24 +187,6 @@ namespace MRModuleEditor.Runtime.UI
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = SpatialRenderUtility.ClampVector(padding, Vector2.zero);
-            textDepthOffset = Mathf.Max(0.001f, textDepthOffset);
-            wrapCharacters = Mathf.Max(1, wrapCharacters);
-            textFontSize = Mathf.Max(1, textFontSize);
-            titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
-            questionCharacterSize = Mathf.Max(0.001f, questionCharacterSize);
-            choiceCharacterSize = Mathf.Max(0.001f, choiceCharacterSize);
-            feedbackCharacterSize = Mathf.Max(0.001f, feedbackCharacterSize);
-            titleLineHeight = Mathf.Max(0.001f, titleLineHeight);
-            questionLineHeight = Mathf.Max(0.001f, questionLineHeight);
-            choiceLineHeight = Mathf.Max(0.001f, choiceLineHeight);
-            feedbackLineHeight = Mathf.Max(0.001f, feedbackLineHeight);
-            titleQuestionGap = Mathf.Max(0f, titleQuestionGap);
-            questionChoiceGap = Mathf.Max(0f, questionChoiceGap);
-            feedbackGapBelowChoices = Mathf.Max(0f, feedbackGapBelowChoices);
-            estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
-            accentWidth = Mathf.Max(0f, accentWidth);
-            accentGap = Mathf.Max(0f, accentGap);
             choiceHeight = Mathf.Max(0.02f, choiceHeight);
             minimumChoiceHeight = Mathf.Max(0.02f, minimumChoiceHeight);
             choiceVerticalPadding = Mathf.Max(0f, choiceVerticalPadding);
@@ -293,8 +196,6 @@ namespace MRModuleEditor.Runtime.UI
             gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
             gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
             gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
-            followSharpness = Mathf.Max(0.01f, followSharpness);
-            snapDistance = Mathf.Max(0.01f, snapDistance);
 
             if (background != null && titleText != null && questionText != null && feedbackText != null)
             {
@@ -327,9 +228,9 @@ namespace MRModuleEditor.Runtime.UI
             poseLockedForCurrentQuestion = false;
             hasAppliedPose = false;
 
-            titleText.text = SpatialRenderUtility.Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(titleCharacterSize, 0f));
-            questionText.text = SpatialRenderUtility.Wrap(question ?? "", GetEffectiveWrapCharacters(questionCharacterSize, 0f));
-            feedbackText.text = SpatialRenderUtility.Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+            titleText.text = SpatialRenderUtility.Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(MCQStyle.title.characterSize, 0f));
+            questionText.text = SpatialRenderUtility.Wrap(question ?? "", GetEffectiveWrapCharacters(MCQStyle.question.characterSize, 0f));
+            feedbackText.text = SpatialRenderUtility.Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(MCQStyle.feedback.characterSize, 0f));
 
             ApplyTextSettings();
             UpdateMaterialColors();
@@ -348,7 +249,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (feedbackText != null)
             {
-                feedbackText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+                feedbackText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(MCQStyle.feedback.characterSize, 0f));
                 UpdateVisualLayout();
             }
         }
@@ -482,7 +383,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             transform.localScale = targetScale;
 
-            if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
+            if (!Style.HeadFollow.smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
                 transform.position = targetPose.position;
                 transform.rotation = targetPose.rotation;
@@ -490,8 +391,8 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPose.position) > snapDistance)
+            float t = 1f - Mathf.Exp(-Style.HeadFollow.followSharpness * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetPose.position) > Style.HeadFollow.snapDistance)
             {
                 transform.position = targetPose.position;
             }
@@ -696,7 +597,7 @@ namespace MRModuleEditor.Runtime.UI
                 background = SpatialRenderUtility.CreateQuad(
                     transform,
                     "MCQ Background",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(panelColor, nameof(SpatialMCQPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Chrome.panelColor, nameof(SpatialMCQPanel)),
                     false,
                     SortingBackground,
                     ColliderDepth);
@@ -707,7 +608,7 @@ namespace MRModuleEditor.Runtime.UI
                 accentBar = SpatialRenderUtility.CreateQuad(
                     transform,
                     "MCQ Accent",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(accentColor, nameof(SpatialMCQPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Style.AccentColor, nameof(SpatialMCQPanel)),
                     false,
                     SortingAccent,
                     ColliderDepth);
@@ -718,9 +619,9 @@ namespace MRModuleEditor.Runtime.UI
                 titleText = SpatialRenderUtility.CreateText(
                     transform,
                     "Title",
-                    titleCharacterSize,
-                    textFontSize,
-                    titleColor,
+                    MCQStyle.title.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.title.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -731,9 +632,9 @@ namespace MRModuleEditor.Runtime.UI
                 questionText = SpatialRenderUtility.CreateText(
                     transform,
                     "Question",
-                    questionCharacterSize,
-                    textFontSize,
-                    questionColor,
+                    MCQStyle.question.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.question.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -744,9 +645,9 @@ namespace MRModuleEditor.Runtime.UI
                 feedbackText = SpatialRenderUtility.CreateText(
                     transform,
                     "Feedback",
-                    feedbackCharacterSize,
-                    textFontSize,
-                    feedbackColor,
+                    MCQStyle.feedback.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.feedback.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -766,7 +667,7 @@ namespace MRModuleEditor.Runtime.UI
                 GameObject card = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Choice " + (i + 1),
-                    SpatialRenderUtility.CreateTransparentColorMaterial(choiceColor, nameof(SpatialMCQPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(ChoiceStyle.choiceColor, nameof(SpatialMCQPanel)),
                     true,
                     SortingChoiceCard,
                     ColliderDepth);
@@ -774,9 +675,9 @@ namespace MRModuleEditor.Runtime.UI
                 TextMesh text = SpatialRenderUtility.CreateText(
                     transform,
                     "Choice Text " + (i + 1),
-                    choiceCharacterSize,
-                    textFontSize,
-                    choiceTextColor,
+                    MCQStyle.choice.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.choice.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -798,18 +699,18 @@ namespace MRModuleEditor.Runtime.UI
         {
             string choice = choices != null && index >= 0 && index < choices.Length ? choices[index] ?? "" : "";
             string label = (index + 1) + ". " + choice;
-            return SpatialRenderUtility.Wrap(label, GetEffectiveWrapCharacters(choiceCharacterSize, choiceTextInsetX * 2f));
+            return SpatialRenderUtility.Wrap(label, GetEffectiveWrapCharacters(MCQStyle.choice.characterSize, choiceTextInsetX * 2f));
         }
 
         private void ApplyTextSettings()
         {
-            ConfigureText(titleText, titleCharacterSize, titleColor);
-            ConfigureText(questionText, questionCharacterSize, questionColor);
-            ConfigureText(feedbackText, feedbackCharacterSize, feedbackColor);
+            ConfigureText(titleText, MCQStyle.title.characterSize, MCQStyle.title.color);
+            ConfigureText(questionText, MCQStyle.question.characterSize, MCQStyle.question.color);
+            ConfigureText(feedbackText, MCQStyle.feedback.characterSize, MCQStyle.feedback.color);
 
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
-                ConfigureText(choiceVisuals[i].text, choiceCharacterSize, choiceTextColor);
+                ConfigureText(choiceVisuals[i].text, MCQStyle.choice.characterSize, MCQStyle.choice.color);
             }
         }
 
@@ -822,15 +723,15 @@ namespace MRModuleEditor.Runtime.UI
 
             textMesh.anchor = TextAnchor.UpperLeft;
             textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = textFontSize;
+            textMesh.fontSize = Style.TextFontSize;
             textMesh.characterSize = characterSize;
             textMesh.color = color;
         }
 
         private void UpdateMaterialColors()
         {
-            SpatialRenderUtility.SetRendererColor(background, panelColor);
-            SpatialRenderUtility.SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, Chrome.panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, Style.AccentColor);
             UpdateChoiceColors();
         }
 
@@ -856,47 +757,47 @@ namespace MRModuleEditor.Runtime.UI
             background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
             float extraLeftInset = GetExtraLeftInset();
-            float contentLeft = -actualSize.x * 0.5f + padding.x + extraLeftInset;
-            float contentTop = actualSize.y * 0.5f - padding.y;
-            float contentWidth = Mathf.Max(0.01f, actualSize.x - padding.x * 2f - extraLeftInset);
+            float contentLeft = -actualSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
+            float contentTop = actualSize.y * 0.5f - Chrome.padding.y;
+            float contentWidth = Mathf.Max(0.01f, actualSize.x - Chrome.padding.x * 2f - extraLeftInset);
             float contentCenterX = contentLeft + contentWidth * 0.5f;
             float choiceWidth = contentWidth;
 
             if (accentBar != null)
             {
-                accentBar.SetActive(showAccentBar);
+                accentBar.SetActive(Chrome.showAccentBar);
                 accentBar.transform.localPosition = new Vector3(
-                    -actualSize.x * 0.5f + padding.x * 0.5f,
+                    -actualSize.x * 0.5f + Chrome.padding.x * 0.5f,
                     0f,
                     LocalZAccent);
                 accentBar.transform.localRotation = Quaternion.identity;
                 accentBar.transform.localScale = new Vector3(
-                    accentWidth,
-                    Mathf.Max(0.01f, actualSize.y - padding.y * 1.5f),
+                    Style.AccentWidth,
+                    Mathf.Max(0.01f, actualSize.y - Chrome.padding.y * 1.5f),
                     1f);
             }
 
             float cursorY = contentTop;
-            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZTitleQuestion);
+            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
             if (hasTitle)
             {
-                cursorY -= SpatialRenderUtility.CountLines(title) * titleLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(title) * MCQStyle.title.lineHeight;
             }
 
             if (hasTitle && hasQuestion)
             {
-                cursorY -= titleQuestionGap;
+                cursorY -= MCQStyle.titleQuestionGap;
             }
 
-            questionText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZTitleQuestion);
+            questionText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
             if (hasQuestion)
             {
-                cursorY -= SpatialRenderUtility.CountLines(question) * questionLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(question) * MCQStyle.question.lineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
             {
-                cursorY -= questionChoiceGap;
+                cursorY -= MCQStyle.questionChoiceGap;
             }
 
             for (int i = 0; i < choiceVisuals.Count; i++)
@@ -924,7 +825,7 @@ namespace MRModuleEditor.Runtime.UI
                     visual.text.transform.localPosition = new Vector3(
                         contentLeft + choiceTextInsetX,
                         centerY + cardHeight * 0.5f - choiceTextTopOffset,
-                        LocalZChoiceText);
+                        Chrome.textDepthOffset + 0.01f);
                 }
 
                 cursorY -= cardHeight;
@@ -934,11 +835,11 @@ namespace MRModuleEditor.Runtime.UI
             {
                 if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
                 {
-                    cursorY -= feedbackGapBelowChoices;
+                    cursorY -= MCQStyle.feedbackGapBelowChoices;
                 }
             }
 
-            feedbackText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZFeedbackText);
+            feedbackText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset + 0.01f);
         }
 
         private Vector2 CalculatePanelSize(
@@ -950,36 +851,36 @@ namespace MRModuleEditor.Runtime.UI
             bool hasFeedback)
         {
             float extraLeftInset = GetExtraLeftInset();
-            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float questionWidth = SpatialRenderUtility.LongestLineLength(question) * questionCharacterSize * estimatedCharacterWidth;
-            float feedbackWidth = SpatialRenderUtility.LongestLineLength(feedback) * feedbackCharacterSize * estimatedCharacterWidth;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * MCQStyle.title.characterSize * MCQStyle.estimatedCharacterWidth;
+            float questionWidth = SpatialRenderUtility.LongestLineLength(question) * MCQStyle.question.characterSize * MCQStyle.estimatedCharacterWidth;
+            float feedbackWidth = SpatialRenderUtility.LongestLineLength(feedback) * MCQStyle.feedback.characterSize * MCQStyle.estimatedCharacterWidth;
             float choiceWidth = GetDesiredChoicesWidth();
 
             float desiredContentWidth = Mathf.Max(
                 Mathf.Max(titleWidth, questionWidth),
                 Mathf.Max(choiceWidth, feedbackWidth));
-            float desiredWidth = desiredContentWidth + padding.x * 2f + extraLeftInset;
+            float desiredWidth = desiredContentWidth + Chrome.padding.x * 2f + extraLeftInset;
             desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
 
-            float desiredHeight = padding.y * 2f;
+            float desiredHeight = Chrome.padding.y * 2f;
             if (hasTitle)
             {
-                desiredHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(title) * MCQStyle.title.lineHeight;
             }
 
             if (hasTitle && hasQuestion)
             {
-                desiredHeight += titleQuestionGap;
+                desiredHeight += MCQStyle.titleQuestionGap;
             }
 
             if (hasQuestion)
             {
-                desiredHeight += SpatialRenderUtility.CountLines(question) * questionLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(question) * MCQStyle.question.lineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
             {
-                desiredHeight += questionChoiceGap;
+                desiredHeight += MCQStyle.questionChoiceGap;
             }
 
             for (int i = 0; i < choiceVisuals.Count; i++)
@@ -996,15 +897,15 @@ namespace MRModuleEditor.Runtime.UI
             {
                 if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
                 {
-                    desiredHeight += feedbackGapBelowChoices;
+                    desiredHeight += MCQStyle.feedbackGapBelowChoices;
                 }
 
-                desiredHeight += SpatialRenderUtility.CountLines(feedback) * feedbackLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(feedback) * MCQStyle.feedback.lineHeight;
             }
 
             if (!hasTitle && !hasQuestion && choiceVisuals.Count == 0 && !hasFeedback)
             {
-                desiredHeight += questionLineHeight;
+                desiredHeight += MCQStyle.question.lineHeight;
             }
 
             desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
@@ -1017,7 +918,7 @@ namespace MRModuleEditor.Runtime.UI
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
                 string text = choiceVisuals[i].text == null ? "" : choiceVisuals[i].text.text ?? "";
-                float width = SpatialRenderUtility.LongestLineLength(text) * choiceCharacterSize * estimatedCharacterWidth + choiceTextInsetX * 2f;
+                float width = SpatialRenderUtility.LongestLineLength(text) * MCQStyle.choice.characterSize * MCQStyle.estimatedCharacterWidth + choiceTextInsetX * 2f;
                 result = Mathf.Max(result, width);
             }
 
@@ -1032,20 +933,20 @@ namespace MRModuleEditor.Runtime.UI
             }
 
             int lineCount = Mathf.Max(1, SpatialRenderUtility.CountLines(choiceText));
-            float desiredHeight = lineCount * choiceLineHeight + choiceVerticalPadding * 2f;
+            float desiredHeight = lineCount * MCQStyle.choice.lineHeight + choiceVerticalPadding * 2f;
             return Mathf.Max(minimumChoiceHeight, desiredHeight);
         }
 
         private int GetEffectiveWrapCharacters(float characterSize, float extraHorizontalInset)
         {
-            int result = Mathf.Max(1, wrapCharacters);
+            int result = Mathf.Max(1, Style.WrapCharacters);
             if (!autoSizePanel)
             {
                 return result;
             }
 
-            float contentWidth = maximumPanelSize.x - padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
-            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * estimatedCharacterWidth);
+            float contentWidth = maximumPanelSize.x - Chrome.padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
+            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * MCQStyle.estimatedCharacterWidth);
             int fitAtMaxWidth = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
 
             if (fitAtMaxWidth > 0)
@@ -1058,7 +959,7 @@ namespace MRModuleEditor.Runtime.UI
 
         private float GetExtraLeftInset()
         {
-            return showAccentBar ? accentWidth + accentGap : 0f;
+            return Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
         }
 
         private void ClearChoiceVisuals()
@@ -1083,22 +984,22 @@ namespace MRModuleEditor.Runtime.UI
         {
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
-                Color color = choiceColor;
+                Color color = ChoiceStyle.choiceColor;
 
                 if (selectedIndex >= 0)
                 {
                     if (i == selectedIndex)
                     {
-                        color = selectedIndex == correctIndex ? selectedColor : wrongColor;
+                        color = selectedIndex == correctIndex ? ChoiceStyle.selectedColor : ChoiceStyle.wrongColor;
                     }
                     else if (i == correctIndex)
                     {
-                        color = selectedColor;
+                        color = ChoiceStyle.selectedColor;
                     }
                 }
                 else if (i == gazedIndex)
                 {
-                    color = Color.Lerp(gazeColor, selectedColor, Mathf.Clamp01(gazeTimer / Mathf.Max(0.01f, gazeDwellSeconds)));
+                    color = Color.Lerp(ChoiceStyle.gazeColor, ChoiceStyle.selectedColor, Mathf.Clamp01(gazeTimer / Mathf.Max(0.01f, gazeDwellSeconds)));
                 }
 
                 if (choiceVisuals[i].renderer != null && choiceVisuals[i].renderer.sharedMaterial != null)

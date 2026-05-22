@@ -378,81 +378,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &671819797
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 671819799}
-  - component: {fileID: 671819798}
-  m_Layer: 0
-  m_Name: SpatialImagePanel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &671819798
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 671819797}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 006d7ca8dd414bf58adf6c3c4b70e7d1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spatialLayoutResolver: {fileID: 1762172289}
-  autoSizePanel: 1
-  panelSize: {x: 1.5, y: 0.95}
-  panelLocalOffset: {x: 0, y: -0.15, z: 0}
-  applyPanelLocalOffsetToAuthoredLayouts: 0
-  minimumPanelSize: {x: 0.85, y: 0.55}
-  maximumPanelSize: {x: 1.8, y: 1.35}
-  padding: {x: 0.1, y: 0.08}
-  textDepthOffset: 0.02
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
-  showAccentBar: 0
-  accentWidth: 0.035
-  accentGap: 0.08
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  imageSize: {x: 1.05, y: 0.52}
-  minimumImageSize: {x: 0.35, y: 0.22}
-  preserveImageAspectRatio: 1
-  titleImageGap: 0.055
-  imageCaptionGap: 0.055
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.025
-  captionCharacterSize: 0.018
-  titleLineHeight: 0.12
-  captionLineHeight: 0.075
-  estimatedCharacterWidth: 1.5
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  captionColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
---- !u!4 &671819799
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 671819797}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &701381732
 GameObject:
   m_ObjectHideFlags: 0
@@ -914,6 +839,58 @@ Transform:
   - {fileID: 826853847}
   m_Father: {fileID: 2072459200}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1423660582
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1423660584}
+  - component: {fileID: 1423660583}
+  m_Layer: 0
+  m_Name: SpatialTextPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1423660583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423660582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  autoSizePanel: 1
+  panelSize: {x: 3.2, y: 0.58}
+  panelLocalOffset: {x: 0, y: -1, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.8, y: 0.25}
+  maximumPanelSize: {x: 1.5, y: 0.6}
+--- !u!4 &1423660584
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423660582}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1675253190
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,9 +1313,7 @@ MonoBehaviour:
   controlPanel: {fileID: 1762172281}
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
-  spatialTextPanel: {fileID: 2146630565}
-  spatialImagePanel: {fileID: 671819798}
-  spatialMcqPanel: {fileID: 1930746979}
+  spatialUIService: {fileID: 0}
   loadOnStart: 0
   playOnStart: 0
 --- !u!114 &1762172281
@@ -1486,9 +1461,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14badb33ad7e188c7bea4628db107698, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textPanel: {fileID: 2146630565}
-  imagePanel: {fileID: 671819798}
-  mcqPanel: {fileID: 1930746979}
+  textPanel: {fileID: 0}
+  imagePanel: {fileID: 0}
+  mcqPanel: {fileID: 0}
 --- !u!1 &1765668233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1573,7 +1548,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1930746978
+--- !u!1 &1957249102
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1581,8 +1556,63 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1930746980}
-  - component: {fileID: 1930746979}
+  - component: {fileID: 1957249104}
+  - component: {fileID: 1957249103}
+  m_Layer: 0
+  m_Name: SpatialImagePanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1957249103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1957249102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 006d7ca8dd414bf58adf6c3c4b70e7d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  autoSizePanel: 1
+  panelSize: {x: 1.5, y: 0.95}
+  panelLocalOffset: {x: 0, y: -0.15, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.85, y: 0.55}
+  maximumPanelSize: {x: 1.8, y: 1.35}
+  imageSize: {x: 1.05, y: 0.52}
+  minimumImageSize: {x: 0.35, y: 0.22}
+  preserveImageAspectRatio: 1
+--- !u!4 &1957249104
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1957249102}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1966342140
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1966342142}
+  - component: {fileID: 1966342141}
   m_Layer: 0
   m_Name: SpatialMCQPanel
   m_TagString: Untagged
@@ -1590,50 +1620,26 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1930746979
+--- !u!114 &1966342141
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1930746978}
+  m_GameObject: {fileID: 1966342140}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8146d30e8e2999ffdb2e1e5712048478, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
   autoSizePanel: 1
   panelSize: {x: 1.75, y: 1.45}
   panelLocalOffset: {x: 0, y: -0.15, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 1, y: 0.65}
   maximumPanelSize: {x: 2.1, y: 2}
-  padding: {x: 0.08, y: 0.08}
-  textDepthOffset: 0.02
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.9}
-  showAccentBar: 0
-  accentWidth: 0.035
-  accentGap: 0.08
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.022
-  questionCharacterSize: 0.03
-  choiceCharacterSize: 0.022
-  feedbackCharacterSize: 0.022
-  titleLineHeight: 0.11
-  questionLineHeight: 0.14
-  choiceLineHeight: 0.065
-  feedbackLineHeight: 0.095
-  titleQuestionGap: 0.055
-  questionChoiceGap: 0.09
-  feedbackGapBelowChoices: 0.045
-  estimatedCharacterWidth: 1.8
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  questionColor: {r: 0.94, g: 0.94, b: 0.94, a: 1}
-  choiceTextColor: {r: 1, g: 1, b: 1, a: 1}
-  feedbackColor: {r: 0.82, g: 0.9, b: 1, a: 1}
   autoSizeChoiceCards: 1
   choiceHeight: 0.18
   minimumChoiceHeight: 0.18
@@ -1641,10 +1647,6 @@ MonoBehaviour:
   choiceGap: 0.04
   choiceTextInsetX: 0.055
   choiceTextTopOffset: 0.045
-  choiceColor: {r: 0.16, g: 0.2, b: 0.26, a: 0.96}
-  gazeColor: {r: 0.25, g: 0.42, b: 0.72, a: 0.96}
-  selectedColor: {r: 0.2, g: 0.55, b: 0.35, a: 0.96}
-  wrongColor: {r: 0.62, g: 0.2, b: 0.2, a: 0.96}
   enableGazeDwell: 1
   gazeDwellMode: 1
   gazeDwellSeconds: 1
@@ -1653,19 +1655,16 @@ MonoBehaviour:
   lockHeadAnchoredPanelForGaze: 1
   gazeRayDistance: 10
   enableKeyboardNumbers: 1
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
---- !u!4 &1930746980
+--- !u!4 &1966342142
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1930746978}
+  m_GameObject: {fileID: 1966342140}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1742,77 +1741,6 @@ Transform:
   - {fileID: 1075753859}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2146630564
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2146630566}
-  - component: {fileID: 2146630565}
-  m_Layer: 0
-  m_Name: SpatialTextPanel
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2146630565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2146630564}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spatialLayoutResolver: {fileID: 1762172289}
-  autoSizePanel: 1
-  panelSize: {x: 3.2, y: 0.58}
-  panelLocalOffset: {x: 0, y: -1, z: 0}
-  applyPanelLocalOffsetToAuthoredLayouts: 0
-  minimumPanelSize: {x: 0.8, y: 0.25}
-  maximumPanelSize: {x: 1.5, y: 0.6}
-  padding: {x: 0.18, y: 0.08}
-  textDepthOffset: 0.01
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
-  showAccentBar: 1
-  accentWidth: 0.035
-  accentGap: 0.1
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.035
-  bodyCharacterSize: 0.025
-  titleLineHeight: 0.2
-  bodyLineHeight: 0.12
-  titleBodyGap: 0.01
-  estimatedCharacterWidth: 1.5
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
---- !u!4 &2146630566
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2146630564}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7800082, y: -0.8086488, z: -1.9540461}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1824,7 +1752,7 @@ SceneRoots:
   - {fileID: 203844589}
   - {fileID: 2072459200}
   - {fileID: 37466585}
-  - {fileID: 2146630566}
-  - {fileID: 671819799}
-  - {fileID: 1930746980}
+  - {fileID: 1423660584}
+  - {fileID: 1957249104}
+  - {fileID: 1966342142}
   - {fileID: 840358894}

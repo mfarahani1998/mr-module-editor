@@ -19,6 +19,10 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private SpatialLayoutResolver spatialLayoutResolver;
 
+        [Header("Style")]
+        [SerializeField]
+        private SpatialPanelStyle style;
+
         [Header("Panel")]
         [SerializeField]
         private bool autoSizePanel = true;
@@ -40,27 +44,6 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private Vector2 maximumPanelSize = new Vector2(1.8f, 1.35f);
 
-        [SerializeField]
-        private Vector2 padding = new Vector2(0.10f, 0.08f);
-
-        [SerializeField]
-        private float textDepthOffset = 0.02f;
-
-        [SerializeField]
-        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.88f);
-
-        [SerializeField]
-        private bool showAccentBar = false;
-
-        [SerializeField]
-        private float accentWidth = 0.035f;
-
-        [SerializeField]
-        private float accentGap = 0.08f;
-
-        [SerializeField]
-        private Color accentColor = new Color(0.28f, 0.68f, 1.0f, 0.95f);
-
         [Header("Image")]
         [SerializeField]
         private Vector2 imageSize = new Vector2(1.05f, 0.52f);
@@ -70,52 +53,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private bool preserveImageAspectRatio = true;
-
-        [SerializeField]
-        private float titleImageGap = 0.055f;
-
-        [SerializeField]
-        private float imageCaptionGap = 0.055f;
-
-        [Header("Text")]
-        [SerializeField]
-        private int wrapCharacters = 50;
-
-        [SerializeField]
-        private int textFontSize = 32;
-
-        [SerializeField]
-        private float titleCharacterSize = 0.025f;
-
-        [SerializeField]
-        private float captionCharacterSize = 0.018f;
-
-        [SerializeField]
-        private float titleLineHeight = 0.12f;
-
-        [SerializeField]
-        private float captionLineHeight = 0.075f;
-
-        // TextMesh is not layout-aware. This multiplier is an intentionally simple
-        // approximation used to size primitive backgrounds from character counts.
-        [SerializeField]
-        private float estimatedCharacterWidth = 1.5f;
-
-        [SerializeField]
-        private Color titleColor = Color.white;
-
-        [SerializeField]
-        private Color captionColor = new Color(0.92f, 0.92f, 0.92f, 1f);
-
-        [Header("Head Follow")]
-        [SerializeField]
-        private bool smoothFollow = true;
-
-        [SerializeField]
-        private float followSharpness = 16f;
-
-        [SerializeField]
-        private float snapDistance = 2.5f;
 
         private GameObject background;
         private GameObject accentBar;
@@ -143,6 +80,21 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        private SpatialPanelStyle Style
+        {
+            get { return style == null ? SpatialPanelStyle.Fallback : style; }
+        }
+
+        private SpatialPanelStyle.ImagePanelStyle ImageStyle
+        {
+            get { return Style.ImagePanel; }
+        }
+
+        private SpatialPanelStyle.PanelChromeStyle Chrome
+        {
+            get { return ImageStyle.chrome; }
+        }
+
         private void Awake()
         {
             EnsureVisuals();
@@ -156,24 +108,8 @@ namespace MRModuleEditor.Runtime.UI
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = SpatialRenderUtility.ClampVector(padding, Vector2.zero);
             imageSize = SpatialRenderUtility.ClampVector(imageSize, new Vector2(0.01f, 0.01f));
             minimumImageSize = SpatialRenderUtility.ClampVector(minimumImageSize, new Vector2(0.01f, 0.01f));
-            wrapCharacters = Mathf.Max(1, wrapCharacters);
-            textFontSize = Mathf.Max(1, textFontSize);
-            titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
-            captionCharacterSize = Mathf.Max(0.001f, captionCharacterSize);
-            titleLineHeight = Mathf.Max(0.001f, titleLineHeight);
-            captionLineHeight = Mathf.Max(0.001f, captionLineHeight);
-            estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
-            titleImageGap = Mathf.Max(0f, titleImageGap);
-            imageCaptionGap = Mathf.Max(0f, imageCaptionGap);
-            textDepthOffset = Mathf.Max(0.001f, textDepthOffset);
-            accentWidth = Mathf.Max(0f, accentWidth);
-            accentGap = Mathf.Max(0f, accentGap);
-            followSharpness = Mathf.Max(0.01f, followSharpness);
-            snapDistance = Mathf.Max(0.01f, snapDistance);
-
             if (background != null && imageQuad != null && titleText != null && captionText != null)
             {
                 ApplyTextSettings();
@@ -192,8 +128,8 @@ namespace MRModuleEditor.Runtime.UI
             showingStepId = step == null ? "" : step.id;
             hasAppliedPose = false;
 
-            titleText.text = SpatialRenderUtility.Wrap(step == null ? "" : step.title ?? "", GetEffectiveWrapCharacters(titleCharacterSize));
-            captionText.text = SpatialRenderUtility.Wrap(caption ?? "", GetEffectiveWrapCharacters(captionCharacterSize));
+            titleText.text = SpatialRenderUtility.Wrap(step == null ? "" : step.title ?? "", GetEffectiveWrapCharacters(ImageStyle.title.characterSize));
+            captionText.text = SpatialRenderUtility.Wrap(caption ?? "", GetEffectiveWrapCharacters(ImageStyle.caption.characterSize));
 
             SpatialRenderUtility.SetMaterialTexture(imageMaterial, texture);
             ApplyTextSettings();
@@ -278,7 +214,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             transform.localScale = targetScale;
 
-            if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
+            if (!Style.HeadFollow.smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
                 transform.position = targetPose.position;
                 transform.rotation = targetPose.rotation;
@@ -286,8 +222,8 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPose.position) > snapDistance)
+            float t = 1f - Mathf.Exp(-Style.HeadFollow.followSharpness * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetPose.position) > Style.HeadFollow.snapDistance)
             {
                 transform.position = targetPose.position;
             }
@@ -306,7 +242,7 @@ namespace MRModuleEditor.Runtime.UI
                 background = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Image Panel Background",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(panelColor, nameof(SpatialImagePanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Chrome.panelColor, nameof(SpatialImagePanel)),
                     false,
                     SortingBackground);
             }
@@ -316,7 +252,7 @@ namespace MRModuleEditor.Runtime.UI
                 accentBar = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Image Panel Accent",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(accentColor, nameof(SpatialImagePanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Style.AccentColor, nameof(SpatialImagePanel)),
                     false,
                     SortingAccent);
             }
@@ -332,9 +268,9 @@ namespace MRModuleEditor.Runtime.UI
                 titleText = SpatialRenderUtility.CreateText(
                     transform,
                     "Title",
-                    titleCharacterSize,
-                    textFontSize,
-                    titleColor,
+                    ImageStyle.title.characterSize,
+                    Style.TextFontSize,
+                    ImageStyle.title.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -345,9 +281,9 @@ namespace MRModuleEditor.Runtime.UI
                 captionText = SpatialRenderUtility.CreateText(
                     transform,
                     "Caption",
-                    captionCharacterSize,
-                    textFontSize,
-                    captionColor,
+                    ImageStyle.caption.characterSize,
+                    Style.TextFontSize,
+                    ImageStyle.caption.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     SortingText);
@@ -364,25 +300,25 @@ namespace MRModuleEditor.Runtime.UI
             {
                 titleText.anchor = TextAnchor.UpperLeft;
                 titleText.alignment = TextAlignment.Left;
-                titleText.fontSize = textFontSize;
-                titleText.characterSize = titleCharacterSize;
-                titleText.color = titleColor;
+                titleText.fontSize = Style.TextFontSize;
+                titleText.characterSize = ImageStyle.title.characterSize;
+                titleText.color = ImageStyle.title.color;
             }
 
             if (captionText != null)
             {
                 captionText.anchor = TextAnchor.UpperLeft;
                 captionText.alignment = TextAlignment.Left;
-                captionText.fontSize = textFontSize;
-                captionText.characterSize = captionCharacterSize;
-                captionText.color = captionColor;
+                captionText.fontSize = Style.TextFontSize;
+                captionText.characterSize = ImageStyle.caption.characterSize;
+                captionText.color = ImageStyle.caption.color;
             }
         }
 
         private void UpdateMaterialColors()
         {
-            SpatialRenderUtility.SetRendererColor(background, panelColor);
-            SpatialRenderUtility.SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, Chrome.panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, Style.AccentColor);
         }
 
         private void UpdateVisualLayout()
@@ -405,31 +341,31 @@ namespace MRModuleEditor.Runtime.UI
             background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
             float extraLeftInset = GetExtraLeftInset();
-            float contentLeft = -actualSize.x * 0.5f + padding.x + extraLeftInset;
-            float contentTop = actualSize.y * 0.5f - padding.y;
-            float contentWidth = Mathf.Max(0.01f, actualSize.x - padding.x * 2f - extraLeftInset);
+            float contentLeft = -actualSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
+            float contentTop = actualSize.y * 0.5f - Chrome.padding.y;
+            float contentWidth = Mathf.Max(0.01f, actualSize.x - Chrome.padding.x * 2f - extraLeftInset);
             float contentCenterX = contentLeft + contentWidth * 0.5f;
 
             if (accentBar != null)
             {
-                accentBar.SetActive(showAccentBar);
+                accentBar.SetActive(Chrome.showAccentBar);
                 accentBar.transform.localPosition = new Vector3(
-                    -actualSize.x * 0.5f + padding.x * 0.5f,
+                    -actualSize.x * 0.5f + Chrome.padding.x * 0.5f,
                     0f,
                     LocalZAccent);
                 accentBar.transform.localRotation = Quaternion.identity;
                 accentBar.transform.localScale = new Vector3(
-                    accentWidth,
-                    Mathf.Max(0.01f, actualSize.y - padding.y * 1.5f),
+                    Style.AccentWidth,
+                    Mathf.Max(0.01f, actualSize.y - Chrome.padding.y * 1.5f),
                     1f);
             }
 
             float cursorY = contentTop;
-            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
             if (hasTitle)
             {
-                cursorY -= SpatialRenderUtility.CountLines(title) * titleLineHeight;
-                cursorY -= titleImageGap;
+                cursorY -= SpatialRenderUtility.CountLines(title) * ImageStyle.title.lineHeight;
+                cursorY -= ImageStyle.titleImageGap;
             }
 
             Vector2 actualImageSize = CalculateImageDisplaySize(actualSize, title, caption, hasTitle, hasCaption);
@@ -441,10 +377,10 @@ namespace MRModuleEditor.Runtime.UI
 
             if (hasCaption)
             {
-                cursorY -= imageCaptionGap;
+                cursorY -= ImageStyle.imageCaptionGap;
             }
 
-            captionText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            captionText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
         }
 
         private Vector2 CalculatePanelSize(string title, string caption, bool hasTitle, bool hasCaption)
@@ -452,23 +388,23 @@ namespace MRModuleEditor.Runtime.UI
             float extraLeftInset = GetExtraLeftInset();
             Vector2 preferredImageSize = GetPreferredImageDisplaySize();
 
-            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float captionWidth = SpatialRenderUtility.LongestLineLength(caption) * captionCharacterSize * estimatedCharacterWidth;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * ImageStyle.title.characterSize * ImageStyle.estimatedCharacterWidth;
+            float captionWidth = SpatialRenderUtility.LongestLineLength(caption) * ImageStyle.caption.characterSize * ImageStyle.estimatedCharacterWidth;
             float desiredContentWidth = Mathf.Max(preferredImageSize.x, Mathf.Max(titleWidth, captionWidth));
-            float desiredWidth = desiredContentWidth + padding.x * 2f + extraLeftInset;
+            float desiredWidth = desiredContentWidth + Chrome.padding.x * 2f + extraLeftInset;
             desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
 
-            float desiredHeight = padding.y * 2f + preferredImageSize.y;
+            float desiredHeight = Chrome.padding.y * 2f + preferredImageSize.y;
             if (hasTitle)
             {
-                desiredHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight;
-                desiredHeight += titleImageGap;
+                desiredHeight += SpatialRenderUtility.CountLines(title) * ImageStyle.title.lineHeight;
+                desiredHeight += ImageStyle.titleImageGap;
             }
 
             if (hasCaption)
             {
-                desiredHeight += imageCaptionGap;
-                desiredHeight += SpatialRenderUtility.CountLines(caption) * captionLineHeight;
+                desiredHeight += ImageStyle.imageCaptionGap;
+                desiredHeight += SpatialRenderUtility.CountLines(caption) * ImageStyle.caption.lineHeight;
             }
 
             desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
@@ -484,17 +420,17 @@ namespace MRModuleEditor.Runtime.UI
         {
             Vector2 preferredImageSize = GetPreferredImageDisplaySize();
             float extraLeftInset = GetExtraLeftInset();
-            float maxImageWidth = Mathf.Max(0.01f, actualPanelSize.x - padding.x * 2f - extraLeftInset);
+            float maxImageWidth = Mathf.Max(0.01f, actualPanelSize.x - Chrome.padding.x * 2f - extraLeftInset);
 
-            float reservedHeight = padding.y * 2f;
+            float reservedHeight = Chrome.padding.y * 2f;
             if (hasTitle)
             {
-                reservedHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight + titleImageGap;
+                reservedHeight += SpatialRenderUtility.CountLines(title) * ImageStyle.title.lineHeight + ImageStyle.titleImageGap;
             }
 
             if (hasCaption)
             {
-                reservedHeight += imageCaptionGap + SpatialRenderUtility.CountLines(caption) * captionLineHeight;
+                reservedHeight += ImageStyle.imageCaptionGap + SpatialRenderUtility.CountLines(caption) * ImageStyle.caption.lineHeight;
             }
 
             float maxImageHeight = Mathf.Max(0.01f, actualPanelSize.y - reservedHeight);
@@ -569,14 +505,14 @@ namespace MRModuleEditor.Runtime.UI
 
         private int GetEffectiveWrapCharacters(float characterSize)
         {
-            int result = Mathf.Max(1, wrapCharacters);
+            int result = Mathf.Max(1, Style.WrapCharacters);
             if (!autoSizePanel)
             {
                 return result;
             }
 
-            float contentWidth = maximumPanelSize.x - padding.x * 2f - GetExtraLeftInset();
-            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * estimatedCharacterWidth);
+            float contentWidth = maximumPanelSize.x - Chrome.padding.x * 2f - GetExtraLeftInset();
+            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * ImageStyle.estimatedCharacterWidth);
             int fitAtMaxWidth = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
 
             if (fitAtMaxWidth > 0)
@@ -589,7 +525,7 @@ namespace MRModuleEditor.Runtime.UI
 
         private float GetExtraLeftInset()
         {
-            return showAccentBar ? accentWidth + accentGap : 0f;
+            return Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
         }
 
     }

@@ -9,6 +9,10 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private SpatialLayoutResolver spatialLayoutResolver;
 
+        [Header("Style")]
+        [SerializeField]
+        private SpatialPanelStyle style;
+
         [Header("Panel")]
         [SerializeField]
         private bool autoSizePanel = true;
@@ -28,70 +32,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private Vector2 maximumPanelSize = new Vector2(1.5f, 0.6f);
-
-        [SerializeField]
-        private Vector2 padding = new Vector2(0.18f, 0.08f);
-
-        [SerializeField]
-        private float textDepthOffset = 0.01f;
-
-        [SerializeField]
-        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.86f);
-
-        [SerializeField]
-        private bool showAccentBar = true;
-
-        [SerializeField]
-        private float accentWidth = 0.035f;
-
-        [SerializeField]
-        private float accentGap = 0.10f;
-
-        [SerializeField]
-        private Color accentColor = new Color(0.28f, 0.68f, 1.0f, 0.95f);
-
-        [Header("Text")]
-        [SerializeField]
-        private int wrapCharacters = 50;
-
-        [SerializeField]
-        private int textFontSize = 32;
-
-        [SerializeField]
-        private float titleCharacterSize = 0.035f;
-
-        [SerializeField]
-        private float bodyCharacterSize = 0.025f;
-
-        [SerializeField]
-        private float titleLineHeight = 0.2f;
-
-        [SerializeField]
-        private float bodyLineHeight = 0.12f;
-
-        [SerializeField]
-        private float titleBodyGap = 0.01f;
-
-        // TextMesh is not layout-aware. This multiplier is an intentionally simple
-        // approximation used to size the primitive background from character counts.
-        [SerializeField]
-        private float estimatedCharacterWidth = 1.5f;
-
-        [SerializeField]
-        private Color titleColor = Color.white;
-
-        [SerializeField]
-        private Color bodyColor = new Color(0.92f, 0.92f, 0.92f, 1f);
-
-        [Header("Head Follow")]
-        [SerializeField]
-        private bool smoothFollow = true;
-
-        [SerializeField]
-        private float followSharpness = 16f;
-
-        [SerializeField]
-        private float snapDistance = 2.5f;
 
         private GameObject background;
         private GameObject accentBar;
@@ -116,6 +56,21 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        private SpatialPanelStyle Style
+        {
+            get { return style == null ? SpatialPanelStyle.Fallback : style; }
+        }
+
+        private SpatialPanelStyle.TextPanelStyle TextStyle
+        {
+            get { return Style.TextPanel; }
+        }
+
+        private SpatialPanelStyle.PanelChromeStyle Chrome
+        {
+            get { return TextStyle.chrome; }
+        }
+
         private void Awake()
         {
             EnsureVisuals();
@@ -129,20 +84,6 @@ namespace MRModuleEditor.Runtime.UI
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = SpatialRenderUtility.ClampVector(padding, Vector2.zero);
-            wrapCharacters = Mathf.Max(1, wrapCharacters);
-            textFontSize = Mathf.Max(1, textFontSize);
-            titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
-            bodyCharacterSize = Mathf.Max(0.001f, bodyCharacterSize);
-            titleLineHeight = Mathf.Max(0.001f, titleLineHeight);
-            bodyLineHeight = Mathf.Max(0.001f, bodyLineHeight);
-            titleBodyGap = Mathf.Max(0f, titleBodyGap);
-            estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
-            accentWidth = Mathf.Max(0f, accentWidth);
-            accentGap = Mathf.Max(0f, accentGap);
-            followSharpness = Mathf.Max(0.01f, followSharpness);
-            snapDistance = Mathf.Max(0.01f, snapDistance);
-
             if (background != null && titleText != null && bodyText != null)
             {
                 ApplyTextSettings();
@@ -242,7 +183,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             transform.localScale = targetScale;
 
-            if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
+            if (!Style.HeadFollow.smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
                 transform.position = targetPose.position;
                 transform.rotation = targetPose.rotation;
@@ -250,8 +191,8 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPose.position) > snapDistance)
+            float t = 1f - Mathf.Exp(-Style.HeadFollow.followSharpness * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetPose.position) > Style.HeadFollow.snapDistance)
             {
                 transform.position = targetPose.position;
             }
@@ -270,7 +211,7 @@ namespace MRModuleEditor.Runtime.UI
                 background = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Spatial Panel Background",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(panelColor, nameof(SpatialTextPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Chrome.panelColor, nameof(SpatialTextPanel)),
                     false,
                     0);
             }
@@ -280,7 +221,7 @@ namespace MRModuleEditor.Runtime.UI
                 accentBar = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Spatial Panel Accent",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(accentColor, nameof(SpatialTextPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Style.AccentColor, nameof(SpatialTextPanel)),
                     false,
                     1);
             }
@@ -290,9 +231,9 @@ namespace MRModuleEditor.Runtime.UI
                 titleText = SpatialRenderUtility.CreateText(
                     transform,
                     "Title",
-                    titleCharacterSize,
-                    textFontSize,
-                    titleColor,
+                    TextStyle.title.characterSize,
+                    Style.TextFontSize,
+                    TextStyle.title.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     2);
@@ -303,9 +244,9 @@ namespace MRModuleEditor.Runtime.UI
                 bodyText = SpatialRenderUtility.CreateText(
                     transform,
                     "Body",
-                    bodyCharacterSize,
-                    textFontSize,
-                    bodyColor,
+                    TextStyle.body.characterSize,
+                    Style.TextFontSize,
+                    TextStyle.body.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
                     2);
@@ -322,25 +263,25 @@ namespace MRModuleEditor.Runtime.UI
             {
                 titleText.anchor = TextAnchor.UpperLeft;
                 titleText.alignment = TextAlignment.Left;
-                titleText.fontSize = textFontSize;
-                titleText.characterSize = titleCharacterSize;
-                titleText.color = titleColor;
+                titleText.fontSize = Style.TextFontSize;
+                titleText.characterSize = TextStyle.title.characterSize;
+                titleText.color = TextStyle.title.color;
             }
 
             if (bodyText != null)
             {
                 bodyText.anchor = TextAnchor.UpperLeft;
                 bodyText.alignment = TextAlignment.Left;
-                bodyText.fontSize = textFontSize;
-                bodyText.characterSize = bodyCharacterSize;
-                bodyText.color = bodyColor;
+                bodyText.fontSize = Style.TextFontSize;
+                bodyText.characterSize = TextStyle.body.characterSize;
+                bodyText.color = TextStyle.body.color;
             }
         }
 
         private void UpdateMaterialColors()
         {
-            SpatialRenderUtility.SetRendererColor(background, panelColor);
-            SpatialRenderUtility.SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, Chrome.panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, Style.AccentColor);
         }
 
         private void UpdateVisualLayout()
@@ -362,71 +303,71 @@ namespace MRModuleEditor.Runtime.UI
             background.transform.localRotation = Quaternion.identity;
             background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
-            float extraLeftInset = showAccentBar ? accentWidth + accentGap : 0f;
-            float left = -actualSize.x * 0.5f + padding.x + extraLeftInset;
-            float top = actualSize.y * 0.5f - padding.y;
+            float extraLeftInset = Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
+            float left = -actualSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
+            float top = actualSize.y * 0.5f - Chrome.padding.y;
 
             if (accentBar != null)
             {
-                accentBar.SetActive(showAccentBar);
+                accentBar.SetActive(Chrome.showAccentBar);
                 accentBar.transform.localPosition = new Vector3(
-                    -actualSize.x * 0.5f + padding.x * 0.5f,
+                    -actualSize.x * 0.5f + Chrome.padding.x * 0.5f,
                     0f,
-                    textDepthOffset * 0.5f);
+                    Chrome.textDepthOffset * 0.5f);
                 accentBar.transform.localRotation = Quaternion.identity;
                 accentBar.transform.localScale = new Vector3(
-                    accentWidth,
-                    Mathf.Max(0.01f, actualSize.y - padding.y * 1.5f),
+                    Style.AccentWidth,
+                    Mathf.Max(0.01f, actualSize.y - Chrome.padding.y * 1.5f),
                     1f);
             }
 
-            titleText.transform.localPosition = new Vector3(left, top, textDepthOffset);
+            titleText.transform.localPosition = new Vector3(left, top, Chrome.textDepthOffset);
 
             float bodyTop = top;
             if (hasTitle)
             {
-                bodyTop -= SpatialRenderUtility.CountLines(title) * titleLineHeight;
+                bodyTop -= SpatialRenderUtility.CountLines(title) * TextStyle.title.lineHeight;
             }
 
             if (hasTitle && hasBody)
             {
-                bodyTop -= titleBodyGap;
+                bodyTop -= TextStyle.titleBodyGap;
             }
 
-            bodyText.transform.localPosition = new Vector3(left, bodyTop, textDepthOffset);
+            bodyText.transform.localPosition = new Vector3(left, bodyTop, Chrome.textDepthOffset);
         }
 
         private Vector2 CalculatePanelSize(string title, string body, bool hasTitle, bool hasBody)
         {
-            float extraLeftInset = showAccentBar ? accentWidth + accentGap : 0f;
+            float extraLeftInset = Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
 
-            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float bodyWidth = SpatialRenderUtility.LongestLineLength(body) * bodyCharacterSize * estimatedCharacterWidth;
-            float desiredWidth = Mathf.Max(titleWidth, bodyWidth) + padding.x * 2f + extraLeftInset;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * TextStyle.title.characterSize * TextStyle.estimatedCharacterWidth;
+            float bodyWidth = SpatialRenderUtility.LongestLineLength(body) * TextStyle.body.characterSize * TextStyle.estimatedCharacterWidth;
+            float desiredWidth = Mathf.Max(titleWidth, bodyWidth) + Chrome.padding.x * 2f + extraLeftInset;
             desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
 
             int titleLineCount = hasTitle ? SpatialRenderUtility.CountLines(title) : 0;
             int bodyLineCount = hasBody ? SpatialRenderUtility.CountLines(body) : 0;
 
-            float desiredHeight = padding.y * 2f;
+            float desiredHeight = Chrome.padding.y * 2f;
             if (hasTitle)
             {
-                desiredHeight += titleLineCount * titleLineHeight;
+                desiredHeight += titleLineCount * TextStyle.title.lineHeight;
             }
 
             if (hasTitle && hasBody)
             {
-                desiredHeight += titleBodyGap;
+                desiredHeight += TextStyle.titleBodyGap;
             }
 
             if (hasBody)
             {
-                desiredHeight += bodyLineCount * bodyLineHeight;
+                desiredHeight += bodyLineCount * TextStyle.body.lineHeight;
             }
 
             if (!hasTitle && !hasBody)
             {
-                desiredHeight += bodyLineHeight;
+                desiredHeight += TextStyle.body.lineHeight;
             }
 
             desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
@@ -435,15 +376,15 @@ namespace MRModuleEditor.Runtime.UI
 
         private int GetEffectiveWrapCharacters()
         {
-            int result = Mathf.Max(1, wrapCharacters);
+            int result = Mathf.Max(1, Style.WrapCharacters);
             if (!autoSizePanel)
             {
                 return result;
             }
 
-            float extraLeftInset = showAccentBar ? accentWidth + accentGap : 0f;
-            float contentWidth = maximumPanelSize.x - padding.x * 2f - extraLeftInset;
-            float averageCharacterWidth = Mathf.Max(0.001f, bodyCharacterSize * estimatedCharacterWidth);
+            float extraLeftInset = Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
+            float contentWidth = maximumPanelSize.x - Chrome.padding.x * 2f - extraLeftInset;
+            float averageCharacterWidth = Mathf.Max(0.001f, TextStyle.body.characterSize * TextStyle.estimatedCharacterWidth);
             int fitAtMaxWidth = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
 
             if (fitAtMaxWidth > 0)

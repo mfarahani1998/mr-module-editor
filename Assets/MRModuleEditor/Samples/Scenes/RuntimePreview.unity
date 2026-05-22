@@ -364,37 +364,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 006d7ca8dd414bf58adf6c3c4b70e7d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spatialLayoutResolver: {fileID: 0}
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
   autoSizePanel: 1
   panelSize: {x: 1.5, y: 0.95}
   panelLocalOffset: {x: 0, y: -0.15, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 0.85, y: 0.55}
   maximumPanelSize: {x: 1.8, y: 1.35}
-  padding: {x: 0.1, y: 0.08}
-  textDepthOffset: 0.02
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.88}
-  showAccentBar: 0
-  accentWidth: 0.035
-  accentGap: 0.08
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
   imageSize: {x: 1.05, y: 0.52}
   minimumImageSize: {x: 0.35, y: 0.22}
   preserveImageAspectRatio: 1
-  titleImageGap: 0.055
-  imageCaptionGap: 0.055
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.025
-  captionCharacterSize: 0.018
-  titleLineHeight: 0.12
-  captionLineHeight: 0.075
-  estimatedCharacterWidth: 1.5
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  captionColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
 --- !u!4 &671819799
 Transform:
   m_ObjectHideFlags: 0
@@ -1075,9 +1055,7 @@ MonoBehaviour:
   controlPanel: {fileID: 1762172281}
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
-  spatialTextPanel: {fileID: 2146630565}
-  spatialImagePanel: {fileID: 671819798}
-  spatialMcqPanel: {fileID: 1930746979}
+  spatialUIService: {fileID: 0}
   loadOnStart: 1
   playOnStart: 0
 --- !u!114 &1762172281
@@ -1290,38 +1268,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8146d30e8e2999ffdb2e1e5712048478, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spatialLayoutResolver: {fileID: 0}
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
   autoSizePanel: 1
   panelSize: {x: 1.75, y: 1.45}
   panelLocalOffset: {x: 0, y: -0.15, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 1, y: 0.65}
   maximumPanelSize: {x: 2.1, y: 2}
-  padding: {x: 0.08, y: 0.08}
-  textDepthOffset: 0.02
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.9}
-  showAccentBar: 0
-  accentWidth: 0.035
-  accentGap: 0.08
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.022
-  questionCharacterSize: 0.03
-  choiceCharacterSize: 0.022
-  feedbackCharacterSize: 0.022
-  titleLineHeight: 0.11
-  questionLineHeight: 0.14
-  choiceLineHeight: 0.065
-  feedbackLineHeight: 0.095
-  titleQuestionGap: 0.055
-  questionChoiceGap: 0.09
-  feedbackGapBelowChoices: 0.045
-  estimatedCharacterWidth: 1.8
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  questionColor: {r: 0.94, g: 0.94, b: 0.94, a: 1}
-  choiceTextColor: {r: 1, g: 1, b: 1, a: 1}
-  feedbackColor: {r: 0.82, g: 0.9, b: 1, a: 1}
   autoSizeChoiceCards: 1
   choiceHeight: 0.18
   minimumChoiceHeight: 0.18
@@ -1329,10 +1283,6 @@ MonoBehaviour:
   choiceGap: 0.04
   choiceTextInsetX: 0.055
   choiceTextTopOffset: 0.045
-  choiceColor: {r: 0.16, g: 0.2, b: 0.26, a: 0.96}
-  gazeColor: {r: 0.25, g: 0.42, b: 0.72, a: 0.96}
-  selectedColor: {r: 0.2, g: 0.55, b: 0.35, a: 0.96}
-  wrongColor: {r: 0.62, g: 0.2, b: 0.2, a: 0.96}
   enableGazeDwell: 1
   gazeDwellMode: 1
   gazeDwellSeconds: 1
@@ -1341,9 +1291,6 @@ MonoBehaviour:
   lockHeadAnchoredPanelForGaze: 1
   gazeRayDistance: 10
   enableKeyboardNumbers: 1
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
 --- !u!4 &1930746980
 Transform:
   m_ObjectHideFlags: 0
@@ -1459,33 +1406,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spatialLayoutResolver: {fileID: 0}
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
   autoSizePanel: 1
   panelSize: {x: 3.2, y: 0.58}
   panelLocalOffset: {x: 0, y: -1, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 0.8, y: 0.25}
   maximumPanelSize: {x: 1.5, y: 0.6}
-  padding: {x: 0.18, y: 0.08}
-  textDepthOffset: 0.01
-  panelColor: {r: 0.03, g: 0.03, b: 0.03, a: 0.86}
-  showAccentBar: 1
-  accentWidth: 0.035
-  accentGap: 0.1
-  accentColor: {r: 0.28, g: 0.68, b: 1, a: 0.95}
-  wrapCharacters: 50
-  textFontSize: 32
-  titleCharacterSize: 0.035
-  bodyCharacterSize: 0.025
-  titleLineHeight: 0.2
-  bodyLineHeight: 0.12
-  titleBodyGap: 0.01
-  estimatedCharacterWidth: 1.5
-  titleColor: {r: 1, g: 1, b: 1, a: 1}
-  bodyColor: {r: 0.92, g: 0.92, b: 0.92, a: 1}
-  smoothFollow: 1
-  followSharpness: 16
-  snapDistance: 2.5
 --- !u!4 &2146630566
 Transform:
   m_ObjectHideFlags: 0
