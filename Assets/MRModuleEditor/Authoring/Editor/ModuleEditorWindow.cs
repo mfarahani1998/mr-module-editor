@@ -121,11 +121,11 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUI.BeginChangeCheck();
             DrawModuleMetadata();
             EditorGUILayout.Space(8);
-            changedByButtons |= DrawModuleDataEditors();
-            EditorGUILayout.Space(8);
             StepInspectorView.Draw(document, selectedStepIndex);
             EditorGUILayout.Space(8);
             changedByButtons |= LayoutInspectorView.Draw(document, selectedStepIndex);
+            EditorGUILayout.Space(8);
+            changedByButtons |= DrawModuleDataEditors();
             
             if (EditorGUI.EndChangeCheck() || changedByButtons)
             {
@@ -245,13 +245,6 @@ namespace MRModuleEditor.Authoring.Editor
             {
                 return;
             }
-
-            EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("Template Data Summary", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("Assets", document.assets == null ? "0" : document.assets.Count.ToString());
-            EditorGUILayout.LabelField("Objects", document.objects == null ? "0" : document.objects.Count.ToString());
-            EditorGUILayout.LabelField("Anchors", document.anchors == null ? "0" : document.anchors.Count.ToString());
-            EditorGUILayout.LabelField("Layouts", document.layouts == null ? "0" : document.layouts.Count.ToString());
 
             EditorGUILayout.HelpBox(
                 "Phase I Editor currently can edit steps and their directly associated layouts, as well as providing dropdowns for object/anchor references.",
