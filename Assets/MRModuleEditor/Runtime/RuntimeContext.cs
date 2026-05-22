@@ -21,7 +21,7 @@ namespace MRModuleEditor.Runtime
             SceneBindingRegistry sceneBindings,
             RuntimeDisplayPanel displayPanel,
             AnchorResolver anchorResolver,
-            SpatialTextPanel spatialTextPanel,
+            SpatialUIService spatialUIService,
             Func<bool> isPaused,
             Func<bool> stopRequested,
             Action<string> logInfo,
@@ -32,9 +32,7 @@ namespace MRModuleEditor.Runtime
                 sceneBindings,
                 displayPanel,
                 anchorResolver,
-                spatialTextPanel,
-                null,
-                null,
+                spatialUIService,
                 new RuntimeExecutionToken(0),
                 isPaused,
                 stopRequested,
@@ -49,38 +47,7 @@ namespace MRModuleEditor.Runtime
             SceneBindingRegistry sceneBindings,
             RuntimeDisplayPanel displayPanel,
             AnchorResolver anchorResolver,
-            SpatialTextPanel spatialTextPanel,
-            RuntimeExecutionToken executionToken,
-            Func<bool> isPaused,
-            Func<bool> stopRequested,
-            Action<string> logInfo,
-            Action<string> logError)
-            : this(
-                module,
-                moduleDirectory,
-                sceneBindings,
-                displayPanel,
-                anchorResolver,
-                spatialTextPanel,
-                null,
-                null,
-                executionToken,
-                isPaused,
-                stopRequested,
-                logInfo,
-                logError)
-        {
-        }
-
-        public RuntimeContext(
-            ModuleDocument module,
-            string moduleDirectory,
-            SceneBindingRegistry sceneBindings,
-            RuntimeDisplayPanel displayPanel,
-            AnchorResolver anchorResolver,
-            SpatialTextPanel spatialTextPanel,
-            SpatialImagePanel spatialImagePanel,
-            SpatialMCQPanel spatialMcqPanel,
+            SpatialUIService spatialUIService,
             RuntimeExecutionToken executionToken,
             Func<bool> isPaused,
             Func<bool> stopRequested,
@@ -92,9 +59,7 @@ namespace MRModuleEditor.Runtime
             SceneBindings = sceneBindings;
             DisplayPanel = displayPanel;
             AnchorResolver = anchorResolver;
-            SpatialTextPanel = spatialTextPanel;
-            SpatialImagePanel = spatialImagePanel;
-            SpatialMCQPanel = spatialMcqPanel;
+            SpatialUI = spatialUIService;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             IsPaused = isPaused;
             StopRequested = stopRequested;
@@ -109,9 +74,7 @@ namespace MRModuleEditor.Runtime
         public SceneBindingRegistry SceneBindings { get; private set; }
         public RuntimeDisplayPanel DisplayPanel { get; private set; }
         public AnchorResolver AnchorResolver { get; private set; }
-        public SpatialTextPanel SpatialTextPanel { get; private set; }
-        public SpatialImagePanel SpatialImagePanel { get; private set; }
-        public SpatialMCQPanel SpatialMCQPanel { get; private set; }
+        public SpatialUIService SpatialUI { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }

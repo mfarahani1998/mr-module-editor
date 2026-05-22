@@ -39,26 +39,22 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 yield break;
             }
 
-            bool hasSpatialMcq = context.SpatialMCQPanel != null;
+            bool hasSpatialUI = context.SpatialUI != null;
+            bool hasSpatialMcq = hasSpatialUI && context.SpatialUI.CanShowMCQ;
             bool hasDebugMcq = context.DisplayPanel != null;
 
             if (!hasSpatialMcq && !hasDebugMcq)
             {
                 if (context.LogError != null)
                 {
-                    context.LogError("MCQ needs either SpatialMCQPanel or RuntimeDisplayPanel.");
+                    context.LogError("MCQ needs either SpatialUIService that can show MCQs or RuntimeDisplayPanel.");
                 }
                 yield break;
             }
 
-            if (context.SpatialTextPanel != null)
+            if (hasSpatialUI)
             {
-                context.SpatialTextPanel.Clear();
-            }
-
-            if (hasSpatialMcq)
-            {
-                context.SpatialMCQPanel.ShowMCQ(context.Module, step, question, choices, correctIndex);
+                context.SpatialUI.ShowMCQ(context.Module, step, question, choices, correctIndex);
             }
 
             if (hasDebugMcq)
@@ -81,9 +77,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
                     continue;
                 }
 
-                if (hasSpatialMcq && context.SpatialMCQPanel.HasAnswer)
+                if (hasSpatialMcq && context.SpatialUI.HasMCQAnswer)
                 {
-                    selectedAnswer = context.SpatialMCQPanel.SelectedAnswer;
+                    selectedAnswer = context.SpatialUI.SelectedMCQAnswer;
                     if (context.LogInfo != null)
                     {
                         context.LogInfo("MCQ answer selected from spatial panel: " + (selectedAnswer + 1));
@@ -114,7 +110,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             if (hasSpatialMcq)
             {
-                context.SpatialMCQPanel.ShowFeedback(feedback);
+                context.SpatialUI.ShowMCQFeedback(feedback);
             }
 
             if (hasDebugMcq)
@@ -124,9 +120,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             yield return context.WaitRespectingPause(1.5f);
 
-            if (context.SpatialMCQPanel != null)
+            if (hasSpatialUI)
             {
-                context.SpatialMCQPanel.ClearIfShowingStep(step.id);
+                context.SpatialUI.ClearStep(step.id);
             }
         }
     }

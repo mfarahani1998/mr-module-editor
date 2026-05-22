@@ -32,13 +32,8 @@ namespace MRModuleEditor.Runtime
         private RuntimeLayoutApplier layoutApplier;
 
         [SerializeField]
-        private SpatialTextPanel spatialTextPanel;
+        private SpatialUIService spatialUIService;
 
-        [SerializeField]
-        private SpatialImagePanel spatialImagePanel;
-
-        [SerializeField]
-        private SpatialMCQPanel spatialMcqPanel;
 
         [SerializeField]
         private bool loadOnStart = true;
@@ -120,19 +115,9 @@ namespace MRModuleEditor.Runtime
                 layoutApplier = FindFirstObjectByType<RuntimeLayoutApplier>();
             }
 
-            if (spatialTextPanel == null)
+            if (spatialUIService == null)
             {
-                spatialTextPanel = FindFirstObjectByType<SpatialTextPanel>(FindObjectsInactive.Include);
-            }
-
-            if (spatialImagePanel == null)
-            {
-                spatialImagePanel = FindFirstObjectByType<SpatialImagePanel>(FindObjectsInactive.Include);
-            }
-
-            if (spatialMcqPanel == null)
-            {
-                spatialMcqPanel = FindFirstObjectByType<SpatialMCQPanel>(FindObjectsInactive.Include);
+                spatialUIService = FindFirstObjectByType<SpatialUIService>(FindObjectsInactive.Include);
             }
 
             if (controlPanel != null)
@@ -308,9 +293,7 @@ namespace MRModuleEditor.Runtime
                 sceneBindingRegistry,
                 displayPanel,
                 anchorResolver,
-                spatialTextPanel,
-                spatialImagePanel,
-                spatialMcqPanel,
+                spatialUIService,
                 executionToken,
                 () => IsPausedForExecution(executionToken),
                 () => IsStopRequestedForExecution(executionToken),
@@ -501,19 +484,9 @@ namespace MRModuleEditor.Runtime
                 displayPanel.Clear();
             }
 
-            if (spatialTextPanel != null)
+            if (spatialUIService != null)
             {
-                spatialTextPanel.Clear();
-            }
-
-            if (spatialImagePanel != null)
-            {
-                spatialImagePanel.Clear();
-            }
-
-            if (spatialMcqPanel != null)
-            {
-                spatialMcqPanel.Clear();
+                spatialUIService.ClearAll();
             }
         }
 

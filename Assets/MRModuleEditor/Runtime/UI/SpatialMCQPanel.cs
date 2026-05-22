@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.XR;
 
@@ -28,9 +27,6 @@ namespace MRModuleEditor.Runtime.UI
         private const float LocalZBackground = 0f;
         private const float LocalZAccent = 0.005f;
         private const float LocalZChoiceCard = 0.01f;
-        private const float LocalZTitleQuestion = 0.02f;
-        private const float LocalZChoiceText = 0.03f;
-        private const float LocalZFeedbackText = 0.03f;
         private const float ColliderDepth = 0.04f;
 
         private const int SortingBackground = 0;
@@ -39,7 +35,11 @@ namespace MRModuleEditor.Runtime.UI
         private const int SortingText = 2;
 
         [SerializeField]
-        private AnchorResolver anchorResolver;
+        private SpatialLayoutResolver spatialLayoutResolver;
+
+        [Header("Style")]
+        [SerializeField]
+        private SpatialPanelStyle style;
 
         [Header("Panel")]
         [SerializeField]
@@ -61,84 +61,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private Vector2 maximumPanelSize = new Vector2(2.1f, 2.0f);
-
-        [SerializeField]
-        private Vector2 padding = new Vector2(0.08f, 0.08f);
-
-        [SerializeField]
-        private float textDepthOffset = 0.02f;
-
-        [SerializeField]
-        private Color panelColor = new Color(0.03f, 0.03f, 0.03f, 0.90f);
-
-        [SerializeField]
-        private bool showAccentBar = false;
-
-        [SerializeField]
-        private float accentWidth = 0.035f;
-
-        [SerializeField]
-        private float accentGap = 0.08f;
-
-        [SerializeField]
-        private Color accentColor = new Color(0.28f, 0.68f, 1.0f, 0.95f);
-
-        [Header("Text")]
-        [SerializeField]
-        private int wrapCharacters = 50;
-
-        [SerializeField]
-        private int textFontSize = 32;
-
-        [SerializeField]
-        private float titleCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float questionCharacterSize = 0.03f;
-
-        [SerializeField]
-        private float choiceCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float feedbackCharacterSize = 0.022f;
-
-        [SerializeField]
-        private float titleLineHeight = 0.11f;
-
-        [SerializeField]
-        private float questionLineHeight = 0.14f;
-
-        [SerializeField]
-        private float choiceLineHeight = 0.065f;
-
-        [SerializeField]
-        private float feedbackLineHeight = 0.095f;
-
-        [SerializeField]
-        private float titleQuestionGap = 0.055f;
-
-        [SerializeField]
-        private float questionChoiceGap = 0.09f;
-
-        [SerializeField]
-        private float feedbackGapBelowChoices = 0.045f;
-
-        // TextMesh is not layout-aware. This multiplier is an intentionally simple
-        // approximation used to size primitive backgrounds from character counts.
-        [SerializeField]
-        private float estimatedCharacterWidth = 1.8f;
-
-        [SerializeField]
-        private Color titleColor = Color.white;
-
-        [SerializeField]
-        private Color questionColor = new Color(0.94f, 0.94f, 0.94f, 1f);
-
-        [SerializeField]
-        private Color choiceTextColor = Color.white;
-
-        [SerializeField]
-        private Color feedbackColor = new Color(0.82f, 0.90f, 1f, 1f);
 
         [Header("Choices")]
         [SerializeField]
@@ -162,18 +84,6 @@ namespace MRModuleEditor.Runtime.UI
 
         [SerializeField]
         private float choiceTextTopOffset = 0.045f;
-
-        [SerializeField]
-        private Color choiceColor = new Color(0.16f, 0.20f, 0.26f, 0.96f);
-
-        [SerializeField]
-        private Color gazeColor = new Color(0.25f, 0.42f, 0.72f, 0.96f);
-
-        [SerializeField]
-        private Color selectedColor = new Color(0.20f, 0.55f, 0.35f, 0.96f);
-
-        [SerializeField]
-        private Color wrongColor = new Color(0.62f, 0.20f, 0.20f, 0.96f);
 
         [Header("Input")]
         [SerializeField]
@@ -200,16 +110,6 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private bool enableKeyboardNumbers = true;
 
-        [Header("Head Follow")]
-        [SerializeField]
-        private bool smoothFollow = true;
-
-        [SerializeField]
-        private float followSharpness = 16f;
-
-        [SerializeField]
-        private float snapDistance = 2.5f;
-
         private GameObject background;
         private GameObject accentBar;
         private TextMesh titleText;
@@ -231,6 +131,39 @@ namespace MRModuleEditor.Runtime.UI
         private bool poseLockedForCurrentQuestion;
         private bool hasAppliedPose;
 
+        private SpatialLayoutResolver LayoutResolver
+        {
+            get
+            {
+                if (spatialLayoutResolver == null)
+                {
+                    spatialLayoutResolver = FindFirstObjectByType<SpatialLayoutResolver>();
+                }
+
+                return spatialLayoutResolver;
+            }
+        }
+
+        private SpatialPanelStyle Style
+        {
+            get { return style == null ? SpatialPanelStyle.Fallback : style; }
+        }
+
+        private SpatialPanelStyle.MCQPanelStyle MCQStyle
+        {
+            get { return Style.MCQPanel; }
+        }
+
+        private SpatialPanelStyle.PanelChromeStyle Chrome
+        {
+            get { return MCQStyle.chrome; }
+        }
+
+        private SpatialPanelStyle.ChoiceCardStyle ChoiceStyle
+        {
+            get { return Style.ChoiceCards; }
+        }
+
         public bool HasAnswer
         {
             get { return selectedIndex >= 0; }
@@ -249,29 +182,11 @@ namespace MRModuleEditor.Runtime.UI
 
         private void OnValidate()
         {
-            panelSize = ClampVector(panelSize, new Vector2(0.1f, 0.1f));
-            minimumPanelSize = ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
+            panelSize = SpatialRenderUtility.ClampVector(panelSize, new Vector2(0.1f, 0.1f));
+            minimumPanelSize = SpatialRenderUtility.ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = ClampVector(padding, Vector2.zero);
-            textDepthOffset = Mathf.Max(0.001f, textDepthOffset);
-            wrapCharacters = Mathf.Max(1, wrapCharacters);
-            textFontSize = Mathf.Max(1, textFontSize);
-            titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
-            questionCharacterSize = Mathf.Max(0.001f, questionCharacterSize);
-            choiceCharacterSize = Mathf.Max(0.001f, choiceCharacterSize);
-            feedbackCharacterSize = Mathf.Max(0.001f, feedbackCharacterSize);
-            titleLineHeight = Mathf.Max(0.001f, titleLineHeight);
-            questionLineHeight = Mathf.Max(0.001f, questionLineHeight);
-            choiceLineHeight = Mathf.Max(0.001f, choiceLineHeight);
-            feedbackLineHeight = Mathf.Max(0.001f, feedbackLineHeight);
-            titleQuestionGap = Mathf.Max(0f, titleQuestionGap);
-            questionChoiceGap = Mathf.Max(0f, questionChoiceGap);
-            feedbackGapBelowChoices = Mathf.Max(0f, feedbackGapBelowChoices);
-            estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
-            accentWidth = Mathf.Max(0f, accentWidth);
-            accentGap = Mathf.Max(0f, accentGap);
             choiceHeight = Mathf.Max(0.02f, choiceHeight);
             minimumChoiceHeight = Mathf.Max(0.02f, minimumChoiceHeight);
             choiceVerticalPadding = Mathf.Max(0f, choiceVerticalPadding);
@@ -281,8 +196,6 @@ namespace MRModuleEditor.Runtime.UI
             gazeDwellSeconds = Mathf.Max(0.05f, gazeDwellSeconds);
             gazeInputArmDelaySeconds = Mathf.Max(0f, gazeInputArmDelaySeconds);
             gazeRayDistance = Mathf.Max(0.1f, gazeRayDistance);
-            followSharpness = Mathf.Max(0.01f, followSharpness);
-            snapDistance = Mathf.Max(0.01f, snapDistance);
 
             if (background != null && titleText != null && questionText != null && feedbackText != null)
             {
@@ -315,9 +228,9 @@ namespace MRModuleEditor.Runtime.UI
             poseLockedForCurrentQuestion = false;
             hasAppliedPose = false;
 
-            titleText.text = Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(titleCharacterSize, 0f));
-            questionText.text = Wrap(question ?? "", GetEffectiveWrapCharacters(questionCharacterSize, 0f));
-            feedbackText.text = Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+            titleText.text = SpatialRenderUtility.Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(MCQStyle.title.characterSize, 0f));
+            questionText.text = SpatialRenderUtility.Wrap(question ?? "", GetEffectiveWrapCharacters(MCQStyle.question.characterSize, 0f));
+            feedbackText.text = SpatialRenderUtility.Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(MCQStyle.feedback.characterSize, 0f));
 
             ApplyTextSettings();
             UpdateMaterialColors();
@@ -336,7 +249,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (feedbackText != null)
             {
-                feedbackText.text = Wrap(message ?? "", GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+                feedbackText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(MCQStyle.feedback.characterSize, 0f));
                 UpdateVisualLayout();
             }
         }
@@ -434,74 +347,61 @@ namespace MRModuleEditor.Runtime.UI
                 return false;
             }
 
-            if (anchorResolver == null)
-            {
-                anchorResolver = FindFirstObjectByType<AnchorResolver>();
-            }
-
-            if (anchorResolver == null)
+            SpatialLayoutResolver resolver = LayoutResolver;
+            if (resolver == null)
             {
                 return false;
             }
 
-            LayoutDefinition layout = FindLayoutForTarget(currentModule, currentStep.id);
-            string anchorId = ResolveAnchorId(layout);
-
-            Pose anchorPose;
+            Pose targetPose;
+            Vector3 targetScale;
             string error;
-            if (!anchorResolver.TryResolveAnchor(currentModule, anchorId, out anchorPose, out error))
+
+            string fallbackAnchorId = currentStep.GetString("anchorId", "anchor.head.default");
+            bool ok = resolver.TryResolvePoseForStep(
+                currentModule,
+                currentStep,
+                fallbackAnchorId,
+                panelLocalOffset,
+                Vector3.zero,
+                Vector3.one,
+                applyPanelLocalOffsetToAuthoredLayouts,
+                out targetPose,
+                out targetScale,
+                out error);
+
+            if (!ok)
             {
                 return false;
             }
 
-            ApplyPose(anchorPose, layout);
+            ApplyResolvedPose(targetPose, targetScale);
             return true;
         }
 
-        private void ApplyPose(Pose anchorPose, LayoutDefinition layout)
+        private void ApplyResolvedPose(Pose targetPose, Vector3 targetScale)
         {
-            Vector3 localPosition = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.position, Vector3.zero);
+            transform.localScale = targetScale;
 
-            Vector3 localEuler = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.rotationEuler, Vector3.zero);
-
-            Vector3 localScale = layout == null
-                ? Vector3.one
-                : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
-
-            if (layout == null || applyPanelLocalOffsetToAuthoredLayouts)
+            if (!Style.HeadFollow.smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
-                localPosition += panelLocalOffset;
-            }
-
-            Quaternion localRotation = Quaternion.Euler(localEuler);
-            Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;
-            Quaternion targetRotation = anchorPose.rotation * localRotation;
-
-            transform.localScale = localScale;
-
-            if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
-            {
-                transform.position = targetPosition;
-                transform.rotation = targetRotation;
+                transform.position = targetPose.position;
+                transform.rotation = targetPose.rotation;
                 hasAppliedPose = true;
                 return;
             }
 
-            float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPosition) > snapDistance)
+            float t = 1f - Mathf.Exp(-Style.HeadFollow.followSharpness * Time.deltaTime);
+            if (Vector3.Distance(transform.position, targetPose.position) > Style.HeadFollow.snapDistance)
             {
-                transform.position = targetPosition;
+                transform.position = targetPose.position;
             }
             else
             {
-                transform.position = Vector3.Lerp(transform.position, targetPosition, t);
+                transform.position = Vector3.Lerp(transform.position, targetPose.position, t);
             }
 
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
         }
 
         private void UpdateKeyboardNumbers()
@@ -660,31 +560,16 @@ namespace MRModuleEditor.Runtime.UI
 
         private bool IsCurrentStepHeadAnchored()
         {
-            if (currentModule == null || currentStep == null)
+            SpatialLayoutResolver resolver = LayoutResolver;
+            if (resolver == null || currentStep == null)
             {
                 return false;
             }
 
-            LayoutDefinition layout = FindLayoutForTarget(currentModule, currentStep.id);
-            string anchorId = ResolveAnchorId(layout);
-            AnchorDefinition anchor = FindAnchor(currentModule, anchorId);
-            return anchor != null && anchor.type == "head";
-        }
-
-        private string ResolveAnchorId(LayoutDefinition layout)
-        {
-            string anchorId = layout == null ? "" : layout.anchorId;
-            if (string.IsNullOrWhiteSpace(anchorId) && currentStep != null)
-            {
-                anchorId = currentStep.GetString("anchorId", "anchor.head.default");
-            }
-
-            if (string.IsNullOrWhiteSpace(anchorId))
-            {
-                anchorId = "anchor.head.default";
-            }
-
-            return anchorId;
+            return resolver.IsStepHeadAnchored(
+                currentModule,
+                currentStep,
+                currentStep.GetString("anchorId", "anchor.head.default"));
         }
 
         private int IndexOfChoiceCard(GameObject hitObject)
@@ -709,29 +594,63 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (background == null)
             {
-                background = CreateQuad("MCQ Background", MakeMaterial(panelColor), false, SortingBackground);
-                background.transform.SetParent(transform, false);
+                background = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "MCQ Background",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Chrome.panelColor, nameof(SpatialMCQPanel)),
+                    false,
+                    SortingBackground,
+                    ColliderDepth);
             }
 
             if (accentBar == null)
             {
-                accentBar = CreateQuad("MCQ Accent", MakeMaterial(accentColor), false, SortingAccent);
-                accentBar.transform.SetParent(transform, false);
+                accentBar = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "MCQ Accent",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(Style.AccentColor, nameof(SpatialMCQPanel)),
+                    false,
+                    SortingAccent,
+                    ColliderDepth);
             }
 
             if (titleText == null)
             {
-                titleText = CreateText("Title", titleCharacterSize, titleColor, SortingText);
+                titleText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Title",
+                    MCQStyle.title.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.title.color,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             if (questionText == null)
             {
-                questionText = CreateText("Question", questionCharacterSize, questionColor, SortingText);
+                questionText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Question",
+                    MCQStyle.question.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.question.color,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             if (feedbackText == null)
             {
-                feedbackText = CreateText("Feedback", feedbackCharacterSize, feedbackColor, SortingText);
+                feedbackText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Feedback",
+                    MCQStyle.feedback.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.feedback.color,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             ApplyTextSettings();
@@ -745,14 +664,23 @@ namespace MRModuleEditor.Runtime.UI
 
             for (int i = 0; i < choices.Length; i++)
             {
-                GameObject card = CreateQuad(
+                GameObject card = SpatialRenderUtility.CreateQuad(
+                    transform,
                     "Choice " + (i + 1),
-                    MakeMaterial(choiceColor),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(ChoiceStyle.choiceColor, nameof(SpatialMCQPanel)),
                     true,
-                    SortingChoiceCard);
-                card.transform.SetParent(transform, false);
+                    SortingChoiceCard,
+                    ColliderDepth);
 
-                TextMesh text = CreateText("Choice Text " + (i + 1), choiceCharacterSize, choiceTextColor, SortingText);
+                TextMesh text = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Choice Text " + (i + 1),
+                    MCQStyle.choice.characterSize,
+                    Style.TextFontSize,
+                    MCQStyle.choice.color,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
                 text.text = BuildChoiceText(i);
 
                 ChoiceVisual visual = new ChoiceVisual();
@@ -771,18 +699,18 @@ namespace MRModuleEditor.Runtime.UI
         {
             string choice = choices != null && index >= 0 && index < choices.Length ? choices[index] ?? "" : "";
             string label = (index + 1) + ". " + choice;
-            return Wrap(label, GetEffectiveWrapCharacters(choiceCharacterSize, choiceTextInsetX * 2f));
+            return SpatialRenderUtility.Wrap(label, GetEffectiveWrapCharacters(MCQStyle.choice.characterSize, choiceTextInsetX * 2f));
         }
 
         private void ApplyTextSettings()
         {
-            ConfigureText(titleText, titleCharacterSize, titleColor);
-            ConfigureText(questionText, questionCharacterSize, questionColor);
-            ConfigureText(feedbackText, feedbackCharacterSize, feedbackColor);
+            ConfigureText(titleText, MCQStyle.title.characterSize, MCQStyle.title.color);
+            ConfigureText(questionText, MCQStyle.question.characterSize, MCQStyle.question.color);
+            ConfigureText(feedbackText, MCQStyle.feedback.characterSize, MCQStyle.feedback.color);
 
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
-                ConfigureText(choiceVisuals[i].text, choiceCharacterSize, choiceTextColor);
+                ConfigureText(choiceVisuals[i].text, MCQStyle.choice.characterSize, MCQStyle.choice.color);
             }
         }
 
@@ -795,15 +723,15 @@ namespace MRModuleEditor.Runtime.UI
 
             textMesh.anchor = TextAnchor.UpperLeft;
             textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = textFontSize;
+            textMesh.fontSize = Style.TextFontSize;
             textMesh.characterSize = characterSize;
             textMesh.color = color;
         }
 
         private void UpdateMaterialColors()
         {
-            SetRendererColor(background, panelColor);
-            SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, Chrome.panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, Style.AccentColor);
             UpdateChoiceColors();
         }
 
@@ -829,47 +757,47 @@ namespace MRModuleEditor.Runtime.UI
             background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
             float extraLeftInset = GetExtraLeftInset();
-            float contentLeft = -actualSize.x * 0.5f + padding.x + extraLeftInset;
-            float contentTop = actualSize.y * 0.5f - padding.y;
-            float contentWidth = Mathf.Max(0.01f, actualSize.x - padding.x * 2f - extraLeftInset);
+            float contentLeft = -actualSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
+            float contentTop = actualSize.y * 0.5f - Chrome.padding.y;
+            float contentWidth = Mathf.Max(0.01f, actualSize.x - Chrome.padding.x * 2f - extraLeftInset);
             float contentCenterX = contentLeft + contentWidth * 0.5f;
             float choiceWidth = contentWidth;
 
             if (accentBar != null)
             {
-                accentBar.SetActive(showAccentBar);
+                accentBar.SetActive(Chrome.showAccentBar);
                 accentBar.transform.localPosition = new Vector3(
-                    -actualSize.x * 0.5f + padding.x * 0.5f,
+                    -actualSize.x * 0.5f + Chrome.padding.x * 0.5f,
                     0f,
                     LocalZAccent);
                 accentBar.transform.localRotation = Quaternion.identity;
                 accentBar.transform.localScale = new Vector3(
-                    accentWidth,
-                    Mathf.Max(0.01f, actualSize.y - padding.y * 1.5f),
+                    Style.AccentWidth,
+                    Mathf.Max(0.01f, actualSize.y - Chrome.padding.y * 1.5f),
                     1f);
             }
 
             float cursorY = contentTop;
-            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
             if (hasTitle)
             {
-                cursorY -= CountLines(title) * titleLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(title) * MCQStyle.title.lineHeight;
             }
 
             if (hasTitle && hasQuestion)
             {
-                cursorY -= titleQuestionGap;
+                cursorY -= MCQStyle.titleQuestionGap;
             }
 
-            questionText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
+            questionText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
             if (hasQuestion)
             {
-                cursorY -= CountLines(question) * questionLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(question) * MCQStyle.question.lineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
             {
-                cursorY -= questionChoiceGap;
+                cursorY -= MCQStyle.questionChoiceGap;
             }
 
             for (int i = 0; i < choiceVisuals.Count; i++)
@@ -897,7 +825,7 @@ namespace MRModuleEditor.Runtime.UI
                     visual.text.transform.localPosition = new Vector3(
                         contentLeft + choiceTextInsetX,
                         centerY + cardHeight * 0.5f - choiceTextTopOffset,
-                        LocalZChoiceText);
+                        Chrome.textDepthOffset + 0.01f);
                 }
 
                 cursorY -= cardHeight;
@@ -907,11 +835,11 @@ namespace MRModuleEditor.Runtime.UI
             {
                 if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
                 {
-                    cursorY -= feedbackGapBelowChoices;
+                    cursorY -= MCQStyle.feedbackGapBelowChoices;
                 }
             }
 
-            feedbackText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZFeedbackText);
+            feedbackText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset + 0.01f);
         }
 
         private Vector2 CalculatePanelSize(
@@ -923,36 +851,36 @@ namespace MRModuleEditor.Runtime.UI
             bool hasFeedback)
         {
             float extraLeftInset = GetExtraLeftInset();
-            float titleWidth = LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float questionWidth = LongestLineLength(question) * questionCharacterSize * estimatedCharacterWidth;
-            float feedbackWidth = LongestLineLength(feedback) * feedbackCharacterSize * estimatedCharacterWidth;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * MCQStyle.title.characterSize * MCQStyle.estimatedCharacterWidth;
+            float questionWidth = SpatialRenderUtility.LongestLineLength(question) * MCQStyle.question.characterSize * MCQStyle.estimatedCharacterWidth;
+            float feedbackWidth = SpatialRenderUtility.LongestLineLength(feedback) * MCQStyle.feedback.characterSize * MCQStyle.estimatedCharacterWidth;
             float choiceWidth = GetDesiredChoicesWidth();
 
             float desiredContentWidth = Mathf.Max(
                 Mathf.Max(titleWidth, questionWidth),
                 Mathf.Max(choiceWidth, feedbackWidth));
-            float desiredWidth = desiredContentWidth + padding.x * 2f + extraLeftInset;
+            float desiredWidth = desiredContentWidth + Chrome.padding.x * 2f + extraLeftInset;
             desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
 
-            float desiredHeight = padding.y * 2f;
+            float desiredHeight = Chrome.padding.y * 2f;
             if (hasTitle)
             {
-                desiredHeight += CountLines(title) * titleLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(title) * MCQStyle.title.lineHeight;
             }
 
             if (hasTitle && hasQuestion)
             {
-                desiredHeight += titleQuestionGap;
+                desiredHeight += MCQStyle.titleQuestionGap;
             }
 
             if (hasQuestion)
             {
-                desiredHeight += CountLines(question) * questionLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(question) * MCQStyle.question.lineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
             {
-                desiredHeight += questionChoiceGap;
+                desiredHeight += MCQStyle.questionChoiceGap;
             }
 
             for (int i = 0; i < choiceVisuals.Count; i++)
@@ -969,15 +897,15 @@ namespace MRModuleEditor.Runtime.UI
             {
                 if (choiceVisuals.Count > 0 || hasQuestion || hasTitle)
                 {
-                    desiredHeight += feedbackGapBelowChoices;
+                    desiredHeight += MCQStyle.feedbackGapBelowChoices;
                 }
 
-                desiredHeight += CountLines(feedback) * feedbackLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(feedback) * MCQStyle.feedback.lineHeight;
             }
 
             if (!hasTitle && !hasQuestion && choiceVisuals.Count == 0 && !hasFeedback)
             {
-                desiredHeight += questionLineHeight;
+                desiredHeight += MCQStyle.question.lineHeight;
             }
 
             desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
@@ -990,7 +918,7 @@ namespace MRModuleEditor.Runtime.UI
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
                 string text = choiceVisuals[i].text == null ? "" : choiceVisuals[i].text.text ?? "";
-                float width = LongestLineLength(text) * choiceCharacterSize * estimatedCharacterWidth + choiceTextInsetX * 2f;
+                float width = SpatialRenderUtility.LongestLineLength(text) * MCQStyle.choice.characterSize * MCQStyle.estimatedCharacterWidth + choiceTextInsetX * 2f;
                 result = Mathf.Max(result, width);
             }
 
@@ -1004,21 +932,21 @@ namespace MRModuleEditor.Runtime.UI
                 return choiceHeight;
             }
 
-            int lineCount = Mathf.Max(1, CountLines(choiceText));
-            float desiredHeight = lineCount * choiceLineHeight + choiceVerticalPadding * 2f;
+            int lineCount = Mathf.Max(1, SpatialRenderUtility.CountLines(choiceText));
+            float desiredHeight = lineCount * MCQStyle.choice.lineHeight + choiceVerticalPadding * 2f;
             return Mathf.Max(minimumChoiceHeight, desiredHeight);
         }
 
         private int GetEffectiveWrapCharacters(float characterSize, float extraHorizontalInset)
         {
-            int result = Mathf.Max(1, wrapCharacters);
+            int result = Mathf.Max(1, Style.WrapCharacters);
             if (!autoSizePanel)
             {
                 return result;
             }
 
-            float contentWidth = maximumPanelSize.x - padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
-            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * estimatedCharacterWidth);
+            float contentWidth = maximumPanelSize.x - Chrome.padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
+            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * MCQStyle.estimatedCharacterWidth);
             int fitAtMaxWidth = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
 
             if (fitAtMaxWidth > 0)
@@ -1031,26 +959,7 @@ namespace MRModuleEditor.Runtime.UI
 
         private float GetExtraLeftInset()
         {
-            return showAccentBar ? accentWidth + accentGap : 0f;
-        }
-
-        private static int CountLines(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int count = 1;
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == '\n')
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
         }
 
         private void ClearChoiceVisuals()
@@ -1075,273 +984,30 @@ namespace MRModuleEditor.Runtime.UI
         {
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
-                Color color = choiceColor;
+                Color color = ChoiceStyle.choiceColor;
 
                 if (selectedIndex >= 0)
                 {
                     if (i == selectedIndex)
                     {
-                        color = selectedIndex == correctIndex ? selectedColor : wrongColor;
+                        color = selectedIndex == correctIndex ? ChoiceStyle.selectedColor : ChoiceStyle.wrongColor;
                     }
                     else if (i == correctIndex)
                     {
-                        color = selectedColor;
+                        color = ChoiceStyle.selectedColor;
                     }
                 }
                 else if (i == gazedIndex)
                 {
-                    color = Color.Lerp(gazeColor, selectedColor, Mathf.Clamp01(gazeTimer / Mathf.Max(0.01f, gazeDwellSeconds)));
+                    color = Color.Lerp(ChoiceStyle.gazeColor, ChoiceStyle.selectedColor, Mathf.Clamp01(gazeTimer / Mathf.Max(0.01f, gazeDwellSeconds)));
                 }
 
                 if (choiceVisuals[i].renderer != null && choiceVisuals[i].renderer.sharedMaterial != null)
                 {
-                    SetMaterialColor(choiceVisuals[i].renderer.sharedMaterial, color);
+                    SpatialRenderUtility.SetMaterialColor(choiceVisuals[i].renderer.sharedMaterial, color);
                 }
             }
         }
 
-        private GameObject CreateQuad(
-            string objectName,
-            Material material,
-            bool keepCollider,
-            int sortingOrder)
-        {
-            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            quad.name = objectName;
-            quad.transform.localPosition = Vector3.zero;
-            quad.transform.localRotation = Quaternion.identity;
-
-            Collider collider = quad.GetComponent<Collider>();
-            if (!keepCollider)
-            {
-                if (collider != null)
-                {
-                    Destroy(collider);
-                }
-            }
-            else
-            {
-                if (collider != null)
-                {
-                    Destroy(collider);
-                }
-
-                BoxCollider boxCollider = quad.AddComponent<BoxCollider>();
-                boxCollider.size = new Vector3(1f, 1f, ColliderDepth);
-            }
-
-            Renderer renderer = quad.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.sharedMaterial = material;
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return quad;
-        }
-
-        private TextMesh CreateText(
-            string objectName,
-            float characterSize,
-            Color color,
-            int sortingOrder)
-        {
-            GameObject textObject = new GameObject(objectName);
-            textObject.transform.SetParent(transform, false);
-            textObject.transform.localPosition = Vector3.zero;
-            textObject.transform.localRotation = Quaternion.identity;
-
-            TextMesh textMesh = textObject.AddComponent<TextMesh>();
-            textMesh.anchor = TextAnchor.UpperLeft;
-            textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = textFontSize;
-            textMesh.characterSize = characterSize;
-            textMesh.color = color;
-            textMesh.text = "";
-
-            Renderer renderer = textObject.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return textMesh;
-        }
-
-        private static Material MakeMaterial(Color color)
-        {
-            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialMCQPanel));
-        }
-
-        private static void SetRendererColor(GameObject target, Color color)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            Renderer renderer = target.GetComponent<Renderer>();
-            if (renderer == null || renderer.sharedMaterial == null)
-            {
-                return;
-            }
-
-            SetMaterialColor(renderer.sharedMaterial, color);
-        }
-
-        private static void SetMaterialColor(Material material, Color color)
-        {
-            if (material == null)
-            {
-                return;
-            }
-
-            SpatialMaterialUtility.SetMaterialColor(material, color);
-        }
-
-        private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
-        {
-            if (module == null || module.layouts == null || string.IsNullOrWhiteSpace(targetId))
-            {
-                return null;
-            }
-
-            for (int i = 0; i < module.layouts.Count; i++)
-            {
-                LayoutDefinition layout = module.layouts[i];
-                if (layout != null && layout.targetId == targetId)
-                {
-                    return layout;
-                }
-            }
-
-            return null;
-        }
-
-        private static AnchorDefinition FindAnchor(ModuleDocument module, string anchorId)
-        {
-            if (module == null || module.anchors == null || string.IsNullOrWhiteSpace(anchorId))
-            {
-                return null;
-            }
-
-            for (int i = 0; i < module.anchors.Count; i++)
-            {
-                AnchorDefinition anchor = module.anchors[i];
-                if (anchor != null && anchor.id == anchorId)
-                {
-                    return anchor;
-                }
-            }
-
-            return null;
-        }
-
-        private static string Wrap(string text, int maxCharactersPerLine)
-        {
-            if (string.IsNullOrEmpty(text) || maxCharactersPerLine <= 0)
-            {
-                return text ?? "";
-            }
-
-            text = text.Replace("\r\n", "\n").Replace('\r', '\n');
-            string[] paragraphs = text.Split('\n');
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-
-            for (int p = 0; p < paragraphs.Length; p++)
-            {
-                if (p > 0)
-                {
-                    builder.Append('\n');
-                }
-
-                string paragraph = paragraphs[p];
-                if (string.IsNullOrWhiteSpace(paragraph))
-                {
-                    continue;
-                }
-
-                string[] words = paragraph.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                int currentLineLength = 0;
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    string word = words[i];
-
-                    while (word.Length > maxCharactersPerLine)
-                    {
-                        if (currentLineLength > 0)
-                        {
-                            builder.Append('\n');
-                            currentLineLength = 0;
-                        }
-
-                        builder.Append(word.Substring(0, maxCharactersPerLine));
-                        word = word.Substring(maxCharactersPerLine);
-
-                        if (word.Length > 0)
-                        {
-                            builder.Append('\n');
-                        }
-                    }
-
-                    if (word.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    if (currentLineLength > 0 && currentLineLength + word.Length + 1 > maxCharactersPerLine)
-                    {
-                        builder.Append('\n');
-                        currentLineLength = 0;
-                    }
-                    else if (currentLineLength > 0)
-                    {
-                        builder.Append(' ');
-                        currentLineLength++;
-                    }
-
-                    builder.Append(word);
-                    currentLineLength += word.Length;
-                }
-            }
-
-            return builder.ToString();
-        }
-
-        private static int LongestLineLength(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int longest = 0;
-            int current = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '\n')
-                {
-                    longest = Mathf.Max(longest, current);
-                    current = 0;
-                }
-                else if (c != '\r')
-                {
-                    current++;
-                }
-            }
-
-            return Mathf.Max(longest, current);
-        }
-
-        private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
-        {
-            return new Vector2(Mathf.Max(minimum.x, value.x), Mathf.Max(minimum.y, value.y));
-        }
     }
 }
