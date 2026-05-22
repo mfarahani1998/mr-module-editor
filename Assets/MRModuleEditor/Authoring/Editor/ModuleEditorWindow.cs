@@ -24,7 +24,7 @@ namespace MRModuleEditor.Authoring.Editor
         private string status = "";
         private bool isDirty;
 
-        [MenuItem("MR Module Editor/Phase C/Module Editor")]
+        [MenuItem("MR Module Editor/Authoring/Module Editor")]
         public static void Open()
         {
             ModuleEditorWindow window = GetWindow<ModuleEditorWindow>("MR Module Editor");
