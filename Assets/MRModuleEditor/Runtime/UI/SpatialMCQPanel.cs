@@ -117,9 +117,6 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private float gazeRayDistance = 10f;
 
-        [SerializeField]
-        private bool enableKeyboardNumbers = true;
-
         private GameObject background;
         private GameObject accentBar;
         private TextMesh titleText;
@@ -341,11 +338,6 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            if (enableKeyboardNumbers)
-            {
-                UpdateKeyboardNumbers();
-            }
-
             if (gazeEnabledForCurrentQuestion)
             {
                 UpdateGazeDwell();
@@ -431,14 +423,6 @@ namespace MRModuleEditor.Runtime.UI
             }
 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
-        }
-
-        private void UpdateKeyboardNumbers()
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1)) SubmitAnswer(0);
-            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2)) SubmitAnswer(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3)) SubmitAnswer(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4)) SubmitAnswer(3);
         }
 
         private void UpdateGazeDwell()
@@ -535,56 +519,8 @@ namespace MRModuleEditor.Runtime.UI
 
         private string BuildInputInstruction()
         {
-            string keyboardInstruction = BuildKeyboardInstruction();
-            bool hasKeyboardInstruction = !string.IsNullOrEmpty(keyboardInstruction);
-
-            if (gazeEnabledForCurrentQuestion && hasKeyboardInstruction)
-            {
-                return "Look away once, then look at an answer for "
-                    + gazeDwellSeconds.ToString("0.0")
-                    + "s; or "
-                    + keyboardInstruction;
-            }
-
-            if (gazeEnabledForCurrentQuestion)
-            {
-                return "Look away once, then look at an answer for "
-                    + gazeDwellSeconds.ToString("0.0")
-                    + "s.";
-            }
-
-            if (hasKeyboardInstruction)
-            {
-                return UppercaseFirst(keyboardInstruction);
-            }
 
             return "Choose an answer.";
-        }
-
-        private string BuildKeyboardInstruction()
-        {
-            if (!enableKeyboardNumbers || choices == null || choices.Length <= 0)
-            {
-                return "";
-            }
-
-            int keyboardChoiceCount = Mathf.Min(choices.Length, 4);
-            if (keyboardChoiceCount == 1)
-            {
-                return "press 1 to answer.";
-            }
-
-            return "press 1-" + keyboardChoiceCount + " to answer.";
-        }
-
-        private static string UppercaseFirst(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value ?? "";
-            }
-
-            return char.ToUpperInvariant(value[0]) + value.Substring(1);
         }
 
         private bool IsCurrentStepHeadAnchored()

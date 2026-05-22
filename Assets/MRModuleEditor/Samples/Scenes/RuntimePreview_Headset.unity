@@ -1634,6 +1634,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spatialLayoutResolver: {fileID: 1762172289}
   style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  interactionContext: {fileID: 0}
   autoSizePanel: 1
   panelSize: {x: 1.75, y: 1.45}
   panelLocalOffset: {x: 0, y: -0.15, z: 0}
@@ -1654,7 +1655,6 @@ MonoBehaviour:
   requireFreshGazeTarget: 1
   lockHeadAnchoredPanelForGaze: 1
   gazeRayDistance: 10
-  enableKeyboardNumbers: 1
 --- !u!4 &1966342142
 Transform:
   m_ObjectHideFlags: 0
@@ -1670,6 +1670,66 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2029452394
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2029452395}
+  - component: {fileID: 2029452397}
+  - component: {fileID: 2029452396}
+  m_Layer: 0
+  m_Name: RuntimeInteraction
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2029452395
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029452394}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2029452396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029452394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46843669895e44315986035ba673b6b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionContext: {fileID: 2029452397}
+  enableNumberKeys: 1
+  maxNumberKeys: 4
+--- !u!114 &2029452397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029452394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8218bcc4e69a8cbce88c8370430b6325, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2072459197
 GameObject:
   m_ObjectHideFlags: 0
@@ -1756,3 +1816,4 @@ SceneRoots:
   - {fileID: 1957249104}
   - {fileID: 1966342142}
   - {fileID: 840358894}
+  - {fileID: 2029452395}
