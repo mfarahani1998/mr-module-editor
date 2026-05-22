@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
+using MRModuleEditor.Runtime.Interaction;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.XR;
@@ -21,6 +22,7 @@ namespace MRModuleEditor.Runtime.UI
             public GameObject card;
             public TextMesh text;
             public Renderer renderer;
+            public InteractableTarget target;
             public float height;
         }
 
@@ -40,6 +42,14 @@ namespace MRModuleEditor.Runtime.UI
         [Header("Style")]
         [SerializeField]
         private SpatialPanelStyle style;
+
+        [Header("Interaction")]
+        [SerializeField]
+        private InteractionContext interactionContext;
+
+        private InteractionContext subscribedInteractionContext;
+        private int hoveredChoiceIndex = -1;
+        private float hoverProgress;
 
         [Header("Panel")]
         [SerializeField]
@@ -174,6 +184,19 @@ namespace MRModuleEditor.Runtime.UI
             get { return selectedIndex; }
         }
 
+        private InteractionContext Interaction
+        {
+            get
+            {
+                if (interactionContext == null)
+                {
+                    interactionContext = FindFirstObjectByType<InteractionContext>(FindObjectsInactive.Include);
+                }
+
+                return interactionContext;
+            }
+        }
+
         private void Awake()
         {
             EnsureBaseVisuals();
@@ -237,6 +260,8 @@ namespace MRModuleEditor.Runtime.UI
             RebuildChoiceVisuals();
             UpdateVisualLayout();
             gameObject.SetActive(true);
+            SubscribeToInteractionContext();
+            RegisterActiveChoiceTargets();
 
             bool poseApplied = ApplyAnchoredPose();
             poseLockedForCurrentQuestion = poseApplied
@@ -282,12 +307,16 @@ namespace MRModuleEditor.Runtime.UI
 
         public void Clear()
         {
+            UnregisterActiveChoiceTargets();
+
             showingStepId = "";
             currentModule = null;
             currentStep = null;
             choices = new string[0];
             correctIndex = -1;
             selectedIndex = -1;
+            hoveredChoiceIndex = -1;
+            hoverProgress = 0f;
             gazedIndex = -1;
             gazeTimer = 0f;
             shownTime = 0f;
@@ -672,6 +701,17 @@ namespace MRModuleEditor.Runtime.UI
                     SortingChoiceCard,
                     ColliderDepth);
 
+                InteractableTarget target = card.GetComponent<InteractableTarget>();
+                if (target == null)
+                {
+                    target = card.AddComponent<InteractableTarget>();
+                }
+
+                target.Configure(
+                    showingStepId,
+                    BuildChoiceTargetId(showingStepId, i),
+                    i);
+
                 TextMesh text = SpatialRenderUtility.CreateText(
                     transform,
                     "Choice Text " + (i + 1),
@@ -687,6 +727,7 @@ namespace MRModuleEditor.Runtime.UI
                 visual.card = card;
                 visual.text = text;
                 visual.renderer = card.GetComponent<Renderer>();
+                visual.target = target;
                 visual.height = GetChoiceCardHeight(text.text);
                 choiceVisuals.Add(visual);
             }
@@ -1009,5 +1050,128 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        private static string BuildChoiceTargetId(string stepId, int choiceIndex)
+        {
+            return (stepId ?? "") + ".choice." + choiceIndex;
+        }
+
+        private bool IsSignalForCurrentChoice(InteractionSignal signal)
+        {
+            if (string.IsNullOrWhiteSpace(showingStepId))
+            {
+                return false;
+            }
+
+            if (signal.intPayload < 0 || signal.intPayload >= choices.Length)
+            {
+                return false;
+            }
+
+            return signal.targetId == BuildChoiceTargetId(showingStepId, signal.intPayload);
+        }
+
+        private void SubscribeToInteractionContext()
+        {
+            InteractionContext context = Interaction;
+            if (subscribedInteractionContext == context)
+            {
+                return;
+            }
+
+            if (subscribedInteractionContext != null)
+            {
+                subscribedInteractionContext.SignalEmitted -= HandleInteractionSignal;
+            }
+
+            subscribedInteractionContext = context;
+
+            if (subscribedInteractionContext != null)
+            {
+                subscribedInteractionContext.SignalEmitted += HandleInteractionSignal;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            UnregisterActiveChoiceTargets();
+
+            if (subscribedInteractionContext != null)
+            {
+                subscribedInteractionContext.SignalEmitted -= HandleInteractionSignal;
+                subscribedInteractionContext = null;
+            }
+        }
+
+        private void HandleInteractionSignal(InteractionSignal signal)
+        {
+            if (!gameObject.activeInHierarchy || selectedIndex >= 0)
+            {
+                return;
+            }
+
+            if (!IsSignalForCurrentChoice(signal))
+            {
+                return;
+            }
+
+            if (signal.action == InteractionAction.Select)
+            {
+                SubmitAnswer(signal.intPayload);
+                return;
+            }
+
+            if (signal.action == InteractionAction.HoverEnter)
+            {
+                hoveredChoiceIndex = signal.intPayload;
+                hoverProgress = 0f;
+                UpdateChoiceColors();
+                return;
+            }
+
+            if (signal.action == InteractionAction.HoverProgress)
+            {
+                hoveredChoiceIndex = signal.intPayload;
+                hoverProgress = Mathf.Clamp01(signal.floatPayload);
+                UpdateChoiceColors();
+                return;
+            }
+
+            if (signal.action == InteractionAction.HoverExit && hoveredChoiceIndex == signal.intPayload)
+            {
+                hoveredChoiceIndex = -1;
+                hoverProgress = 0f;
+                UpdateChoiceColors();
+            }
+        }
+
+        private void RegisterActiveChoiceTargets()
+        {
+            InteractionContext context = Interaction;
+            if (context == null || string.IsNullOrWhiteSpace(showingStepId))
+            {
+                return;
+            }
+
+            context.ClearTargetsForGroup(showingStepId);
+
+            for (int i = 0; i < choiceVisuals.Count; i++)
+            {
+                if (choiceVisuals[i].target != null)
+                {
+                    context.RegisterTarget(choiceVisuals[i].target);
+                }
+            }
+        }
+
+        private void UnregisterActiveChoiceTargets()
+        {
+            InteractionContext context = Interaction;
+            if (context == null || string.IsNullOrWhiteSpace(showingStepId))
+            {
+                return;
+            }
+
+            context.ClearTargetsForGroup(showingStepId);
+        }
     }
 }
