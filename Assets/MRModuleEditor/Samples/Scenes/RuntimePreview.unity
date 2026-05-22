@@ -1048,6 +1048,7 @@ GameObject:
   - component: {fileID: 1762172286}
   - component: {fileID: 1762172288}
   - component: {fileID: 1762172287}
+  - component: {fileID: 1762172289}
   m_Layer: 0
   m_Name: RuntimeServices
   m_TagString: Untagged
@@ -1198,6 +1199,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
   sceneBindingRegistry: {fileID: 1762172283}
+--- !u!114 &1762172289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762172279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d42e5469035b13c7d9babe9a4cab7bc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  anchorResolver: {fileID: 1762172286}
 --- !u!1 &1765668233
 GameObject:
   m_ObjectHideFlags: 0

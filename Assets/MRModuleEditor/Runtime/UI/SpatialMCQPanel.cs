@@ -38,7 +38,7 @@ namespace MRModuleEditor.Runtime.UI
         private const int SortingText = 2;
 
         [SerializeField]
-        private AnchorResolver anchorResolver;
+        private SpatialLayoutResolver spatialLayoutResolver;
 
         [Header("Panel")]
         [SerializeField]
@@ -229,6 +229,19 @@ namespace MRModuleEditor.Runtime.UI
         private bool gazeNeedsFreshTarget;
         private bool poseLockedForCurrentQuestion;
         private bool hasAppliedPose;
+
+        private SpatialLayoutResolver LayoutResolver
+        {
+            get
+            {
+                if (spatialLayoutResolver == null)
+                {
+                    spatialLayoutResolver = FindFirstObjectByType<SpatialLayoutResolver>();
+                }
+
+                return spatialLayoutResolver;
+            }
+        }
 
         public bool HasAnswer
         {
@@ -433,74 +446,61 @@ namespace MRModuleEditor.Runtime.UI
                 return false;
             }
 
-            if (anchorResolver == null)
-            {
-                anchorResolver = FindFirstObjectByType<AnchorResolver>();
-            }
-
-            if (anchorResolver == null)
+            SpatialLayoutResolver resolver = LayoutResolver;
+            if (resolver == null)
             {
                 return false;
             }
 
-            LayoutDefinition layout = FindLayoutForTarget(currentModule, currentStep.id);
-            string anchorId = ResolveAnchorId(layout);
-
-            Pose anchorPose;
+            Pose targetPose;
+            Vector3 targetScale;
             string error;
-            if (!anchorResolver.TryResolveAnchor(currentModule, anchorId, out anchorPose, out error))
+
+            string fallbackAnchorId = currentStep.GetString("anchorId", "anchor.head.default");
+            bool ok = resolver.TryResolvePoseForStep(
+                currentModule,
+                currentStep,
+                fallbackAnchorId,
+                panelLocalOffset,
+                Vector3.zero,
+                Vector3.one,
+                applyPanelLocalOffsetToAuthoredLayouts,
+                out targetPose,
+                out targetScale,
+                out error);
+
+            if (!ok)
             {
                 return false;
             }
 
-            ApplyPose(anchorPose, layout);
+            ApplyResolvedPose(targetPose, targetScale);
             return true;
         }
 
-        private void ApplyPose(Pose anchorPose, LayoutDefinition layout)
+        private void ApplyResolvedPose(Pose targetPose, Vector3 targetScale)
         {
-            Vector3 localPosition = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.position, Vector3.zero);
-
-            Vector3 localEuler = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.rotationEuler, Vector3.zero);
-
-            Vector3 localScale = layout == null
-                ? Vector3.one
-                : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
-
-            if (layout == null || applyPanelLocalOffsetToAuthoredLayouts)
-            {
-                localPosition += panelLocalOffset;
-            }
-
-            Quaternion localRotation = Quaternion.Euler(localEuler);
-            Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;
-            Quaternion targetRotation = anchorPose.rotation * localRotation;
-
-            transform.localScale = localScale;
+            transform.localScale = targetScale;
 
             if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
-                transform.position = targetPosition;
-                transform.rotation = targetRotation;
+                transform.position = targetPose.position;
+                transform.rotation = targetPose.rotation;
                 hasAppliedPose = true;
                 return;
             }
 
             float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPosition) > snapDistance)
+            if (Vector3.Distance(transform.position, targetPose.position) > snapDistance)
             {
-                transform.position = targetPosition;
+                transform.position = targetPose.position;
             }
             else
             {
-                transform.position = Vector3.Lerp(transform.position, targetPosition, t);
+                transform.position = Vector3.Lerp(transform.position, targetPose.position, t);
             }
 
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
         }
 
         private void UpdateKeyboardNumbers()
@@ -659,31 +659,16 @@ namespace MRModuleEditor.Runtime.UI
 
         private bool IsCurrentStepHeadAnchored()
         {
-            if (currentModule == null || currentStep == null)
+            SpatialLayoutResolver resolver = LayoutResolver;
+            if (resolver == null || currentStep == null)
             {
                 return false;
             }
 
-            LayoutDefinition layout = FindLayoutForTarget(currentModule, currentStep.id);
-            string anchorId = ResolveAnchorId(layout);
-            AnchorDefinition anchor = FindAnchor(currentModule, anchorId);
-            return anchor != null && anchor.type == "head";
-        }
-
-        private string ResolveAnchorId(LayoutDefinition layout)
-        {
-            string anchorId = layout == null ? "" : layout.anchorId;
-            if (string.IsNullOrWhiteSpace(anchorId) && currentStep != null)
-            {
-                anchorId = currentStep.GetString("anchorId", "anchor.head.default");
-            }
-
-            if (string.IsNullOrWhiteSpace(anchorId))
-            {
-                anchorId = "anchor.head.default";
-            }
-
-            return anchorId;
+            return resolver.IsStepHeadAnchored(
+                currentModule,
+                currentStep,
+                currentStep.GetString("anchorId", "anchor.head.default"));
         }
 
         private int IndexOfChoiceCard(GameObject hitObject)
@@ -1121,44 +1106,6 @@ namespace MRModuleEditor.Runtime.UI
                     SpatialRenderUtility.SetMaterialColor(choiceVisuals[i].renderer.sharedMaterial, color);
                 }
             }
-        }
-
-        private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
-        {
-            if (module == null || module.layouts == null || string.IsNullOrWhiteSpace(targetId))
-            {
-                return null;
-            }
-
-            for (int i = 0; i < module.layouts.Count; i++)
-            {
-                LayoutDefinition layout = module.layouts[i];
-                if (layout != null && layout.targetId == targetId)
-                {
-                    return layout;
-                }
-            }
-
-            return null;
-        }
-
-        private static AnchorDefinition FindAnchor(ModuleDocument module, string anchorId)
-        {
-            if (module == null || module.anchors == null || string.IsNullOrWhiteSpace(anchorId))
-            {
-                return null;
-            }
-
-            for (int i = 0; i < module.anchors.Count; i++)
-            {
-                AnchorDefinition anchor = module.anchors[i];
-                if (anchor != null && anchor.id == anchorId)
-                {
-                    return anchor;
-                }
-            }
-
-            return null;
         }
 
     }
