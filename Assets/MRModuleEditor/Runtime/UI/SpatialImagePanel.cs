@@ -17,7 +17,7 @@ namespace MRModuleEditor.Runtime.UI
         private const int SortingText = 2;
 
         [SerializeField]
-        private AnchorResolver anchorResolver;
+        private SpatialLayoutResolver spatialLayoutResolver;
 
         [Header("Panel")]
         [SerializeField]
@@ -129,6 +129,20 @@ namespace MRModuleEditor.Runtime.UI
         private string showingStepId = "";
         private bool hasAppliedPose;
 
+        private SpatialLayoutResolver LayoutResolver
+        {
+            get
+            {
+                if (spatialLayoutResolver != null)
+                {
+                    return spatialLayoutResolver;
+                }
+
+                spatialLayoutResolver = FindFirstObjectByType<SpatialLayoutResolver>();
+                return spatialLayoutResolver;
+            }
+        }
+
         private void Awake()
         {
             EnsureVisuals();
@@ -187,6 +201,7 @@ namespace MRModuleEditor.Runtime.UI
             UpdateVisualLayout();
 
             gameObject.SetActive(true);
+            ApplyAnchoredPose();
         }
 
         public void ClearIfShowingStep(string stepId)
@@ -217,82 +232,71 @@ namespace MRModuleEditor.Runtime.UI
 
         private void LateUpdate()
         {
-            if (currentModule == null || currentStep == null)
-            {
-                return;
-            }
-
-            if (anchorResolver == null)
-            {
-                anchorResolver = FindFirstObjectByType<AnchorResolver>();
-            }
-
-            if (anchorResolver == null)
-            {
-                return;
-            }
-
-            LayoutDefinition layout = FindLayoutForTarget(currentModule, currentStep.id);
-            string anchorId = layout == null ? "" : layout.anchorId;
-            if (string.IsNullOrWhiteSpace(anchorId))
-            {
-                anchorId = currentStep.GetString("anchorId", "anchor.head.default");
-            }
-
-            Pose anchorPose;
-            string error;
-            if (!anchorResolver.TryResolveAnchor(currentModule, anchorId, out anchorPose, out error))
-            {
-                return;
-            }
-
-            ApplyPose(anchorPose, layout);
+            ApplyAnchoredPose();
         }
 
-        private void ApplyPose(Pose anchorPose, LayoutDefinition layout)
+        private bool ApplyAnchoredPose()
         {
-            Vector3 localPosition = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.position, Vector3.zero);
-
-            Vector3 localEuler = layout == null
-                ? Vector3.zero
-                : RuntimeLayoutApplier.ToVector3(layout.rotationEuler, Vector3.zero);
-
-            Vector3 localScale = layout == null
-                ? Vector3.one
-                : RuntimeLayoutApplier.ToVector3(layout.scale, Vector3.one);
-
-            if (layout == null || applyPanelLocalOffsetToAuthoredLayouts)
+            if (currentModule == null || currentStep == null)
             {
-                localPosition += panelLocalOffset;
+                return false;
             }
 
-            Quaternion localRotation = Quaternion.Euler(localEuler);
-            Vector3 targetPosition = anchorPose.position + anchorPose.rotation * localPosition;
-            Quaternion targetRotation = anchorPose.rotation * localRotation;
+            SpatialLayoutResolver resolver = LayoutResolver;
+            if (resolver == null)
+            {
+                return false;
+            }
 
-            transform.localScale = localScale;
+            Pose targetPose;
+            Vector3 targetScale;
+            string error;
+
+            string fallbackAnchorId = currentStep.GetString("anchorId", "anchor.head.default");
+            bool ok = resolver.TryResolvePoseForStep(
+                currentModule,
+                currentStep,
+                fallbackAnchorId,
+                panelLocalOffset,
+                Vector3.zero,
+                Vector3.one,
+                applyPanelLocalOffsetToAuthoredLayouts,
+                out targetPose,
+                out targetScale,
+                out error);
+
+            if (!ok)
+            {
+                return false;
+            }
+
+            ApplyResolvedPose(targetPose, targetScale);
+            return true;
+        }
+
+        private void ApplyResolvedPose(Pose targetPose, Vector3 targetScale)
+        {
+            transform.localScale = targetScale;
 
             if (!smoothFollow || !Application.isPlaying || !hasAppliedPose)
             {
-                transform.position = targetPosition;
-                transform.rotation = targetRotation;
+                transform.position = targetPose.position;
+                transform.rotation = targetPose.rotation;
                 hasAppliedPose = true;
                 return;
             }
 
             float t = 1f - Mathf.Exp(-followSharpness * Time.deltaTime);
-            if (Vector3.Distance(transform.position, targetPosition) > snapDistance)
+            if (Vector3.Distance(transform.position, targetPose.position) > snapDistance)
             {
-                transform.position = targetPosition;
+                transform.position = targetPose.position;
             }
             else
             {
-                transform.position = Vector3.Lerp(transform.position, targetPosition, t);
+                transform.position = Vector3.Lerp(transform.position, targetPose.position, t);
             }
 
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, t);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
         }
 
         private void EnsureVisuals()
@@ -586,25 +590,6 @@ namespace MRModuleEditor.Runtime.UI
         private float GetExtraLeftInset()
         {
             return showAccentBar ? accentWidth + accentGap : 0f;
-        }
-
-        private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
-        {
-            if (module == null || module.layouts == null || string.IsNullOrWhiteSpace(targetId))
-            {
-                return null;
-            }
-
-            for (int i = 0; i < module.layouts.Count; i++)
-            {
-                LayoutDefinition layout = module.layouts[i];
-                if (layout != null && layout.targetId == targetId)
-                {
-                    return layout;
-                }
-            }
-
-            return null;
         }
 
     }

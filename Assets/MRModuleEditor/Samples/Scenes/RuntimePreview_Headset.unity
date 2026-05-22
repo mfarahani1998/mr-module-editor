@@ -407,7 +407,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 006d7ca8dd414bf58adf6c3c4b70e7d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  anchorResolver: {fileID: 1762172286}
+  spatialLayoutResolver: {fileID: 1762172289}
   autoSizePanel: 1
   panelSize: {x: 1.5, y: 0.95}
   panelLocalOffset: {x: 0, y: -0.15, z: 0}
@@ -1755,7 +1755,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de05cc0ce31943cb0b31029370ad2520, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  anchorResolver: {fileID: 1762172286}
+  spatialLayoutResolver: {fileID: 1762172289}
   autoSizePanel: 1
   panelSize: {x: 3.2, y: 0.58}
   panelLocalOffset: {x: 0, y: -1, z: 0}
