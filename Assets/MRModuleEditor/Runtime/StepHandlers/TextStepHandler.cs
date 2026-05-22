@@ -25,13 +25,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 context.DisplayPanel.ShowText(step.title, text);
             }
 
-            if (context.SpatialUI != null && context.SpatialUI.CanShowText)
+            if (context.SpatialUI != null)
             {
                 context.SpatialUI.ShowText(context.Module, step, text);
-            }
-            else if (context.SpatialTextPanel != null)
-            {
-                context.SpatialTextPanel.ShowText(context.Module, step, text);
             }
 
             if (context.LogInfo != null)
@@ -49,10 +45,6 @@ namespace MRModuleEditor.Runtime.StepHandlers
             if (context.SpatialUI != null)
             {
                 context.SpatialUI.ClearStep(step.id);
-            }
-            else if (context.SpatialTextPanel != null)
-            {
-                context.SpatialTextPanel.ClearIfShowingStep(step.id);
             }
         }
     }

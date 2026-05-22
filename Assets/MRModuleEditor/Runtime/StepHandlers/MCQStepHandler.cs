@@ -39,35 +39,22 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 yield break;
             }
 
-            bool useSpatialUI = context.SpatialUI != null && context.SpatialUI.CanShowMCQ;
-            bool useDirectSpatialMcq = !useSpatialUI && context.SpatialMCQPanel != null;
-            bool hasSpatialMcq = useSpatialUI || useDirectSpatialMcq;
+            bool hasSpatialUI = context.SpatialUI != null;
+            bool hasSpatialMcq = hasSpatialUI && context.SpatialUI.CanShowMCQ;
             bool hasDebugMcq = context.DisplayPanel != null;
 
             if (!hasSpatialMcq && !hasDebugMcq)
             {
                 if (context.LogError != null)
                 {
-                    context.LogError("MCQ needs either SpatialMCQPanel or RuntimeDisplayPanel.");
+                    context.LogError("MCQ needs either SpatialUIService that can show MCQs or RuntimeDisplayPanel.");
                 }
                 yield break;
             }
 
-            if (useSpatialUI)
+            if (hasSpatialUI)
             {
                 context.SpatialUI.ShowMCQ(context.Module, step, question, choices, correctIndex);
-            }
-            else
-            {
-                if (context.SpatialTextPanel != null)
-                {
-                    context.SpatialTextPanel.Clear();
-                }
-
-                if (useDirectSpatialMcq)
-                {
-                    context.SpatialMCQPanel.ShowMCQ(context.Module, step, question, choices, correctIndex);
-                }
             }
 
             if (hasDebugMcq)
@@ -90,19 +77,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
                     continue;
                 }
 
-                if (useSpatialUI && context.SpatialUI.HasMCQAnswer)
+                if (hasSpatialMcq && context.SpatialUI.HasMCQAnswer)
                 {
                     selectedAnswer = context.SpatialUI.SelectedMCQAnswer;
-                    if (context.LogInfo != null)
-                    {
-                        context.LogInfo("MCQ answer selected from spatial panel: " + (selectedAnswer + 1));
-                    }
-                    break;
-                }
-
-                if (useDirectSpatialMcq && context.SpatialMCQPanel.HasAnswer)
-                {
-                    selectedAnswer = context.SpatialMCQPanel.SelectedAnswer;
                     if (context.LogInfo != null)
                     {
                         context.LogInfo("MCQ answer selected from spatial panel: " + (selectedAnswer + 1));
@@ -131,13 +108,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
             bool correct = selectedAnswer == correctIndex;
             string feedback = correct ? "Correct." : "Not quite.";
 
-            if (useSpatialUI)
+            if (hasSpatialMcq)
             {
                 context.SpatialUI.ShowMCQFeedback(feedback);
-            }
-            else if (useDirectSpatialMcq)
-            {
-                context.SpatialMCQPanel.ShowFeedback(feedback);
             }
 
             if (hasDebugMcq)
@@ -147,13 +120,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             yield return context.WaitRespectingPause(1.5f);
 
-            if (useSpatialUI)
+            if (hasSpatialUI)
             {
                 context.SpatialUI.ClearStep(step.id);
-            }
-            else if (useDirectSpatialMcq)
-            {
-                context.SpatialMCQPanel.ClearIfShowingStep(step.id);
             }
         }
     }

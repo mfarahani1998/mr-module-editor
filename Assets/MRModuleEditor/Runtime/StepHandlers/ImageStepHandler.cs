@@ -61,21 +61,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 context.DisplayPanel.ShowImage(step.title, caption, texture);
             }
 
-            bool useSpatialUI = context.SpatialUI != null
-                && (context.SpatialUI.CanShowImage || context.SpatialUI.CanShowText);
-
-            if (useSpatialUI)
+            if (context.SpatialUI != null)
             {
                 context.SpatialUI.ShowImage(context.Module, step, texture, caption);
-            }
-            else if (context.SpatialImagePanel != null)
-            {
-                context.SpatialImagePanel.ShowImage(context.Module, step, texture, caption);
-            }
-            else if (context.SpatialTextPanel != null)
-            {
-                string spatialText = string.IsNullOrWhiteSpace(caption) ? step.title : caption;
-                context.SpatialTextPanel.ShowText(context.Module, step, spatialText);
             }
 
             yield return context.WaitRespectingPause(duration);
@@ -85,21 +73,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 yield break;
             }
 
-            if (useSpatialUI)
+            if (context.SpatialUI != null)
             {
                 context.SpatialUI.ClearStep(step.id);
-            }
-            else
-            {
-                if (context.SpatialImagePanel != null)
-                {
-                    context.SpatialImagePanel.ClearIfShowingStep(step.id);
-                }
-
-                if (context.SpatialTextPanel != null)
-                {
-                    context.SpatialTextPanel.ClearIfShowingStep(step.id);
-                }
             }
         }
     }
