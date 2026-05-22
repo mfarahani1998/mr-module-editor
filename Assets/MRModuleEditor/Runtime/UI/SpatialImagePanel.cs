@@ -334,70 +334,20 @@ namespace MRModuleEditor.Runtime.UI
 
         private GameObject CreateQuad(string objectName, Material material, bool keepCollider, int sortingOrder)
         {
-            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            quad.name = objectName;
-            quad.transform.localPosition = Vector3.zero;
-            quad.transform.localRotation = Quaternion.identity;
-
-            Collider collider = quad.GetComponent<Collider>();
-            if (!keepCollider)
-            {
-                if (collider != null)
-                {
-                    Destroy(collider);
-                }
-            }
-            else
-            {
-                if (collider != null)
-                {
-                    Destroy(collider);
-                }
-
-                BoxCollider boxCollider = quad.AddComponent<BoxCollider>();
-                boxCollider.size = new Vector3(1f, 1f, 0.04f);
-            }
-
-            Renderer renderer = quad.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                if (material != null)
-                {
-                    renderer.sharedMaterial = material;
-                }
-
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return quad;
+            return SpatialRenderUtility.CreateQuad(transform, objectName, material, keepCollider, sortingOrder);
         }
 
         private TextMesh CreateText(string objectName, float characterSize, Color color, int sortingOrder)
         {
-            GameObject textObject = new GameObject(objectName);
-            textObject.transform.SetParent(transform, false);
-            textObject.transform.localPosition = Vector3.zero;
-            textObject.transform.localRotation = Quaternion.identity;
-
-            TextMesh textMesh = textObject.AddComponent<TextMesh>();
-            textMesh.anchor = TextAnchor.UpperLeft;
-            textMesh.alignment = TextAlignment.Left;
-            textMesh.fontSize = textFontSize;
-            textMesh.characterSize = characterSize;
-            textMesh.color = color;
-            textMesh.text = "";
-
-            Renderer renderer = textObject.GetComponent<Renderer>();
-            if (renderer != null)
-            {
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sortingOrder = sortingOrder;
-            }
-
-            return textMesh;
+            return SpatialRenderUtility.CreateText(
+                transform,
+                objectName,
+                characterSize,
+                textFontSize,
+                color,
+                TextAnchor.UpperLeft,
+                TextAlignment.Left,
+                sortingOrder);
         }
 
         private void ApplyTextSettings()
@@ -641,18 +591,17 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            if (imageMaterial.HasProperty("_BaseMap")) imageMaterial.SetTexture("_BaseMap", texture);
-            if (imageMaterial.HasProperty("_MainTex")) imageMaterial.SetTexture("_MainTex", texture);
+            SpatialRenderUtility.SetMaterialTexture(imageMaterial, texture);
         }
 
         private static Material MakeColorMaterial(Color color)
         {
-            return SpatialMaterialUtility.CreateColorMaterial(color, nameof(SpatialImagePanel));
+            return SpatialRenderUtility.CreateTransparentColorMaterial(color, nameof(SpatialImagePanel));
         }
 
         private static Material MakeImageMaterial()
         {
-            return SpatialMaterialUtility.CreateTextureMaterial(nameof(SpatialImagePanel));
+            return SpatialRenderUtility.CreateImageMaterial(nameof(SpatialImagePanel));
         }
 
         private static void SetRendererColor(GameObject target, Color color)
@@ -702,124 +651,22 @@ namespace MRModuleEditor.Runtime.UI
 
         private static string Wrap(string text, int maxCharactersPerLine)
         {
-            if (string.IsNullOrEmpty(text) || maxCharactersPerLine <= 0)
-            {
-                return text ?? "";
-            }
-
-            text = text.Replace("\r\n", "\n").Replace('\r', '\n');
-            string[] paragraphs = text.Split('\n');
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-
-            for (int p = 0; p < paragraphs.Length; p++)
-            {
-                if (p > 0)
-                {
-                    builder.Append('\n');
-                }
-
-                string paragraph = paragraphs[p];
-                if (string.IsNullOrWhiteSpace(paragraph))
-                {
-                    continue;
-                }
-
-                string[] words = paragraph.Split(new char[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
-                int currentLineLength = 0;
-
-                for (int i = 0; i < words.Length; i++)
-                {
-                    string word = words[i];
-
-                    while (word.Length > maxCharactersPerLine)
-                    {
-                        if (currentLineLength > 0)
-                        {
-                            builder.Append('\n');
-                            currentLineLength = 0;
-                        }
-
-                        builder.Append(word.Substring(0, maxCharactersPerLine));
-                        word = word.Substring(maxCharactersPerLine);
-
-                        if (word.Length > 0)
-                        {
-                            builder.Append('\n');
-                        }
-                    }
-
-                    if (word.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    if (currentLineLength > 0 && currentLineLength + word.Length + 1 > maxCharactersPerLine)
-                    {
-                        builder.Append('\n');
-                        currentLineLength = 0;
-                    }
-                    else if (currentLineLength > 0)
-                    {
-                        builder.Append(' ');
-                        currentLineLength++;
-                    }
-
-                    builder.Append(word);
-                    currentLineLength += word.Length;
-                }
-            }
-
-            return builder.ToString();
+            return SpatialRenderUtility.Wrap(text, maxCharactersPerLine);
         }
 
         private static int CountLines(string text)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int count = 1;
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == '\n')
-                {
-                    count++;
-                }
-            }
-
-            return count;
+            return SpatialRenderUtility.CountLines(text);
         }
 
         private static int LongestLineLength(string text)
         {
-            if (string.IsNullOrEmpty(text))
-            {
-                return 0;
-            }
-
-            int longest = 0;
-            int current = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                char c = text[i];
-                if (c == '\n')
-                {
-                    longest = Mathf.Max(longest, current);
-                    current = 0;
-                }
-                else if (c != '\r')
-                {
-                    current++;
-                }
-            }
-
-            return Mathf.Max(longest, current);
+            return SpatialRenderUtility.LongestLineLength(text);
         }
 
         private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
         {
-            return new Vector2(Mathf.Max(minimum.x, value.x), Mathf.Max(minimum.y, value.y));
+            return SpatialRenderUtility.ClampVector(value, minimum);
         }
     }
 }
