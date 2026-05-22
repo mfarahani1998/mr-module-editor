@@ -72,7 +72,7 @@ namespace MRModuleEditor.Authoring.Editor
             step.durationSeconds = Mathf.Max(0f, EditorGUILayout.FloatField("Duration Seconds", step.durationSeconds));
 
             EditorGUILayout.Space(8);
-            DrawSpecificFields(step);
+            DrawSpecificFields(document, step);
         }
 
         public static void EnsureDefaultsForType(ModuleStep step)
@@ -152,16 +152,20 @@ namespace MRModuleEditor.Authoring.Editor
             }
         }
 
-        private static void DrawSpecificFields(ModuleStep step)
+        private static void DrawSpecificFields(ModuleDocument document, ModuleStep step)
         {
             if (step.type == "text")
             {
-                DrawString(step, "anchorId", "Anchor ID");
+                EditorIdDropdowns.DrawAnchorIdDropdown(document, step, "anchorId", "Fallback Anchor ID");
+                EditorGUILayout.HelpBox(
+                    "Text placement should normally come from the Layout section below. " +
+                    "This anchorId is still useful as a fallback when no layout exists.",
+                    MessageType.Info);
                 DrawMultilineString(step, "text", "Text");
             }
             else if (step.type == "image")
             {
-                DrawString(step, "assetId", "Asset ID");
+                EditorIdDropdowns.DrawAssetIdDropdown(document, step, "assetId", "Image Asset", "image");
                 DrawMultilineString(step, "caption", "Caption");
             }
             else if (step.type == "wait")
@@ -170,12 +174,12 @@ namespace MRModuleEditor.Authoring.Editor
             }
             else if (step.type == "showObject")
             {
-                DrawString(step, "objectId", "Object ID");
+                EditorIdDropdowns.DrawObjectIdDropdown(document, step, "objectId", "Object");
                 DrawBool(step, "visible", "Visible", true);
             }
             else if (step.type == "moveObject")
             {
-                DrawString(step, "objectId", "Object ID");
+                EditorIdDropdowns.DrawObjectIdDropdown(document, step, "objectId", "Object");
                 DrawBool(step, "isRelative", "Is Relative", false);
                 if (step.GetBool("isRelative", false))
                 {
@@ -190,13 +194,13 @@ namespace MRModuleEditor.Authoring.Editor
             }
             else if (step.type == "showFrame")
             {
-                DrawString(step, "objectId", "Object ID");
+                EditorIdDropdowns.DrawObjectIdDropdown(document, step, "objectId", "Object");
                 DrawInt(step, "jointIndex", "Joint Index", 0);
                 DrawBool(step, "visible", "Visible", true);
             }
             else if (step.type == "rotateJoint")
             {
-                DrawString(step, "objectId", "Object ID");
+                EditorIdDropdowns.DrawObjectIdDropdown(document, step, "objectId", "Object");
                 DrawInt(step, "jointIndex", "Joint Index", 0);
                 DrawFloat(step, "angleDegrees", "Angle Degrees", 0f);
                 DrawBool(step, "showFrame", "Show Frame", true);
@@ -206,6 +210,18 @@ namespace MRModuleEditor.Authoring.Editor
                 DrawMultilineString(step, "question", "Question");
                 DrawStringArray(step, "choices", "Choices");
                 DrawInt(step, "correctIndex", "Correct Index", 0);
+
+                EditorGUILayout.Space(4);
+                EditorIdDropdowns.DrawAnchorIdDropdown(
+                    document,
+                    step,
+                    "anchorId",
+                    "Fallback Anchor ID",
+                    allowNone: true);
+                EditorGUILayout.HelpBox(
+                    "For MCQ placement, prefer the Layout section below. " +
+                    "This optional anchorId is only a fallback when no matching layout exists.",
+                    MessageType.Info);
             }
         }
 
