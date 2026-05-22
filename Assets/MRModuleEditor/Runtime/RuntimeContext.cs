@@ -35,6 +35,7 @@ namespace MRModuleEditor.Runtime
                 spatialTextPanel,
                 null,
                 null,
+                null,
                 new RuntimeExecutionToken(0),
                 isPaused,
                 stopRequested,
@@ -64,6 +65,7 @@ namespace MRModuleEditor.Runtime
                 spatialTextPanel,
                 null,
                 null,
+                null,
                 executionToken,
                 isPaused,
                 stopRequested,
@@ -81,6 +83,7 @@ namespace MRModuleEditor.Runtime
             SpatialTextPanel spatialTextPanel,
             SpatialImagePanel spatialImagePanel,
             SpatialMCQPanel spatialMcqPanel,
+            SpatialUIService spatialUIService,
             RuntimeExecutionToken executionToken,
             Func<bool> isPaused,
             Func<bool> stopRequested,
@@ -95,6 +98,7 @@ namespace MRModuleEditor.Runtime
             SpatialTextPanel = spatialTextPanel;
             SpatialImagePanel = spatialImagePanel;
             SpatialMCQPanel = spatialMcqPanel;
+            SpatialUI = spatialUIService;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             IsPaused = isPaused;
             StopRequested = stopRequested;
@@ -112,6 +116,7 @@ namespace MRModuleEditor.Runtime
         public SpatialTextPanel SpatialTextPanel { get; private set; }
         public SpatialImagePanel SpatialImagePanel { get; private set; }
         public SpatialMCQPanel SpatialMCQPanel { get; private set; }
+        public SpatialUIService SpatialUI { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }

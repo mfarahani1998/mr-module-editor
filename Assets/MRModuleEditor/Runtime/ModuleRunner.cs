@@ -32,6 +32,9 @@ namespace MRModuleEditor.Runtime
         private RuntimeLayoutApplier layoutApplier;
 
         [SerializeField]
+        private SpatialUIService spatialUIService;
+
+        [SerializeField]
         private SpatialTextPanel spatialTextPanel;
 
         [SerializeField]
@@ -138,6 +141,11 @@ namespace MRModuleEditor.Runtime
             if (controlPanel != null)
             {
                 controlPanel.Bind(this);
+            }
+
+            if (spatialUIService == null)
+            {
+                spatialUIService = FindFirstObjectByType<SpatialUIService>(FindObjectsInactive.Include);
             }
 
             handlers.RegisterDefaultHandlers();
@@ -311,6 +319,7 @@ namespace MRModuleEditor.Runtime
                 spatialTextPanel,
                 spatialImagePanel,
                 spatialMcqPanel,
+                spatialUIService,
                 executionToken,
                 () => IsPausedForExecution(executionToken),
                 () => IsStopRequestedForExecution(executionToken),
