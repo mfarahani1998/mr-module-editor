@@ -1,7 +1,6 @@
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace MRModuleEditor.Runtime.UI
@@ -138,14 +137,14 @@ namespace MRModuleEditor.Runtime.UI
 
         private void OnValidate()
         {
-            panelSize = ClampVector(panelSize, new Vector2(0.1f, 0.1f));
-            minimumPanelSize = ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
+            panelSize = SpatialRenderUtility.ClampVector(panelSize, new Vector2(0.1f, 0.1f));
+            minimumPanelSize = SpatialRenderUtility.ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = ClampVector(padding, Vector2.zero);
-            imageSize = ClampVector(imageSize, new Vector2(0.01f, 0.01f));
-            minimumImageSize = ClampVector(minimumImageSize, new Vector2(0.01f, 0.01f));
+            padding = SpatialRenderUtility.ClampVector(padding, Vector2.zero);
+            imageSize = SpatialRenderUtility.ClampVector(imageSize, new Vector2(0.01f, 0.01f));
+            minimumImageSize = SpatialRenderUtility.ClampVector(minimumImageSize, new Vector2(0.01f, 0.01f));
             wrapCharacters = Mathf.Max(1, wrapCharacters);
             textFontSize = Mathf.Max(1, textFontSize);
             titleCharacterSize = Mathf.Max(0.001f, titleCharacterSize);
@@ -179,10 +178,10 @@ namespace MRModuleEditor.Runtime.UI
             showingStepId = step == null ? "" : step.id;
             hasAppliedPose = false;
 
-            titleText.text = Wrap(step == null ? "" : step.title ?? "", GetEffectiveWrapCharacters(titleCharacterSize));
-            captionText.text = Wrap(caption ?? "", GetEffectiveWrapCharacters(captionCharacterSize));
+            titleText.text = SpatialRenderUtility.Wrap(step == null ? "" : step.title ?? "", GetEffectiveWrapCharacters(titleCharacterSize));
+            captionText.text = SpatialRenderUtility.Wrap(caption ?? "", GetEffectiveWrapCharacters(captionCharacterSize));
 
-            SetImageTexture(texture);
+            SpatialRenderUtility.SetMaterialTexture(imageMaterial, texture);
             ApplyTextSettings();
             UpdateMaterialColors();
             UpdateVisualLayout();
@@ -210,7 +209,7 @@ namespace MRModuleEditor.Runtime.UI
 
             if (titleText != null) titleText.text = "";
             if (captionText != null) captionText.text = "";
-            SetImageTexture(null);
+            SpatialRenderUtility.SetMaterialTexture(imageMaterial, null);
             if (background != null) UpdateVisualLayout();
 
             gameObject.SetActive(false);
@@ -300,54 +299,59 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (background == null)
             {
-                background = CreateQuad("Image Panel Background", MakeColorMaterial(panelColor), false, SortingBackground);
-                background.transform.SetParent(transform, false);
+                background = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "Image Panel Background",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(panelColor, nameof(SpatialImagePanel)),
+                    false,
+                    SortingBackground);
             }
 
             if (accentBar == null)
             {
-                accentBar = CreateQuad("Image Panel Accent", MakeColorMaterial(accentColor), false, SortingAccent);
-                accentBar.transform.SetParent(transform, false);
+                accentBar = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "Image Panel Accent",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(accentColor, nameof(SpatialImagePanel)),
+                    false,
+                    SortingAccent);
             }
 
             if (imageQuad == null)
             {
-                imageMaterial = MakeImageMaterial();
-                imageQuad = CreateQuad("Image", imageMaterial, false, SortingImage);
-                imageQuad.transform.SetParent(transform, false);
+                imageMaterial = SpatialRenderUtility.CreateImageMaterial(nameof(SpatialImagePanel));
+                imageQuad = SpatialRenderUtility.CreateQuad(transform, "Image", imageMaterial, false, SortingImage);
             }
 
             if (titleText == null)
             {
-                titleText = CreateText("Title", titleCharacterSize, titleColor, SortingText);
+                titleText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Title",
+                    titleCharacterSize,
+                    textFontSize,
+                    titleColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             if (captionText == null)
             {
-                captionText = CreateText("Caption", captionCharacterSize, captionColor, SortingText);
+                captionText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Caption",
+                    captionCharacterSize,
+                    textFontSize,
+                    captionColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             ApplyTextSettings();
             UpdateMaterialColors();
             UpdateVisualLayout();
-        }
-
-        private GameObject CreateQuad(string objectName, Material material, bool keepCollider, int sortingOrder)
-        {
-            return SpatialRenderUtility.CreateQuad(transform, objectName, material, keepCollider, sortingOrder);
-        }
-
-        private TextMesh CreateText(string objectName, float characterSize, Color color, int sortingOrder)
-        {
-            return SpatialRenderUtility.CreateText(
-                transform,
-                objectName,
-                characterSize,
-                textFontSize,
-                color,
-                TextAnchor.UpperLeft,
-                TextAlignment.Left,
-                sortingOrder);
         }
 
         private void ApplyTextSettings()
@@ -373,8 +377,8 @@ namespace MRModuleEditor.Runtime.UI
 
         private void UpdateMaterialColors()
         {
-            SetRendererColor(background, panelColor);
-            SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, accentColor);
         }
 
         private void UpdateVisualLayout()
@@ -420,7 +424,7 @@ namespace MRModuleEditor.Runtime.UI
             titleText.transform.localPosition = new Vector3(contentLeft, cursorY, textDepthOffset);
             if (hasTitle)
             {
-                cursorY -= CountLines(title) * titleLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(title) * titleLineHeight;
                 cursorY -= titleImageGap;
             }
 
@@ -444,8 +448,8 @@ namespace MRModuleEditor.Runtime.UI
             float extraLeftInset = GetExtraLeftInset();
             Vector2 preferredImageSize = GetPreferredImageDisplaySize();
 
-            float titleWidth = LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float captionWidth = LongestLineLength(caption) * captionCharacterSize * estimatedCharacterWidth;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
+            float captionWidth = SpatialRenderUtility.LongestLineLength(caption) * captionCharacterSize * estimatedCharacterWidth;
             float desiredContentWidth = Mathf.Max(preferredImageSize.x, Mathf.Max(titleWidth, captionWidth));
             float desiredWidth = desiredContentWidth + padding.x * 2f + extraLeftInset;
             desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
@@ -453,14 +457,14 @@ namespace MRModuleEditor.Runtime.UI
             float desiredHeight = padding.y * 2f + preferredImageSize.y;
             if (hasTitle)
             {
-                desiredHeight += CountLines(title) * titleLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight;
                 desiredHeight += titleImageGap;
             }
 
             if (hasCaption)
             {
                 desiredHeight += imageCaptionGap;
-                desiredHeight += CountLines(caption) * captionLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(caption) * captionLineHeight;
             }
 
             desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
@@ -481,12 +485,12 @@ namespace MRModuleEditor.Runtime.UI
             float reservedHeight = padding.y * 2f;
             if (hasTitle)
             {
-                reservedHeight += CountLines(title) * titleLineHeight + titleImageGap;
+                reservedHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight + titleImageGap;
             }
 
             if (hasCaption)
             {
-                reservedHeight += imageCaptionGap + CountLines(caption) * captionLineHeight;
+                reservedHeight += imageCaptionGap + SpatialRenderUtility.CountLines(caption) * captionLineHeight;
             }
 
             float maxImageHeight = Mathf.Max(0.01f, actualPanelSize.y - reservedHeight);
@@ -496,7 +500,7 @@ namespace MRModuleEditor.Runtime.UI
 
             if (!preserveImageAspectRatio)
             {
-                return ClampVector(displaySize, minimumImageSize);
+                return SpatialRenderUtility.ClampVector(displaySize, minimumImageSize);
             }
 
             float aspect = GetTextureAspectRatio();
@@ -528,7 +532,7 @@ namespace MRModuleEditor.Runtime.UI
             Vector2 preferredSize = imageSize;
             if (!preserveImageAspectRatio)
             {
-                return ClampVector(preferredSize, minimumImageSize);
+                return SpatialRenderUtility.ClampVector(preferredSize, minimumImageSize);
             }
 
             float aspect = GetTextureAspectRatio();
@@ -546,7 +550,7 @@ namespace MRModuleEditor.Runtime.UI
                 preferredSize.y = preferredSize.x / aspect;
             }
 
-            return ClampVector(preferredSize, minimumImageSize);
+            return SpatialRenderUtility.ClampVector(preferredSize, minimumImageSize);
         }
 
         private float GetTextureAspectRatio()
@@ -584,52 +588,6 @@ namespace MRModuleEditor.Runtime.UI
             return showAccentBar ? accentWidth + accentGap : 0f;
         }
 
-        private void SetImageTexture(Texture2D texture)
-        {
-            if (imageMaterial == null)
-            {
-                return;
-            }
-
-            SpatialRenderUtility.SetMaterialTexture(imageMaterial, texture);
-        }
-
-        private static Material MakeColorMaterial(Color color)
-        {
-            return SpatialRenderUtility.CreateTransparentColorMaterial(color, nameof(SpatialImagePanel));
-        }
-
-        private static Material MakeImageMaterial()
-        {
-            return SpatialRenderUtility.CreateImageMaterial(nameof(SpatialImagePanel));
-        }
-
-        private static void SetRendererColor(GameObject target, Color color)
-        {
-            if (target == null)
-            {
-                return;
-            }
-
-            Renderer renderer = target.GetComponent<Renderer>();
-            if (renderer == null || renderer.sharedMaterial == null)
-            {
-                return;
-            }
-
-            SetMaterialColor(renderer.sharedMaterial, color);
-        }
-
-        private static void SetMaterialColor(Material material, Color color)
-        {
-            if (material == null)
-            {
-                return;
-            }
-
-            SpatialMaterialUtility.SetMaterialColor(material, color);
-        }
-
         private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
         {
             if (module == null || module.layouts == null || string.IsNullOrWhiteSpace(targetId))
@@ -649,24 +607,5 @@ namespace MRModuleEditor.Runtime.UI
             return null;
         }
 
-        private static string Wrap(string text, int maxCharactersPerLine)
-        {
-            return SpatialRenderUtility.Wrap(text, maxCharactersPerLine);
-        }
-
-        private static int CountLines(string text)
-        {
-            return SpatialRenderUtility.CountLines(text);
-        }
-
-        private static int LongestLineLength(string text)
-        {
-            return SpatialRenderUtility.LongestLineLength(text);
-        }
-
-        private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
-        {
-            return SpatialRenderUtility.ClampVector(value, minimum);
-        }
     }
 }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 using UnityEngine.XR;
 
@@ -249,12 +248,12 @@ namespace MRModuleEditor.Runtime.UI
 
         private void OnValidate()
         {
-            panelSize = ClampVector(panelSize, new Vector2(0.1f, 0.1f));
-            minimumPanelSize = ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
+            panelSize = SpatialRenderUtility.ClampVector(panelSize, new Vector2(0.1f, 0.1f));
+            minimumPanelSize = SpatialRenderUtility.ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
             maximumPanelSize = new Vector2(
                 Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
                 Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
-            padding = ClampVector(padding, Vector2.zero);
+            padding = SpatialRenderUtility.ClampVector(padding, Vector2.zero);
             textDepthOffset = Mathf.Max(0.001f, textDepthOffset);
             wrapCharacters = Mathf.Max(1, wrapCharacters);
             textFontSize = Mathf.Max(1, textFontSize);
@@ -315,9 +314,9 @@ namespace MRModuleEditor.Runtime.UI
             poseLockedForCurrentQuestion = false;
             hasAppliedPose = false;
 
-            titleText.text = Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(titleCharacterSize, 0f));
-            questionText.text = Wrap(question ?? "", GetEffectiveWrapCharacters(questionCharacterSize, 0f));
-            feedbackText.text = Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+            titleText.text = SpatialRenderUtility.Wrap(step == null ? "Quick Check" : step.title ?? "Quick Check", GetEffectiveWrapCharacters(titleCharacterSize, 0f));
+            questionText.text = SpatialRenderUtility.Wrap(question ?? "", GetEffectiveWrapCharacters(questionCharacterSize, 0f));
+            feedbackText.text = SpatialRenderUtility.Wrap(BuildInputInstruction(), GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
 
             ApplyTextSettings();
             UpdateMaterialColors();
@@ -336,7 +335,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (feedbackText != null)
             {
-                feedbackText.text = Wrap(message ?? "", GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
+                feedbackText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(feedbackCharacterSize, 0f));
                 UpdateVisualLayout();
             }
         }
@@ -709,27 +708,63 @@ namespace MRModuleEditor.Runtime.UI
         {
             if (background == null)
             {
-                background = CreateQuad("MCQ Background", MakeMaterial(panelColor), false, SortingBackground);
+                background = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "MCQ Background",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(panelColor, nameof(SpatialMCQPanel)),
+                    false,
+                    SortingBackground,
+                    ColliderDepth);
             }
 
             if (accentBar == null)
             {
-                accentBar = CreateQuad("MCQ Accent", MakeMaterial(accentColor), false, SortingAccent);
+                accentBar = SpatialRenderUtility.CreateQuad(
+                    transform,
+                    "MCQ Accent",
+                    SpatialRenderUtility.CreateTransparentColorMaterial(accentColor, nameof(SpatialMCQPanel)),
+                    false,
+                    SortingAccent,
+                    ColliderDepth);
             }
 
             if (titleText == null)
             {
-                titleText = CreateText("Title", titleCharacterSize, titleColor, SortingText);
+                titleText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Title",
+                    titleCharacterSize,
+                    textFontSize,
+                    titleColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             if (questionText == null)
             {
-                questionText = CreateText("Question", questionCharacterSize, questionColor, SortingText);
+                questionText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Question",
+                    questionCharacterSize,
+                    textFontSize,
+                    questionColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             if (feedbackText == null)
             {
-                feedbackText = CreateText("Feedback", feedbackCharacterSize, feedbackColor, SortingText);
+                feedbackText = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Feedback",
+                    feedbackCharacterSize,
+                    textFontSize,
+                    feedbackColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
             }
 
             ApplyTextSettings();
@@ -743,13 +778,23 @@ namespace MRModuleEditor.Runtime.UI
 
             for (int i = 0; i < choices.Length; i++)
             {
-                GameObject card = CreateQuad(
+                GameObject card = SpatialRenderUtility.CreateQuad(
+                    transform,
                     "Choice " + (i + 1),
-                    MakeMaterial(choiceColor),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(choiceColor, nameof(SpatialMCQPanel)),
                     true,
-                    SortingChoiceCard);
+                    SortingChoiceCard,
+                    ColliderDepth);
 
-                TextMesh text = CreateText("Choice Text " + (i + 1), choiceCharacterSize, choiceTextColor, SortingText);
+                TextMesh text = SpatialRenderUtility.CreateText(
+                    transform,
+                    "Choice Text " + (i + 1),
+                    choiceCharacterSize,
+                    textFontSize,
+                    choiceTextColor,
+                    TextAnchor.UpperLeft,
+                    TextAlignment.Left,
+                    SortingText);
                 text.text = BuildChoiceText(i);
 
                 ChoiceVisual visual = new ChoiceVisual();
@@ -768,7 +813,7 @@ namespace MRModuleEditor.Runtime.UI
         {
             string choice = choices != null && index >= 0 && index < choices.Length ? choices[index] ?? "" : "";
             string label = (index + 1) + ". " + choice;
-            return Wrap(label, GetEffectiveWrapCharacters(choiceCharacterSize, choiceTextInsetX * 2f));
+            return SpatialRenderUtility.Wrap(label, GetEffectiveWrapCharacters(choiceCharacterSize, choiceTextInsetX * 2f));
         }
 
         private void ApplyTextSettings()
@@ -799,8 +844,8 @@ namespace MRModuleEditor.Runtime.UI
 
         private void UpdateMaterialColors()
         {
-            SetRendererColor(background, panelColor);
-            SetRendererColor(accentBar, accentColor);
+            SpatialRenderUtility.SetRendererColor(background, panelColor);
+            SpatialRenderUtility.SetRendererColor(accentBar, accentColor);
             UpdateChoiceColors();
         }
 
@@ -850,7 +895,7 @@ namespace MRModuleEditor.Runtime.UI
             titleText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZTitleQuestion);
             if (hasTitle)
             {
-                cursorY -= CountLines(title) * titleLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(title) * titleLineHeight;
             }
 
             if (hasTitle && hasQuestion)
@@ -861,7 +906,7 @@ namespace MRModuleEditor.Runtime.UI
             questionText.transform.localPosition = new Vector3(contentLeft, cursorY, LocalZTitleQuestion);
             if (hasQuestion)
             {
-                cursorY -= CountLines(question) * questionLineHeight;
+                cursorY -= SpatialRenderUtility.CountLines(question) * questionLineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
@@ -920,9 +965,9 @@ namespace MRModuleEditor.Runtime.UI
             bool hasFeedback)
         {
             float extraLeftInset = GetExtraLeftInset();
-            float titleWidth = LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
-            float questionWidth = LongestLineLength(question) * questionCharacterSize * estimatedCharacterWidth;
-            float feedbackWidth = LongestLineLength(feedback) * feedbackCharacterSize * estimatedCharacterWidth;
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * titleCharacterSize * estimatedCharacterWidth;
+            float questionWidth = SpatialRenderUtility.LongestLineLength(question) * questionCharacterSize * estimatedCharacterWidth;
+            float feedbackWidth = SpatialRenderUtility.LongestLineLength(feedback) * feedbackCharacterSize * estimatedCharacterWidth;
             float choiceWidth = GetDesiredChoicesWidth();
 
             float desiredContentWidth = Mathf.Max(
@@ -934,7 +979,7 @@ namespace MRModuleEditor.Runtime.UI
             float desiredHeight = padding.y * 2f;
             if (hasTitle)
             {
-                desiredHeight += CountLines(title) * titleLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(title) * titleLineHeight;
             }
 
             if (hasTitle && hasQuestion)
@@ -944,7 +989,7 @@ namespace MRModuleEditor.Runtime.UI
 
             if (hasQuestion)
             {
-                desiredHeight += CountLines(question) * questionLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(question) * questionLineHeight;
             }
 
             if ((hasTitle || hasQuestion) && choiceVisuals.Count > 0)
@@ -969,7 +1014,7 @@ namespace MRModuleEditor.Runtime.UI
                     desiredHeight += feedbackGapBelowChoices;
                 }
 
-                desiredHeight += CountLines(feedback) * feedbackLineHeight;
+                desiredHeight += SpatialRenderUtility.CountLines(feedback) * feedbackLineHeight;
             }
 
             if (!hasTitle && !hasQuestion && choiceVisuals.Count == 0 && !hasFeedback)
@@ -987,7 +1032,7 @@ namespace MRModuleEditor.Runtime.UI
             for (int i = 0; i < choiceVisuals.Count; i++)
             {
                 string text = choiceVisuals[i].text == null ? "" : choiceVisuals[i].text.text ?? "";
-                float width = LongestLineLength(text) * choiceCharacterSize * estimatedCharacterWidth + choiceTextInsetX * 2f;
+                float width = SpatialRenderUtility.LongestLineLength(text) * choiceCharacterSize * estimatedCharacterWidth + choiceTextInsetX * 2f;
                 result = Mathf.Max(result, width);
             }
 
@@ -1001,7 +1046,7 @@ namespace MRModuleEditor.Runtime.UI
                 return choiceHeight;
             }
 
-            int lineCount = Mathf.Max(1, CountLines(choiceText));
+            int lineCount = Mathf.Max(1, SpatialRenderUtility.CountLines(choiceText));
             float desiredHeight = lineCount * choiceLineHeight + choiceVerticalPadding * 2f;
             return Mathf.Max(minimumChoiceHeight, desiredHeight);
         }
@@ -1029,11 +1074,6 @@ namespace MRModuleEditor.Runtime.UI
         private float GetExtraLeftInset()
         {
             return showAccentBar ? accentWidth + accentGap : 0f;
-        }
-
-        private static int CountLines(string text)
-        {
-            return SpatialRenderUtility.CountLines(text);
         }
 
         private void ClearChoiceVisuals()
@@ -1078,56 +1118,9 @@ namespace MRModuleEditor.Runtime.UI
 
                 if (choiceVisuals[i].renderer != null && choiceVisuals[i].renderer.sharedMaterial != null)
                 {
-                    SetMaterialColor(choiceVisuals[i].renderer.sharedMaterial, color);
+                    SpatialRenderUtility.SetMaterialColor(choiceVisuals[i].renderer.sharedMaterial, color);
                 }
             }
-        }
-
-        private GameObject CreateQuad(
-            string objectName,
-            Material material,
-            bool keepCollider,
-            int sortingOrder)
-        {
-            return SpatialRenderUtility.CreateQuad(
-                transform,
-                objectName,
-                material,
-                keepCollider,
-                sortingOrder,
-                ColliderDepth);
-        }
-
-        private TextMesh CreateText(
-            string objectName,
-            float characterSize,
-            Color color,
-            int sortingOrder)
-        {
-            return SpatialRenderUtility.CreateText(
-                transform,
-                objectName,
-                characterSize,
-                textFontSize,
-                color,
-                TextAnchor.UpperLeft,
-                TextAlignment.Left,
-                sortingOrder);
-        }
-
-        private static Material MakeMaterial(Color color)
-        {
-            return SpatialRenderUtility.CreateTransparentColorMaterial(color, nameof(SpatialMCQPanel));
-        }
-
-        private static void SetRendererColor(GameObject target, Color color)
-        {
-            SpatialRenderUtility.SetRendererColor(target, color);
-        }
-
-        private static void SetMaterialColor(Material material, Color color)
-        {
-            SpatialRenderUtility.SetMaterialColor(material, color);
         }
 
         private static LayoutDefinition FindLayoutForTarget(ModuleDocument module, string targetId)
@@ -1168,19 +1161,5 @@ namespace MRModuleEditor.Runtime.UI
             return null;
         }
 
-        private static string Wrap(string text, int maxCharactersPerLine)
-        {
-            return SpatialRenderUtility.Wrap(text, maxCharactersPerLine);
-        }
-
-        private static int LongestLineLength(string text)
-        {
-            return SpatialRenderUtility.LongestLineLength(text);
-        }
-
-        private static Vector2 ClampVector(Vector2 value, Vector2 minimum)
-        {
-            return SpatialRenderUtility.ClampVector(value, minimum);
-        }
     }
 }
