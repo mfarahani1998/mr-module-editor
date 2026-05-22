@@ -50,6 +50,7 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.IsTrue(issues.Any(issue => issue.code == "layout.anchorId.unknown"));
         }
 
+        [Test]
         public void ForwardKinematicsTemplate_HasExplicitHeadLayoutsForImageAndMcq()
         {
             ModuleDocument document = ModuleTemplateFactory.CreateForwardKinematicsMini();
