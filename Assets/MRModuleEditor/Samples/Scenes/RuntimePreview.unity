@@ -176,7 +176,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 41839399}
-  - component: {fileID: 41839400}
   m_Layer: 0
   m_Name: Joint2_Elbow
   m_TagString: Untagged
@@ -201,22 +200,6 @@ Transform:
   - {fileID: 1717172580}
   m_Father: {fileID: 1765668234}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &41839400
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 41839398}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bf3c1943d0e5aa289a01b96a73ca5a24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rig: {fileID: 2072459198}
-  jointIndex: 2
-  localOffset: {x: 0, y: 0.35, z: 0}
-  prefix: Joint
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -1405,6 +1388,7 @@ GameObject:
   - component: {fileID: 2072459200}
   - component: {fileID: 2072459199}
   - component: {fileID: 2072459198}
+  - component: {fileID: 2072459201}
   m_Layer: 0
   m_Name: RobotLiteArm
   m_TagString: Untagged
@@ -1465,6 +1449,24 @@ Transform:
   - {fileID: 1075753859}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2072459201
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2072459197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5372add6dc44e5085a74e380d065403a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rig: {fileID: 0}
+  variableStore: {fileID: 0}
+  variableKey: robot.joint3.angleText
+  jointIndex: 2
+  prefix: Joint
+  publishIntervalSeconds: 0.05
 --- !u!1 &2146630564
 GameObject:
   m_ObjectHideFlags: 0
