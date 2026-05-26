@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
+using MRModuleEditor.Runtime.Flow;
 using MRModuleEditor.Runtime.IO;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.UI;
@@ -61,6 +62,7 @@ namespace MRModuleEditor.Runtime
             AnchorResolver = anchorResolver;
             SpatialUI = spatialUIService;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
+            Results = new RuntimeResultStore();
             IsPaused = isPaused;
             StopRequested = stopRequested;
             LogInfo = logInfo;
@@ -76,6 +78,7 @@ namespace MRModuleEditor.Runtime
         public AnchorResolver AnchorResolver { get; private set; }
         public SpatialUIService SpatialUI { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
+        public RuntimeResultStore Results { get; private set; }
         public Func<bool> IsPaused { get; private set; }
         public Func<bool> StopRequested { get; private set; }
         public Action<string> LogInfo { get; private set; }
