@@ -157,6 +157,46 @@
         "y": 1.0,
         "z": 1.0
       }
+    },
+    {
+      "id": "layout.step.011.review_head_panel",
+      "targetId": "step.011",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.55,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.012.summary_head_panel",
+      "targetId": "step.012",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.55,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
     }
   ],
   "steps": [
@@ -273,7 +313,30 @@
           "Motor current",
           "Camera calibration"
         ],
-        "correctIndex": 1
+        "correctIndex": 1,
+        "onCorrectStepId": "step.012",
+        "onWrongStepId": "step.011"
+      }
+    },
+    {
+      "id": "step.011",
+      "type": "text",
+      "title": "Short Review",
+      "durationSeconds": 6.0,
+      "parameters": {
+        "text": "Review: inverse kinematics estimates joint angles for a desired pose. Forward kinematics goes the other direction: it computes the end-effector pose from joint angles.",
+        "anchorId": "anchor.head.default",
+        "nextStepId": "step.012"
+      }
+    },
+    {
+      "id": "step.012",
+      "type": "text",
+      "title": "Summary",
+      "durationSeconds": 6.0,
+      "parameters": {
+        "text": "Summary: forward kinematics maps joint values to the robot end-effector pose. Phase K now lets the lesson branch based on the learner's answer.",
+        "anchorId": "anchor.head.default"
       }
     }
   ]
