@@ -113,5 +113,65 @@ namespace MRModuleEditor.Runtime.IO
                 onLoaded?.Invoke(texture);
             }
         }
+
+        public static System.Collections.IEnumerator LoadAudioClip(
+            string pathOrUrl,
+            Action<AudioClip> onLoaded,
+            Action<string> onError)
+        {
+            string requestUrl = ToAudioRequestUrl(pathOrUrl);
+            AudioType audioType = GuessAudioType(pathOrUrl);
+
+            using (UnityWebRequest request = UnityWebRequestMultimedia.GetAudioClip(requestUrl, audioType))
+            {
+                yield return request.SendWebRequest();
+
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    onError?.Invoke("Could not load audio clip: " + pathOrUrl + "\n" + request.error);
+                    yield break;
+                }
+
+                AudioClip clip = DownloadHandlerAudioClip.GetContent(request);
+                if (clip == null)
+                {
+                    onError?.Invoke("Unity loaded no AudioClip from: " + pathOrUrl);
+                    yield break;
+                }
+
+                onLoaded?.Invoke(clip);
+            }
+        }
+
+        private static string ToAudioRequestUrl(string pathOrUrl)
+        {
+            if (string.IsNullOrWhiteSpace(pathOrUrl))
+            {
+                return "";
+            }
+
+            if (RuntimePathUtility.RequiresUnityWebRequest(pathOrUrl))
+            {
+                return pathOrUrl;
+            }
+
+            return new Uri(pathOrUrl).AbsoluteUri;
+        }
+
+        private static AudioType GuessAudioType(string pathOrUrl)
+        {
+            if (string.IsNullOrWhiteSpace(pathOrUrl))
+            {
+                return AudioType.UNKNOWN;
+            }
+
+            string lower = pathOrUrl.ToLowerInvariant();
+            if (lower.EndsWith(".wav")) return AudioType.WAV;
+            if (lower.EndsWith(".ogg")) return AudioType.OGGVORBIS;
+            if (lower.EndsWith(".mp3")) return AudioType.MPEG;
+            if (lower.EndsWith(".aif") || lower.EndsWith(".aiff")) return AudioType.AIFF;
+
+            return AudioType.UNKNOWN;
+        }
     }
 }

@@ -68,6 +68,18 @@ namespace MRModuleEditor.Authoring.Editor
                 return true;
             }
 
+            if (GUILayout.Button("Add Audio Asset"))
+            {
+                document.assets.Add(new ModuleAsset
+                {
+                    id = EditorModuleDataUtility.MakeUniqueId(document, "asset.audio"),
+                    type = "audio",
+                    path = "assets/audio/new_audio.wav",
+                    label = "New Audio"
+                });
+                return true;
+            }
+
             return changed;
         }
     }

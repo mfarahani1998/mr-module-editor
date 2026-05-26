@@ -36,6 +36,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
             Register(new MoveObjectStepHandler());
             Register(new ImageStepHandler());
             Register(new MCQStepHandler());
+            Register(new AudioStepHandler());
         }
     }
 }

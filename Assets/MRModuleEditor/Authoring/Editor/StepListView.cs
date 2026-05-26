@@ -48,6 +48,7 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Text")) selectedStepIndex = Add(addStep, document, "text");
             if (GUILayout.Button("Image")) selectedStepIndex = Add(addStep, document, "image");
+            if (GUILayout.Button("Audio")) selectedStepIndex = Add(addStep, document, "audio");
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
