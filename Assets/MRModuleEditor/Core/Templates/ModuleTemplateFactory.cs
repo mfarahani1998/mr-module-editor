@@ -48,6 +48,14 @@ namespace MRModuleEditor.Core.Templates
                 label = "Intro Image"
             });
 
+            document.assets.Add(new ModuleAsset
+            {
+                id = "asset.narration_intro",
+                type = "audio",
+                path = "assets/audio/intro.mp3",
+                label = "Intro Narration"
+            });
+
             document.objects.Add(new ModuleObject
             {
                 id = "object.robot_preview",
@@ -80,6 +88,14 @@ namespace MRModuleEditor.Core.Templates
                 "step.001",
                 "anchor.head.default",
                 Vec(0f, -0.9f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.001.audio_caption_head_panel",
+                "step.001.audio",
+                "anchor.head.default",
+                Vec(0f, -0.55f, 0f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
@@ -143,6 +159,17 @@ namespace MRModuleEditor.Core.Templates
             welcome.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             document.steps.Add(welcome);
 
+            ModuleStep introAudio = Step("step.001.audio", "audio", "Intro Narration", 0f);
+            introAudio.parameters["assetId"] = JToken.FromObject("asset.narration_intro");
+            introAudio.parameters["waitForCompletion"] = JToken.FromObject(true);
+            introAudio.parameters["caption"] = JToken.FromObject(
+                "Narration: forward kinematics computes the end-effector pose from known joint values.");
+            introAudio.parameters["volume"] = JToken.FromObject(1f);
+            introAudio.parameters["loop"] = JToken.FromObject(false);
+            introAudio.parameters["spatialBlend"] = JToken.FromObject(0f);
+            introAudio.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(introAudio);
+
             ModuleStep image = Step("step.002", "image", "Module Overview", 10f);
             image.parameters["assetId"] = JToken.FromObject("asset.intro_image");
             image.parameters["caption"] = JToken.FromObject("This placeholder image proves that the runtime can resolve an image asset from the module folder.");
@@ -200,7 +227,7 @@ namespace MRModuleEditor.Core.Templates
 
             ModuleStep review = Step("step.011", "text", "Short Review", 6f);
             review.parameters["text"] = JToken.FromObject(
-                "Review: inverse kinematics estimates joint angles for a desired pose. " +
+                "Inverse kinematics estimates joint angles for a desired pose. " +
                 "Forward kinematics goes the other direction: it computes the end-effector pose from joint angles.");
             review.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             review.parameters["nextStepId"] = JToken.FromObject("step.012");
@@ -208,8 +235,7 @@ namespace MRModuleEditor.Core.Templates
 
             ModuleStep summary = Step("step.012", "text", "Summary", 6f);
             summary.parameters["text"] = JToken.FromObject(
-                "Summary: forward kinematics maps joint values to the robot end-effector pose. " +
-                "Phase K now lets the lesson branch based on the learner's answer.");
+                "Forward kinematics maps joint values to the robot end-effector pose.");
             summary.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             document.steps.Add(summary);
 

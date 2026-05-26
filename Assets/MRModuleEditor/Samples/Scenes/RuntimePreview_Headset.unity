@@ -869,13 +869,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spatialLayoutResolver: {fileID: 1762172289}
-  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  style: {fileID: 0}
   autoSizePanel: 1
   panelSize: {x: 3.2, y: 0.58}
   panelLocalOffset: {x: 0, y: -1, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 0.8, y: 0.25}
-  maximumPanelSize: {x: 1.5, y: 0.6}
+  maximumPanelSize: {x: 2.2, y: 1}
 --- !u!4 &1423660584
 Transform:
   m_ObjectHideFlags: 0
@@ -1288,6 +1288,7 @@ GameObject:
   - component: {fileID: 1762172287}
   - component: {fileID: 1762172289}
   - component: {fileID: 1762172290}
+  - component: {fileID: 1762172291}
   m_Layer: 0
   m_Name: RuntimeServices
   m_TagString: Untagged
@@ -1314,6 +1315,7 @@ MonoBehaviour:
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
   spatialUIService: {fileID: 0}
+  maximumStepExecutionsPerRun: 1000
   loadOnStart: 0
   playOnStart: 0
 --- !u!114 &1762172281
@@ -1461,9 +1463,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14badb33ad7e188c7bea4628db107698, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textPanel: {fileID: 0}
-  imagePanel: {fileID: 0}
-  mcqPanel: {fileID: 0}
+  textPanel: {fileID: 1423660583}
+  imagePanel: {fileID: 1957249103}
+  mcqPanel: {fileID: 1966342141}
+--- !u!114 &1762172291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762172279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec7b11beb826a20d58d66992462cf985, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1765668233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1648,13 +1662,7 @@ MonoBehaviour:
   choiceGap: 0.04
   choiceTextInsetX: 0.055
   choiceTextTopOffset: 0.045
-  enableGazeDwell: 1
-  gazeDwellMode: 1
-  gazeDwellSeconds: 1
-  gazeInputArmDelaySeconds: 0.35
-  requireFreshGazeTarget: 1
   lockHeadAnchoredPanelForGaze: 1
-  gazeRayDistance: 10
 --- !u!4 &1966342142
 Transform:
   m_ObjectHideFlags: 0
