@@ -15,6 +15,7 @@ namespace MRModuleEditor.Core.Validation
             "showObject",
             "moveObject",
             "mcq",
+            "audio",
             "rotateJoint",
             "showFrame"
         };
@@ -28,6 +29,8 @@ namespace MRModuleEditor.Core.Validation
 
         public static List<ValidationIssue> Validate(ModuleDocument document)
         {
+            Dictionary<string, string> assetTypesById = new Dictionary<string, string>(StringComparer.Ordinal);
+            
             List<ValidationIssue> issues = new List<ValidationIssue>();
 
             if (document == null)
@@ -52,11 +55,11 @@ namespace MRModuleEditor.Core.Validation
             HashSet<string> layoutTargetIds = CollectLayoutTargetIds(document);
             HashSet<string> stepIds = CollectStepIds(document);
 
-            ValidateAssets(document, assetIds, seenIds, issues);
+            ValidateAssets(document, assetIds, assetTypesById, seenIds, issues);
             ValidateObjects(document, objectIds, seenIds, issues);
             ValidateAnchors(document, objectIds, anchorIds, seenIds, issues);
             ValidateLayouts(document, anchorIds, layoutTargetIds, seenIds, issues);
-            ValidateSteps(document, objectIds, assetIds, anchorIds, stepIds, seenIds, issues);
+            ValidateSteps(document, objectIds, assetIds, assetTypesById, anchorIds, stepIds, seenIds, issues);
 
             return issues;
         }
@@ -82,6 +85,7 @@ namespace MRModuleEditor.Core.Validation
         private static void ValidateAssets(
             ModuleDocument document,
             HashSet<string> assetIds,
+            Dictionary<string, string> assetTypesById,
             Dictionary<string, string> seenIds,
             List<ValidationIssue> issues)
         {
@@ -109,6 +113,10 @@ namespace MRModuleEditor.Core.Validation
                 if (!string.IsNullOrWhiteSpace(asset.id))
                 {
                     assetIds.Add(asset.id);
+                    if (assetTypesById != null && !assetTypesById.ContainsKey(asset.id))
+                    {
+                        assetTypesById.Add(asset.id, asset.type ?? "");
+                    }
                 }
             }
         }
@@ -261,6 +269,7 @@ namespace MRModuleEditor.Core.Validation
             ModuleDocument document,
             HashSet<string> objectIds,
             HashSet<string> assetIds,
+            Dictionary<string, string> assetTypesById,
             HashSet<string> anchorIds,
             HashSet<string> stepIds,
             Dictionary<string, string> seenIds,
@@ -326,10 +335,25 @@ namespace MRModuleEditor.Core.Validation
                 else if (step.type == "image")
                 {
                     ValidateAssetIdParameter(step, assetIds, location, issues);
+                    ValidateAssetTypeParameter(step, assetTypesById, "image", location, issues);
                 }
                 else if (step.type == "mcq")
                 {
                     ValidateMcq(step, location, issues);
+                }
+                else if (step.type == "audio")
+                {
+                    ValidateAssetIdParameter(step, assetIds, location, issues);
+                    ValidateAssetTypeParameter(step, assetTypesById, "audio", location, issues);
+                }
+
+                if (step.GetBool("waitForCompletion", true) && step.GetBool("loop", false))
+                {
+                    issues.Add(new ValidationIssue(
+                        ValidationSeverity.Error,
+                        "audio.loopWait.invalid",
+                        "Audio step cannot both loop and wait for completion, because the step would never finish.",
+                        location));
                 }
             }
         }
@@ -674,6 +698,35 @@ namespace MRModuleEditor.Core.Validation
                     ValidationSeverity.Error,
                     issueCode,
                     displayName + " references unknown step id '" + targetStepId + "'.",
+                    location));
+            }
+        }
+
+        private static void ValidateAssetTypeParameter(
+            ModuleStep step,
+            Dictionary<string, string> assetTypesById,
+            string expectedType,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            string assetId = step.GetString("assetId", "");
+            if (string.IsNullOrWhiteSpace(assetId) || assetTypesById == null)
+            {
+                return;
+            }
+
+            string actualType;
+            if (!assetTypesById.TryGetValue(assetId, out actualType))
+            {
+                return;
+            }
+
+            if (actualType != expectedType)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "step.assetId.wrongType",
+                    "Step expects an asset of type '" + expectedType + "' but asset '" + assetId + "' has type '" + actualType + "'.",
                     location));
             }
         }

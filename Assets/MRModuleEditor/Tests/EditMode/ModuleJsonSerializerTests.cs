@@ -33,8 +33,9 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.AreEqual("0.1", document.schemaVersion);
             Assert.AreEqual("module.forward_kinematics_mini", document.moduleId);
             Assert.AreEqual("Forward Kinematics Mini Demo", document.title);
-            Assert.AreEqual(12, document.steps.Count);
+            Assert.AreEqual(13, document.steps.Count);
             AssertStep(document, "step.001", "text");
+            AssertStep(document, "step.001.audio", "audio");
             AssertStep(document, "step.002", "image");
             AssertStep(document, "step.003", "wait");
             AssertStep(document, "step.004", "showObject");

@@ -12,6 +12,7 @@ namespace MRModuleEditor.Authoring.Editor
         {
             "text",
             "image",
+            "audio",
             "wait",
             "showObject",
             "moveObject",
@@ -153,6 +154,16 @@ namespace MRModuleEditor.Authoring.Editor
                 SetIfMissing(step, "correctIndex", 1);
                 if (string.IsNullOrWhiteSpace(step.title)) step.title = "Quick Check";
             }
+            else if (step.type == "audio")
+            {
+                SetIfMissing(step, "assetId", "asset.narration_intro");
+                SetIfMissing(step, "waitForCompletion", true);
+                SetIfMissing(step, "caption", "Optional caption shown while narration plays.");
+                SetIfMissing(step, "volume", 1f);
+                SetIfMissing(step, "loop", false);
+                SetIfMissing(step, "spatialBlend", 0f);
+                if (string.IsNullOrWhiteSpace(step.title)) step.title = "Audio";
+            }
         }
 
         private static void DrawSpecificFields(ModuleDocument document, ModuleStep step)
@@ -224,6 +235,20 @@ namespace MRModuleEditor.Authoring.Editor
                 EditorGUILayout.HelpBox(
                     "For MCQ placement, prefer the Layout section below. " +
                     "This optional anchorId is only a fallback when no matching layout exists.",
+                    MessageType.Info);
+            }
+            else if (step.type == "audio")
+            {
+                EditorIdDropdowns.DrawAssetIdDropdown(document, step, "assetId", "Audio Asset", "audio");
+                DrawBool(step, "waitForCompletion", "Wait For Completion", true);
+                DrawFloat(step, "volume", "Volume", 1f);
+                DrawBool(step, "loop", "Loop", false);
+                DrawFloat(step, "spatialBlend", "Spatial Blend", 0f);
+                DrawMultilineString(step, "caption", "Caption");
+
+                EditorGUILayout.HelpBox(
+                    "For narration, keep Wait For Completion enabled. " +
+                    "Spatial Blend 0 means non-spatial UI narration; 1 means fully 3D positioned audio.",
                     MessageType.Info);
             }
         }
