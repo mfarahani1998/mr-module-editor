@@ -90,6 +90,29 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.IsTrue(issues.Any(issue => issue.code == "mcq.choices.empty"));
         }
 
+        [Test]
+        public void UnknownNextStepId_ReportsError()
+        {
+            ModuleDocument document = MakeValidModuleInMemory();
+            document.steps[0].parameters["nextStepId"] = JToken.FromObject("step.missing");
+
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.IsTrue(issues.Any(issue => issue.code == "flow.nextStepId.unknown"));
+        }
+
+        [Test]
+        public void UnknownMcqBranchStepId_ReportsError()
+        {
+            ModuleDocument document = MakeValidModuleInMemory();
+            ModuleStep mcq = document.steps[2];
+            mcq.parameters["onWrongStepId"] = JToken.FromObject("step.missing");
+
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.IsTrue(issues.Any(issue => issue.code == "flow.onWrongStepId.unknown"));
+        }
+
         private static ModuleDocument MakeValidModuleInMemory()
         {
             ModuleDocument document = new ModuleDocument();

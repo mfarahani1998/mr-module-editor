@@ -65,6 +65,19 @@ namespace MRModuleEditor.Tests.PlayMode
 
             Assert.IsTrue(routine.MoveNext(), "After a valid answer, the handler should advance to feedback instead of staying in the wait loop.");
 
+            int selectedIndex;
+            bool correct;
+            string selectedChoice;
+
+            Assert.IsTrue(context.Results.TryGetStepInt(step.id, "selectedIndex", out selectedIndex));
+            Assert.AreEqual(1, selectedIndex);
+
+            Assert.IsTrue(context.Results.TryGetStepBool(step.id, "correct", out correct));
+            Assert.IsTrue(correct);
+
+            Assert.IsTrue(context.Results.TryGetStepString(step.id, "selectedChoice", out selectedChoice));
+            Assert.AreEqual("B", selectedChoice);
+
             Object.Destroy(services);
         }
     }
