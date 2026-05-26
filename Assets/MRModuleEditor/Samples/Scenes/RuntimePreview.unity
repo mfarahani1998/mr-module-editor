@@ -1136,6 +1136,7 @@ MonoBehaviour:
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
   spatialUIService: {fileID: 0}
+  maximumStepExecutionsPerRun: 1000
   loadOnStart: 1
   playOnStart: 0
 --- !u!114 &1762172281
@@ -1364,13 +1365,7 @@ MonoBehaviour:
   choiceGap: 0.04
   choiceTextInsetX: 0.055
   choiceTextTopOffset: 0.045
-  enableGazeDwell: 1
-  gazeDwellMode: 1
-  gazeDwellSeconds: 1
-  gazeInputArmDelaySeconds: 0.35
-  requireFreshGazeTarget: 1
   lockHeadAnchoredPanelForGaze: 1
-  gazeRayDistance: 10
 --- !u!4 &1930746980
 Transform:
   m_ObjectHideFlags: 0
@@ -1493,7 +1488,7 @@ MonoBehaviour:
   panelLocalOffset: {x: 0, y: -1, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
   minimumPanelSize: {x: 0.8, y: 0.25}
-  maximumPanelSize: {x: 1.5, y: 0.6}
+  maximumPanelSize: {x: 2.2, y: 1}
 --- !u!4 &2146630566
 Transform:
   m_ObjectHideFlags: 0
