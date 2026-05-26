@@ -106,6 +106,14 @@ namespace MRModuleEditor.Runtime.StepHandlers
             }
 
             bool correct = selectedAnswer == correctIndex;
+
+            if (context.Results != null)
+            {
+                context.Results.SetStepInt(step.id, "selectedIndex", selectedAnswer);
+                context.Results.SetStepBool(step.id, "correct", correct);
+                context.Results.SetStepString(step.id, "selectedChoice", choices[selectedAnswer]);
+            }
+
             string feedback = correct ? "Correct." : "Not quite.";
 
             if (hasSpatialMcq)
