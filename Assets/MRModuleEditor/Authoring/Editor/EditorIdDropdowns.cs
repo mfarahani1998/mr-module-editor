@@ -86,6 +86,36 @@ namespace MRModuleEditor.Authoring.Editor
             return changed;
         }
 
+        public static bool DrawStepIdDropdown(
+            ModuleDocument document,
+            ref string stepId,
+            string label,
+            bool allowNone = true)
+        {
+            List<IdOption> options = new List<IdOption>();
+
+            if (allowNone)
+            {
+                options.Add(new IdOption("", "<Linear/default next step>"));
+            }
+
+            if (document != null && document.steps != null)
+            {
+                for (int i = 0; i < document.steps.Count; i++)
+                {
+                    ModuleStep step = document.steps[i];
+                    if (step == null || string.IsNullOrWhiteSpace(step.id))
+                    {
+                        continue;
+                    }
+
+                    options.Add(new IdOption(step.id, FormatStep(step, i)));
+                }
+            }
+
+            return DrawIdPopupOrText(label, ref stepId, options);
+        }
+
         public static bool DrawAssetIdDropdown(
             ModuleDocument document,
             ref string assetId,
@@ -241,6 +271,28 @@ namespace MRModuleEditor.Authoring.Editor
             return true;
         }
 
+        public static bool DrawStepIdDropdown(
+            ModuleDocument document,
+            ModuleStep step,
+            string parameterKey,
+            string label,
+            bool allowNone = true)
+        {
+            if (step == null)
+            {
+                return false;
+            }
+
+            string current = step.GetString(parameterKey, "");
+            bool changed = DrawStepIdDropdown(document, ref current, label, allowNone);
+            if (changed)
+            {
+                SetStepString(step, parameterKey, current);
+            }
+
+            return changed;
+        }
+
         private static void SetStepString(ModuleStep step, string parameterKey, string value)
         {
             if (step.parameters == null)
@@ -280,6 +332,13 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             return type + suffix + "  (" + anchor.id + ")";
+        }
+
+        private static string FormatStep(ModuleStep step, int index)
+        {
+            string title = string.IsNullOrWhiteSpace(step.title) ? "<Untitled>" : step.title;
+            string type = string.IsNullOrWhiteSpace(step.type) ? "unknown" : step.type;
+            return (index + 1) + ". " + title + " [" + type + "]  (" + step.id + ")";
         }
     }
 }

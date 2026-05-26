@@ -73,6 +73,9 @@ namespace MRModuleEditor.Authoring.Editor
 
             EditorGUILayout.Space(8);
             DrawSpecificFields(document, step);
+
+            EditorGUILayout.Space(8);
+            DrawFlowFields(document, step);
         }
 
         public static void EnsureDefaultsForType(ModuleStep step)
@@ -225,6 +228,54 @@ namespace MRModuleEditor.Authoring.Editor
             }
         }
 
+        private static void DrawFlowFields(ModuleDocument document, ModuleStep step)
+        {
+            EditorGUILayout.LabelField("Flow", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Leave fields empty to continue to the next step in the list. " +
+                "Use flow overrides sparingly; Phase K is branch-by-answer, not a full graph editor.",
+                MessageType.Info);
+
+            EditorIdDropdowns.DrawStepIdDropdown(
+                document,
+                step,
+                "nextStepId",
+                "Next Step Override",
+                allowNone: true);
+            RemoveParameterIfBlank(step, "nextStepId");
+
+            if (step.type == "mcq")
+            {
+                EditorIdDropdowns.DrawStepIdDropdown(
+                    document,
+                    step,
+                    "onCorrectStepId",
+                    "On Correct",
+                    allowNone: true);
+                RemoveParameterIfBlank(step, "onCorrectStepId");
+
+                EditorIdDropdowns.DrawStepIdDropdown(
+                    document,
+                    step,
+                    "onWrongStepId",
+                    "On Wrong",
+                    allowNone: true);
+                RemoveParameterIfBlank(step, "onWrongStepId");
+            }
+            else
+            {
+                bool hasMcqBranchField = !string.IsNullOrWhiteSpace(step.GetString("onCorrectStepId", ""))
+                    || !string.IsNullOrWhiteSpace(step.GetString("onWrongStepId", ""));
+
+                if (hasMcqBranchField)
+                {
+                    EditorGUILayout.HelpBox(
+                        "This step has MCQ branch fields, but they are only used when Type is mcq.",
+                        MessageType.Warning);
+                }
+            }
+        }
+
         private static void DrawString(ModuleStep step, string key, string label)
         {
             string next = EditorGUILayout.TextField(label, step.GetString(key, ""));
@@ -323,6 +374,19 @@ namespace MRModuleEditor.Authoring.Editor
             vector["y"] = value.y;
             vector["z"] = value.z;
             return vector;
+        }
+
+        private static void RemoveParameterIfBlank(ModuleStep step, string key)
+        {
+            if (step == null || step.parameters == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(step.GetString(key, "")))
+            {
+                step.parameters.Remove(key);
+            }
         }
 
         private static void SetIfMissing(ModuleStep step, string key, string value)
