@@ -614,6 +614,67 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &881202591
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 881202593}
+  - component: {fileID: 881202592}
+  m_Layer: 0
+  m_Name: RobotJointAngleCallout
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &881202592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881202591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf448d9447a25ae40936a4b744e74300, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moduleRunner: {fileID: 1762172280}
+  anchorResolver: {fileID: 1762172286}
+  variableStore: {fileID: 1762172293}
+  variableKey: robot.joint3.angleText
+  fallbackText: 
+  hideWhenTextIsEmpty: 1
+  anchorId: anchor.object.robot
+  localOffset: {x: 0, y: 1.2, z: 0}
+  localEuler: {x: 0, y: 0, z: 0}
+  localScale: {x: 0.75, y: 0.75, z: 0.75}
+  panelSize: {x: 1.35, y: 0.28}
+  panelColor: {r: 0, g: 0, b: 0, a: 0.72}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  fontSize: 64
+  characterSize: 0.045
+  wrapCharacters: 32
+  textDepthOffset: -0.01
+--- !u!4 &881202593
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881202591}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.88338846, y: 0.19595844, z: -0.24062355}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &945083560
 GameObject:
   m_ObjectHideFlags: 0
@@ -1094,6 +1155,7 @@ GameObject:
   - component: {fileID: 1762172289}
   - component: {fileID: 1762172290}
   - component: {fileID: 1762172291}
+  - component: {fileID: 1762172293}
   m_Layer: 0
   m_Name: RuntimeServices
   m_TagString: Untagged
@@ -1283,6 +1345,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec7b11beb826a20d58d66992462cf985, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1762172293
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762172279}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90df96d200441b20ab604a3da13ea645, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1765668233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1461,8 +1535,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5372add6dc44e5085a74e380d065403a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rig: {fileID: 0}
-  variableStore: {fileID: 0}
+  rig: {fileID: 2072459198}
+  variableStore: {fileID: 1762172293}
   variableKey: robot.joint3.angleText
   jointIndex: 2
   prefix: Joint
@@ -1533,3 +1607,4 @@ SceneRoots:
   - {fileID: 671819799}
   - {fileID: 1930746980}
   - {fileID: 945083563}
+  - {fileID: 881202593}

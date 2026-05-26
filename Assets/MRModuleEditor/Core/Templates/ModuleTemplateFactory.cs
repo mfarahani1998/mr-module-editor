@@ -79,7 +79,7 @@ namespace MRModuleEditor.Core.Templates
                 "layout.object.robot_world",
                 "object.robot_preview",
                 "anchor.world.table",
-                Vec(0f, 0f, 0f),
+                Vec(-0.5f, -2f, 2f),
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 

@@ -49,9 +49,9 @@
       "targetId": "object.robot_preview",
       "anchorId": "anchor.world.table",
       "position": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
+        "x": -0.5,
+        "y": -2.0,
+        "z": 2.0
       },
       "rotationEuler": {
         "x": 0.0,
