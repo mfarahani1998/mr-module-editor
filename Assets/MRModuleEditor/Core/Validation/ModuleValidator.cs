@@ -50,12 +50,13 @@ namespace MRModuleEditor.Core.Validation
             HashSet<string> assetIds = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> anchorIds = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> layoutTargetIds = CollectLayoutTargetIds(document);
+            HashSet<string> stepIds = CollectStepIds(document);
 
             ValidateAssets(document, assetIds, seenIds, issues);
             ValidateObjects(document, objectIds, seenIds, issues);
             ValidateAnchors(document, objectIds, anchorIds, seenIds, issues);
             ValidateLayouts(document, anchorIds, layoutTargetIds, seenIds, issues);
-            ValidateSteps(document, objectIds, assetIds, anchorIds, seenIds, issues);
+            ValidateSteps(document, objectIds, assetIds, anchorIds, stepIds, seenIds, issues);
 
             return issues;
         }
@@ -261,6 +262,7 @@ namespace MRModuleEditor.Core.Validation
             HashSet<string> objectIds,
             HashSet<string> assetIds,
             HashSet<string> anchorIds,
+            HashSet<string> stepIds,
             Dictionary<string, string> seenIds,
             List<ValidationIssue> issues)
         {
@@ -299,6 +301,8 @@ namespace MRModuleEditor.Core.Validation
                 }
 
                 ValidateCommonAnchorReference(step, anchorIds, location, issues);
+                
+                ValidateFlowReferences(step, stepIds, location, issues);
 
                 if (step.type == "showObject")
                 {
@@ -553,11 +557,124 @@ namespace MRModuleEditor.Core.Validation
             return ids;
         }
 
+        private static HashSet<string> CollectStepIds(ModuleDocument document)
+        {
+            HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
+
+            if (document == null || document.steps == null)
+            {
+                return ids;
+            }
+
+            for (int i = 0; i < document.steps.Count; i++)
+            {
+                ModuleStep step = document.steps[i];
+                if (step != null && !string.IsNullOrWhiteSpace(step.id))
+                {
+                    ids.Add(step.id);
+                }
+            }
+
+            return ids;
+        }
+
         private static void AddIfNotEmpty(HashSet<string> ids, string id)
         {
             if (!string.IsNullOrWhiteSpace(id))
             {
                 ids.Add(id);
+            }
+        }
+
+        private static void ValidateFlowReferences(
+            ModuleStep step,
+            HashSet<string> stepIds,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            ValidateStepReferenceParameter(
+                step,
+                stepIds,
+                "nextStepId",
+                "flow.nextStepId.unknown",
+                "nextStepId",
+                location,
+                issues);
+
+            bool hasCorrectBranch = !string.IsNullOrWhiteSpace(step.GetString("onCorrectStepId", ""));
+            bool hasWrongBranch = !string.IsNullOrWhiteSpace(step.GetString("onWrongStepId", ""));
+
+            if (step.type == "mcq")
+            {
+                ValidateStepReferenceParameter(
+                    step,
+                    stepIds,
+                    "onCorrectStepId",
+                    "flow.onCorrectStepId.unknown",
+                    "onCorrectStepId",
+                    location,
+                    issues);
+
+                ValidateStepReferenceParameter(
+                    step,
+                    stepIds,
+                    "onWrongStepId",
+                    "flow.onWrongStepId.unknown",
+                    "onWrongStepId",
+                    location,
+                    issues);
+            }
+            else if (hasCorrectBranch || hasWrongBranch)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "flow.mcqBranchOnNonMcq",
+                    "onCorrectStepId/onWrongStepId are only used by mcq steps.",
+                    location));
+
+                // Still validate the references so typos are visible even before the author fixes the step type.
+                ValidateStepReferenceParameter(
+                    step,
+                    stepIds,
+                    "onCorrectStepId",
+                    "flow.onCorrectStepId.unknown",
+                    "onCorrectStepId",
+                    location,
+                    issues);
+
+                ValidateStepReferenceParameter(
+                    step,
+                    stepIds,
+                    "onWrongStepId",
+                    "flow.onWrongStepId.unknown",
+                    "onWrongStepId",
+                    location,
+                    issues);
+            }
+        }
+
+        private static void ValidateStepReferenceParameter(
+            ModuleStep step,
+            HashSet<string> stepIds,
+            string parameterKey,
+            string issueCode,
+            string displayName,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            string targetStepId = step.GetString(parameterKey, "");
+            if (string.IsNullOrWhiteSpace(targetStepId))
+            {
+                return;
+            }
+
+            if (stepIds == null || !stepIds.Contains(targetStepId))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    issueCode,
+                    displayName + " references unknown step id '" + targetStepId + "'.",
+                    location));
             }
         }
     }
