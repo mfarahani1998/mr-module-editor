@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Validation;
 using MRModuleEditor.Runtime.Anchors;
+using MRModuleEditor.Runtime.Flow;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.StepHandlers;
 using MRModuleEditor.Runtime.UI;
@@ -36,12 +37,16 @@ namespace MRModuleEditor.Runtime
 
 
         [SerializeField]
+        private int maximumStepExecutionsPerRun = 1000;
+
+        [SerializeField]
         private bool loadOnStart = true;
 
         [SerializeField]
         private bool playOnStart = false;
 
         private readonly StepHandlerRegistry handlers = new StepHandlerRegistry();
+        private readonly StepFlowResolver flowResolver = new StepFlowResolver();
         private Coroutine runCoroutine;
         private RuntimeExecutionToken activeExecutionToken;
         private int nextExecutionId;
@@ -126,6 +131,11 @@ namespace MRModuleEditor.Runtime
             }
 
             handlers.RegisterDefaultHandlers();
+        }
+
+        private void OnValidate()
+        {
+            maximumStepExecutionsPerRun = Mathf.Max(1, maximumStepExecutionsPerRun);
         }
 
         private void Start()
@@ -306,19 +316,33 @@ namespace MRModuleEditor.Runtime
                 yield break;
             }
 
-            for (int i = 0; i < CurrentModule.steps.Count; i++)
+            Dictionary<string, int> stepIndexById = BuildStepIndexById(CurrentModule);
+            int currentIndex = 0;
+            int executedStepCount = 0;
+
+            while (currentIndex >= 0 && currentIndex < CurrentModule.steps.Count)
             {
                 if (IsStopRequestedForExecution(executionToken))
                 {
                     yield break;
                 }
 
-                CurrentStepIndex = i;
-                ModuleStep step = CurrentModule.steps[i];
+                executedStepCount++;
+                if (executedStepCount > maximumStepExecutionsPerRun)
+                {
+                    SetErrorForExecution(
+                        executionToken,
+                        "Module flow exceeded " + maximumStepExecutionsPerRun + " step executions. " +
+                        "This usually means nextStepId/onCorrectStepId/onWrongStepId created an accidental loop.");
+                    yield break;
+                }
+
+                CurrentStepIndex = currentIndex;
+                ModuleStep step = CurrentModule.steps[currentIndex];
 
                 if (step == null)
                 {
-                    SetErrorForExecution(executionToken, "Step " + i + " is null.");
+                    SetErrorForExecution(executionToken, "Step " + currentIndex + " is null.");
                     yield break;
                 }
 
@@ -329,13 +353,24 @@ namespace MRModuleEditor.Runtime
                     yield break;
                 }
 
-                Debug.Log("Running step " + (i + 1) + "/" + CurrentModule.steps.Count + ": " + step.type + " - " + step.title);
+                Debug.Log("Running step " + (currentIndex + 1) + "/" + CurrentModule.steps.Count + ": " + step.type + " - " + step.title);
                 yield return RunStep(executionToken, handler, step, context);
 
                 if (State == RuntimeRunnerState.Error || IsStopRequestedForExecution(executionToken))
                 {
                     yield break;
                 }
+
+                string defaultNextStepId = GetDefaultNextStepId(CurrentModule, currentIndex);
+                string nextStepId = flowResolver.ResolveNextStepId(step, context, defaultNextStepId);
+
+                int nextIndex;
+                if (!TryResolveNextStepIndex(executionToken, stepIndexById, nextStepId, out nextIndex))
+                {
+                    yield break;
+                }
+
+                currentIndex = nextIndex;
             }
 
             if (!IsActiveExecution(executionToken))
@@ -343,7 +378,15 @@ namespace MRModuleEditor.Runtime
                 yield break;
             }
 
-            CurrentStepIndex = CurrentModule.steps.Count - 1;
+            if (CurrentModule.steps.Count == 0)
+            {
+                CurrentStepIndex = -1;
+            }
+            else
+            {
+                CurrentStepIndex = Mathf.Clamp(CurrentStepIndex, 0, CurrentModule.steps.Count - 1);
+            }
+
             State = RuntimeRunnerState.Completed;
             activeExecutionToken = null;
             runCoroutine = null;
@@ -519,6 +562,73 @@ namespace MRModuleEditor.Runtime
             LastError = message ?? "Unknown error.";
             State = RuntimeRunnerState.Error;
             Debug.LogError(LastError);
+        }
+
+        private static Dictionary<string, int> BuildStepIndexById(ModuleDocument module)
+        {
+            Dictionary<string, int> result = new Dictionary<string, int>();
+
+            if (module == null || module.steps == null)
+            {
+                return result;
+            }
+
+            for (int i = 0; i < module.steps.Count; i++)
+            {
+                ModuleStep step = module.steps[i];
+                if (step == null || string.IsNullOrWhiteSpace(step.id))
+                {
+                    continue;
+                }
+
+                if (!result.ContainsKey(step.id))
+                {
+                    result.Add(step.id, i);
+                }
+            }
+
+            return result;
+        }
+
+        private static string GetDefaultNextStepId(ModuleDocument module, int currentIndex)
+        {
+            if (module == null || module.steps == null)
+            {
+                return "";
+            }
+
+            int nextIndex = currentIndex + 1;
+            if (nextIndex < 0 || nextIndex >= module.steps.Count)
+            {
+                return "";
+            }
+
+            ModuleStep nextStep = module.steps[nextIndex];
+            return nextStep == null ? "" : nextStep.id ?? "";
+        }
+
+        private bool TryResolveNextStepIndex(
+            RuntimeExecutionToken executionToken,
+            Dictionary<string, int> stepIndexById,
+            string nextStepId,
+            out int nextIndex)
+        {
+            nextIndex = -1;
+
+            if (string.IsNullOrWhiteSpace(nextStepId))
+            {
+                return true;
+            }
+
+            if (stepIndexById != null && stepIndexById.TryGetValue(nextStepId, out nextIndex))
+            {
+                return true;
+            }
+
+            SetErrorForExecution(
+                executionToken,
+                "Flow target step id '" + nextStepId + "' does not exist in this module.");
+            return false;
         }
     }
 }

@@ -112,6 +112,7 @@ InitTestScene*.unity*
 
 # QoL
 .unity-bundle-include
+.unity-bundle-exclude
 artifacts/
 
 # build results

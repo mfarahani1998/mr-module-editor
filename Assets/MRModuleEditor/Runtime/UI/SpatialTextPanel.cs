@@ -31,7 +31,7 @@ namespace MRModuleEditor.Runtime.UI
         private Vector2 minimumPanelSize = new Vector2(0.8f, 0.25f);
 
         [SerializeField]
-        private Vector2 maximumPanelSize = new Vector2(1.5f, 0.6f);
+        private Vector2 maximumPanelSize = new Vector2(2.2f, 1f);
 
         private GameObject background;
         private GameObject accentBar;

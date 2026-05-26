@@ -115,6 +115,22 @@ namespace MRModuleEditor.Core.Templates
                 Vec(0f, 0f, 0f),
                 Vec(1f, 1f, 1f)));
 
+            document.layouts.Add(Layout(
+                "layout.step.011.review_head_panel",
+                "step.011",
+                "anchor.head.default",
+                Vec(0f, -0.55f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.012.summary_head_panel",
+                "step.012",
+                "anchor.head.default",
+                Vec(0f, -0.55f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.object.robot",
@@ -178,7 +194,24 @@ namespace MRModuleEditor.Core.Templates
                 "Motor current",
                 "Camera calibration");
             mcq.parameters["correctIndex"] = JToken.FromObject(1);
+            mcq.parameters["onCorrectStepId"] = JToken.FromObject("step.012");
+            mcq.parameters["onWrongStepId"] = JToken.FromObject("step.011");
             document.steps.Add(mcq);
+
+            ModuleStep review = Step("step.011", "text", "Short Review", 6f);
+            review.parameters["text"] = JToken.FromObject(
+                "Review: inverse kinematics estimates joint angles for a desired pose. " +
+                "Forward kinematics goes the other direction: it computes the end-effector pose from joint angles.");
+            review.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            review.parameters["nextStepId"] = JToken.FromObject("step.012");
+            document.steps.Add(review);
+
+            ModuleStep summary = Step("step.012", "text", "Summary", 6f);
+            summary.parameters["text"] = JToken.FromObject(
+                "Summary: forward kinematics maps joint values to the robot end-effector pose. " +
+                "Phase K now lets the lesson branch based on the learner's answer.");
+            summary.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(summary);
 
             return document;
         }
