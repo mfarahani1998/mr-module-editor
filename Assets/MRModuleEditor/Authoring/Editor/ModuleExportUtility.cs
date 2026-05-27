@@ -13,6 +13,109 @@ namespace MRModuleEditor.Authoring.Editor
         public const string StreamingAssetsModuleRootRelative =
             "Assets/StreamingAssets/MRModuleEditor/SampleModules";
 
+        [MenuItem("MR Module Editor/Export/Export Current Module Folder")]
+        public static void ExportCurrentModuleFolderMenu()
+        {
+            if (!ModuleEditorWindow.TrySaveCurrentModuleForExport(
+                    out string moduleJsonPath,
+                    out string error))
+            {
+                EditorUtility.DisplayDialog("Cannot Export Module", error, "OK");
+                return;
+            }
+
+            string defaultOutputRoot = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "ModuleExports");
+
+            Directory.CreateDirectory(defaultOutputRoot);
+
+            string outputRoot = EditorUtility.OpenFolderPanel(
+                "Choose Export Output Folder",
+                defaultOutputRoot,
+                "");
+
+            if (string.IsNullOrWhiteSpace(outputRoot))
+            {
+                return;
+            }
+
+            string predictedTarget = BuildTargetFolderForRoot(moduleJsonPath, outputRoot);
+            if (Directory.Exists(predictedTarget) && !ConfirmOverwrite(predictedTarget))
+            {
+                return;
+            }
+
+            if (!ConfirmMissingReferencedAssets(moduleJsonPath))
+            {
+                return;
+            }
+
+            if (!TryExportModuleFolderToRoot(
+                    moduleJsonPath,
+                    outputRoot,
+                    true,
+                    out string exportedFolder,
+                    out error))
+            {
+                EditorUtility.DisplayDialog("Export Failed", error, "OK");
+                return;
+            }
+
+            RefreshAssetDatabaseIfInsideProject(exportedFolder);
+
+            Debug.Log("Exported module folder to: " + exportedFolder);
+            EditorUtility.RevealInFinder(exportedFolder);
+        }
+
+        [MenuItem("MR Module Editor/Export/Export Current Module To StreamingAssets")]
+        public static void ExportCurrentModuleToStreamingAssetsMenu()
+        {
+            if (!ModuleEditorWindow.TrySaveCurrentModuleForExport(
+                    out string moduleJsonPath,
+                    out string error))
+            {
+                EditorUtility.DisplayDialog("Cannot Export Module", error, "OK");
+                return;
+            }
+
+            string targetFolder = BuildStreamingAssetsTargetFolder(moduleJsonPath);
+
+            if (Directory.Exists(targetFolder) && !ConfirmOverwrite(targetFolder))
+            {
+                return;
+            }
+
+            if (!ConfirmMissingReferencedAssets(moduleJsonPath))
+            {
+                return;
+            }
+
+            if (!TryExportModuleFolderToExactTarget(
+                    moduleJsonPath,
+                    targetFolder,
+                    true,
+                    out error))
+            {
+                EditorUtility.DisplayDialog("StreamingAssets Export Failed", error, "OK");
+                return;
+            }
+
+            RefreshAssetDatabaseIfInsideProject(targetFolder);
+
+            string relativePath = BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
+
+            Debug.Log(
+                "Exported module to StreamingAssets: " + targetFolder +
+                "\nRuntimeModuleLoader StreamingAssets relative path should be: " + relativePath);
+
+            EditorUtility.DisplayDialog(
+                "Exported To StreamingAssets",
+                "Exported module to:\n\n" + targetFolder +
+                "\n\nRuntimeModuleLoader StreamingAssets relative path:\n\n" + relativePath,
+                "OK");
+        }
+
         public static bool TryExportModuleFolderToRoot(
             string moduleJsonPath,
             string outputRootFolder,
@@ -338,6 +441,62 @@ namespace MRModuleEditor.Authoring.Editor
             child = child.TrimEnd('/') + "/";
 
             return child.StartsWith(parent, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string BuildTargetFolderForRoot(string moduleJsonPath, string outputRoot)
+        {
+            if (!TryGetModuleFolder(moduleJsonPath, out string moduleFolder, out string error))
+            {
+                throw new InvalidOperationException(error);
+            }
+
+            string moduleFolderName = GetLastFolderName(moduleFolder);
+            return Path.Combine(outputRoot, moduleFolderName);
+        }
+
+        private static bool ConfirmOverwrite(string targetFolder)
+        {
+            return EditorUtility.DisplayDialog(
+                "Overwrite Existing Export?",
+                "The export target already exists:\n\n" + targetFolder +
+                "\n\nOverwrite it?",
+                "Overwrite",
+                "Cancel");
+        }
+
+        private static bool ConfirmMissingReferencedAssets(string moduleJsonPath)
+        {
+            List<string> missing = FindMissingReferencedAssetFiles(moduleJsonPath);
+
+            if (missing.Count == 0)
+            {
+                return true;
+            }
+
+            int shownCount = Math.Min(missing.Count, 12);
+            string[] shown = new string[shownCount];
+            for (int i = 0; i < shownCount; i++)
+            {
+                shown[i] = missing[i];
+            }
+
+            string message =
+                "The module references files that do not exist on disk:\n\n" +
+                string.Join("\n", shown);
+
+            if (missing.Count > shownCount)
+            {
+                message += "\n...and " + (missing.Count - shownCount) + " more.";
+            }
+
+            message +=
+                "\n\nExporting anyway may produce a module that loads JSON but fails during image/audio steps.";
+
+            return EditorUtility.DisplayDialog(
+                "Missing Referenced Asset Files",
+                message,
+                "Export Anyway",
+                "Cancel");
         }
     }
 }

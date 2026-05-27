@@ -1,0 +1,393 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.forward_kinematics_mini",
+  "title": "Forward Kinematics Mini Demo",
+  "description": "A tiny sample that proves runtime step execution, MR-style layout, robotics-lite joint motion, frame display, and MCQ feedback.",
+  "author": "Your Name",
+  "estimatedDurationSeconds": 420,
+  "assets": [
+    {
+      "id": "asset.intro_image",
+      "type": "image",
+      "path": "assets/images/intro.png",
+      "label": "Intro Image"
+    },
+    {
+      "id": "asset.narration_intro",
+      "type": "audio",
+      "path": "assets/audio/intro.mp3",
+      "label": "Intro Narration"
+    }
+  ],
+  "objects": [
+    {
+      "id": "object.robot_preview",
+      "label": "Robot Preview",
+      "bindingKey": "RobotPreview"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head",
+      "targetObjectId": ""
+    },
+    {
+      "id": "anchor.world.table",
+      "type": "world",
+      "targetObjectId": ""
+    },
+    {
+      "id": "anchor.object.robot",
+      "type": "object",
+      "targetObjectId": "object.robot_preview"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "layout.object.robot_world",
+      "targetId": "object.robot_preview",
+      "anchorId": "anchor.world.table",
+      "position": {
+        "x": -0.5,
+        "y": -2.0,
+        "z": 2.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.001.head_panel",
+      "targetId": "step.001",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.9,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.001.audio_caption_head_panel",
+      "targetId": "step.001.audio",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.55,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.002.head_panel",
+      "targetId": "step.002",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.25,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.006.robot_callout",
+      "targetId": "step.006",
+      "anchorId": "anchor.object.robot",
+      "position": {
+        "x": 0.0,
+        "y": -0.75,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.75,
+        "y": 0.75,
+        "z": 0.75
+      }
+    },
+    {
+      "id": "layout.step.009.fk_callout",
+      "targetId": "step.009",
+      "anchorId": "anchor.object.robot",
+      "position": {
+        "x": 0.0,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.75,
+        "y": 0.75,
+        "z": 0.75
+      }
+    },
+    {
+      "id": "layout.step.010.head_mcq",
+      "targetId": "step.010",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.011.review_head_panel",
+      "targetId": "step.011",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.55,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.012.summary_head_panel",
+      "targetId": "step.012",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.55,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "step.001",
+      "type": "text",
+      "title": "Welcome",
+      "durationSeconds": 10.0,
+      "parameters": {
+        "text": "Welcome to the forward kinematics mini demo.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.001.audio",
+      "type": "audio",
+      "title": "Intro Narration",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "assetId": "asset.narration_intro",
+        "waitForCompletion": true,
+        "caption": "Narration: forward kinematics computes the end-effector pose from known joint values.",
+        "volume": 1.0,
+        "loop": false,
+        "spatialBlend": 0.0,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002",
+      "type": "image",
+      "title": "Module Overview",
+      "durationSeconds": 10.0,
+      "parameters": {
+        "assetId": "asset.intro_image",
+        "caption": "This placeholder image proves that the runtime can resolve an image asset from the module folder."
+      }
+    },
+    {
+      "id": "step.003",
+      "type": "wait",
+      "title": "Pause",
+      "durationSeconds": 5.0,
+      "parameters": {}
+    },
+    {
+      "id": "step.004",
+      "type": "showObject",
+      "title": "Show Robot",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "visible": true
+      }
+    },
+    {
+      "id": "step.005",
+      "type": "moveObject",
+      "title": "Move Robot Preview",
+      "durationSeconds": 3.0,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "isRelative": true,
+        "positionDelta": {
+          "x": 1.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotationEulerDelta": {
+          "x": 0.0,
+          "y": 45.0,
+          "z": 0.0
+        }
+      }
+    },
+    {
+      "id": "step.006",
+      "type": "text",
+      "title": "Robot Callout",
+      "durationSeconds": 5.0,
+      "parameters": {
+        "text": "This callout follows the robot object through anchor.object.robot.",
+        "anchorId": "anchor.object.robot"
+      }
+    },
+    {
+      "id": "step.007",
+      "type": "showFrame",
+      "title": "Show End-Effector Frame",
+      "durationSeconds": 1.5,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "jointIndex": 2,
+        "visible": true
+      }
+    },
+    {
+      "id": "step.008",
+      "type": "rotateJoint",
+      "title": "Rotate Joint 3",
+      "durationSeconds": 2.5,
+      "parameters": {
+        "objectId": "object.robot_preview",
+        "jointIndex": 2,
+        "angleDegrees": 50.0,
+        "showFrame": true
+      }
+    },
+    {
+      "id": "step.009",
+      "type": "text",
+      "title": "Forward Kinematics Idea",
+      "durationSeconds": 5.0,
+      "parameters": {
+        "text": "Forward kinematics uses the joint angles to compute the end-effector pose.",
+        "anchorId": "anchor.object.robot"
+      }
+    },
+    {
+      "id": "step.010",
+      "type": "mcq",
+      "title": "Quick Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "question": "What does forward kinematics compute?",
+        "choices": [
+          "Joint angles from pose",
+          "End-effector pose from joint angles",
+          "Motor current",
+          "Camera calibration"
+        ],
+        "correctIndex": 1,
+        "onCorrectStepId": "step.012",
+        "onWrongStepId": "step.011"
+      }
+    },
+    {
+      "id": "step.011",
+      "type": "text",
+      "title": "Short Review",
+      "durationSeconds": 6.0,
+      "parameters": {
+        "text": "Inverse kinematics estimates joint angles for a desired pose. Forward kinematics goes the other direction: it computes the end-effector pose from joint angles.",
+        "anchorId": "anchor.head.default",
+        "nextStepId": "step.012"
+      }
+    },
+    {
+      "id": "step.012",
+      "type": "text",
+      "title": "Summary",
+      "durationSeconds": 6.0,
+      "parameters": {
+        "text": "Forward kinematics maps joint values to the robot end-effector pose.After this summary, the demo resets the robot to its home pose.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.013",
+      "type": "resetRobot",
+      "title": "Reset Robot to Home",
+      "durationSeconds": 0.5,
+      "parameters": {
+        "objectId": "object.robot_preview"
+      }
+    }
+  ]
+}

@@ -182,6 +182,11 @@ namespace MRModuleEditor.Authoring.Editor
                 SaveAs();
             }
 
+            if (GUILayout.Button("Export", EditorStyles.toolbarButton))
+            {
+                ModuleExportUtility.ExportCurrentModuleFolderMenu();
+            }
+
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button("Preview", EditorStyles.toolbarButton))
@@ -473,6 +478,56 @@ namespace MRModuleEditor.Authoring.Editor
         private void RememberCurrentPath()
         {
             SessionState.SetString(CurrentPathSessionKey, currentPath ?? "");
+        }
+
+        internal static bool TrySaveCurrentModuleForExport(out string moduleJsonPath, out string error)
+        {
+            moduleJsonPath = "";
+            error = "";
+
+            ModuleEditorWindow window = FindOpenWindowInstance();
+
+            if (window != null)
+            {
+                if (!window.Save())
+                {
+                    error = "The current module could not be saved. Use Save As first, or cancel export.";
+                    return false;
+                }
+
+                moduleJsonPath = window.currentPath;
+
+                if (string.IsNullOrWhiteSpace(moduleJsonPath) || !File.Exists(moduleJsonPath))
+                {
+                    error = "The current module path is invalid after saving.";
+                    return false;
+                }
+
+                return true;
+            }
+
+            string savedPath = SessionState.GetString(CurrentPathSessionKey, "");
+            if (string.IsNullOrWhiteSpace(savedPath) || !File.Exists(savedPath))
+            {
+                error =
+                    "No open Module Editor window or remembered module path was found. " +
+                    "Open MR Module Editor/Authoring/Module Editor and save a module first.";
+                return false;
+            }
+
+            moduleJsonPath = savedPath;
+            return true;
+        }
+
+        private static ModuleEditorWindow FindOpenWindowInstance()
+        {
+            ModuleEditorWindow[] windows = Resources.FindObjectsOfTypeAll<ModuleEditorWindow>();
+            if (windows == null || windows.Length == 0)
+            {
+                return null;
+            }
+
+            return windows[0];
         }
 
         private void ReloadCurrentFile(string message)
