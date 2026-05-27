@@ -25,7 +25,7 @@ namespace MRModuleEditor.Authoring.Editor
         private bool isDirty;
         private bool showModuleDataEditors = true;
 
-        [MenuItem("MR Module Editor/Authoring/Module Editor")]
+        [MenuItem("MR Module Editor/Module Editor")]
         public static void Open()
         {
             ModuleEditorWindow window = GetWindow<ModuleEditorWindow>("MR Module Editor");
@@ -180,6 +180,11 @@ namespace MRModuleEditor.Authoring.Editor
             if (GUILayout.Button("Save As", EditorStyles.toolbarButton))
             {
                 SaveAs();
+            }
+
+            if (GUILayout.Button("Export", EditorStyles.toolbarButton))
+            {
+                ModuleExportUtility.ExportCurrentModuleFolderMenu();
             }
 
             GUILayout.FlexibleSpace();
@@ -473,6 +478,56 @@ namespace MRModuleEditor.Authoring.Editor
         private void RememberCurrentPath()
         {
             SessionState.SetString(CurrentPathSessionKey, currentPath ?? "");
+        }
+
+        internal static bool TrySaveCurrentModuleForExport(out string moduleJsonPath, out string error)
+        {
+            moduleJsonPath = "";
+            error = "";
+
+            ModuleEditorWindow window = FindOpenWindowInstance();
+
+            if (window != null)
+            {
+                if (!window.Save())
+                {
+                    error = "The current module could not be saved. Use Save As first, or cancel export.";
+                    return false;
+                }
+
+                moduleJsonPath = window.currentPath;
+
+                if (string.IsNullOrWhiteSpace(moduleJsonPath) || !File.Exists(moduleJsonPath))
+                {
+                    error = "The current module path is invalid after saving.";
+                    return false;
+                }
+
+                return true;
+            }
+
+            string savedPath = SessionState.GetString(CurrentPathSessionKey, "");
+            if (string.IsNullOrWhiteSpace(savedPath) || !File.Exists(savedPath))
+            {
+                error =
+                    "No open Module Editor window or remembered module path was found. " +
+                    "Open MR Module Editor/Authoring/Module Editor and save a module first.";
+                return false;
+            }
+
+            moduleJsonPath = savedPath;
+            return true;
+        }
+
+        private static ModuleEditorWindow FindOpenWindowInstance()
+        {
+            ModuleEditorWindow[] windows = Resources.FindObjectsOfTypeAll<ModuleEditorWindow>();
+            if (windows == null || windows.Length == 0)
+            {
+                return null;
+            }
+
+            return windows[0];
         }
 
         private void ReloadCurrentFile(string message)
