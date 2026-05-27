@@ -376,7 +376,7 @@
       "title": "Summary",
       "durationSeconds": 6.0,
       "parameters": {
-        "text": "Forward kinematics maps joint values to the robot end-effector pose.After this summary, the demo resets the robot to its home pose.",
+        "text": "Forward kinematics maps joint values to the robot end-effector pose. After this summary, the demo resets the robot to its home pose.",
         "anchorId": "anchor.head.default"
       }
     },
