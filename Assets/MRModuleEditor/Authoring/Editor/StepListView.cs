@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
+using MRModuleEditor.Core.StepTypes;
 using UnityEditor;
 using UnityEngine;
 
@@ -44,28 +46,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Add Step", EditorStyles.boldLabel);
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Text")) selectedStepIndex = Add(addStep, document, "text");
-            if (GUILayout.Button("Image")) selectedStepIndex = Add(addStep, document, "image");
-            if (GUILayout.Button("Audio")) selectedStepIndex = Add(addStep, document, "audio");
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Wait")) selectedStepIndex = Add(addStep, document, "wait");
-            if (GUILayout.Button("Show Object")) selectedStepIndex = Add(addStep, document, "showObject");
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Move Object")) selectedStepIndex = Add(addStep, document, "moveObject");
-            if (GUILayout.Button("MCQ")) selectedStepIndex = Add(addStep, document, "mcq");
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Show Frame")) selectedStepIndex = Add(addStep, document, "showFrame");
-            if (GUILayout.Button("Rotate Joint")) selectedStepIndex = Add(addStep, document, "rotateJoint");
-            if (GUILayout.Button("Reset Robot")) selectedStepIndex = Add(addStep, document, "resetRobot");
-            EditorGUILayout.EndHorizontal();
+            DrawCatalogButtons(document, addStep, ref selectedStepIndex);
 
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("Selected Step", EditorStyles.boldLabel);
@@ -96,6 +77,45 @@ namespace MRModuleEditor.Authoring.Editor
             GUI.enabled = true;
 
             return selectedStepIndex;
+        }
+
+        private static void DrawCatalogButtons(ModuleDocument document, Action<string> addStep, ref int selectedStepIndex)
+        {
+            StepCatalog catalog = StepCatalog.Global;
+            if (catalog == null)
+            {
+                EditorGUILayout.HelpBox("Step catalog is missing.", MessageType.Error);
+                return;
+            }
+
+            List<StepTypeDefinition> definitions = catalog.GetDefinitions();
+            if (definitions.Count == 0)
+            {
+                EditorGUILayout.HelpBox("No step types are registered in the catalog.", MessageType.Warning);
+                return;
+            }
+
+            string currentCategory = null;
+            for (int i = 0; i < definitions.Count; i++)
+            {
+                StepTypeDefinition definition = definitions[i];
+                if (definition == null)
+                {
+                    continue;
+                }
+
+                if (currentCategory != definition.Category)
+                {
+                    currentCategory = definition.Category;
+                    EditorGUILayout.Space(4);
+                    EditorGUILayout.LabelField(currentCategory, EditorStyles.miniBoldLabel);
+                }
+
+                if (GUILayout.Button(definition.DisplayName))
+                {
+                    selectedStepIndex = Add(addStep, document, definition.Type);
+                }
+            }
         }
 
         private static int Add(Action<string> addStep, ModuleDocument document, string stepType)
