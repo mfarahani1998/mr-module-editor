@@ -32,7 +32,8 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.AreEqual(original.moduleId, copy.moduleId);
             Assert.AreEqual(original.title, copy.title);
             Assert.AreEqual(original.steps.Count, copy.steps.Count);
-            Assert.AreEqual("mcq", copy.steps[copy.steps.Count - 3].type);
+            Assert.IsTrue(copy.steps.Any(step => step != null && step.type == "mcq"));
+            Assert.IsTrue(copy.steps.Any(step => step != null && step.type == "resetRobot"));
         }
 
         [Test]

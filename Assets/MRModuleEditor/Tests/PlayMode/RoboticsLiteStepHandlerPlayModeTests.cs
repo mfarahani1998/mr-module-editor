@@ -98,6 +98,91 @@ namespace MRModuleEditor.Tests.PlayMode
             Object.Destroy(services);
         }
 
+        [UnityTest]
+        public IEnumerator ResetRobotStepHandler_ReturnsJointToHomePose()
+        {
+            ModuleDocument document;
+            SceneBindingRegistry registry;
+            RobotLiteRig rig;
+            GameObject services;
+            GameObject robot;
+            CreateRobotTestScene(out document, out registry, out rig, out services, out robot);
+
+            yield return null;
+            registry.Rebuild();
+
+            string error;
+            Assert.IsTrue(rig.TrySetJointAngle(0, 45f, out error), error);
+            Assert.AreEqual(45f, rig.GetJointAngle(0), 0.1f);
+
+            ModuleStep step = CreateResetStep(0f);
+
+            RuntimeContext context = new RuntimeContext(
+                document,
+                "",
+                registry,
+                null,
+                null,
+                null,
+                () => false,
+                () => false,
+                message => Debug.Log(message),
+                message => Debug.LogError(message));
+
+            ResetRobotStepHandler handler = new ResetRobotStepHandler();
+            yield return handler.Execute(step, context);
+
+            Assert.AreEqual(0f, rig.GetJointAngle(0), 0.1f);
+
+            Object.Destroy(robot);
+            Object.Destroy(services);
+        }
+
+        [UnityTest]
+        public IEnumerator ResetRobotStepHandler_MissingRig_LogsErrorAndDoesNotThrow()
+        {
+            ModuleDocument document = new ModuleDocument();
+            document.moduleId = "module.robotics_test";
+            document.title = "Robotics Test";
+            document.objects.Add(new ModuleObject
+            {
+                id = "object.robot_preview",
+                label = "Robot Preview",
+                bindingKey = "RobotPreview"
+            });
+
+            GameObject services = new GameObject("Services");
+            SceneBindingRegistry registry = services.AddComponent<SceneBindingRegistry>();
+
+            GameObject robot = new GameObject("RobotWithoutRig");
+            BindableObject bindable = robot.AddComponent<BindableObject>();
+            bindable.BindingKey = "RobotPreview";
+
+            yield return null;
+            registry.Rebuild();
+
+            string loggedError = "";
+            RuntimeContext context = new RuntimeContext(
+                document,
+                "",
+                registry,
+                null,
+                null,
+                null,
+                () => false,
+                () => false,
+                message => Debug.Log(message),
+                message => loggedError = message);
+
+            ResetRobotStepHandler handler = new ResetRobotStepHandler();
+            yield return handler.Execute(CreateResetStep(0f), context);
+
+            Assert.IsTrue(loggedError.Contains("RobotLiteRig"));
+
+            Object.Destroy(robot);
+            Object.Destroy(services);
+        }
+
         private static void CreateRobotTestScene(
             out ModuleDocument document,
             out SceneBindingRegistry registry,
@@ -143,6 +228,19 @@ namespace MRModuleEditor.Tests.PlayMode
             step.parameters["jointIndex"] = JToken.FromObject(0);
             step.parameters["angleDegrees"] = JToken.FromObject(angleDegrees);
             step.parameters["showFrame"] = JToken.FromObject(false);
+            return step;
+        }
+
+        private static ModuleStep CreateResetStep(float durationSeconds)
+        {
+            ModuleStep step = new ModuleStep
+            {
+                id = "step.reset",
+                type = "resetRobot",
+                title = "Reset",
+                durationSeconds = durationSeconds
+            };
+            step.parameters["objectId"] = JToken.FromObject("object.robot_preview");
             return step;
         }
 
