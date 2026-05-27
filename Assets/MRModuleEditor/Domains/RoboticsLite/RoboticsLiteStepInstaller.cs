@@ -24,6 +24,7 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
             moduleRunner.RegisterStepHandler(new RotateJointStepHandler());
             moduleRunner.RegisterStepHandler(new ShowFrameStepHandler());
+            moduleRunner.RegisterStepHandler(new ResetRobotStepHandler());
         }
     }
 }

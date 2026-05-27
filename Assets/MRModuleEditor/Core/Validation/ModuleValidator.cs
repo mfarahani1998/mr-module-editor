@@ -17,7 +17,8 @@ namespace MRModuleEditor.Core.Validation
             "mcq",
             "audio",
             "rotateJoint",
-            "showFrame"
+            "showFrame",
+            "resetRobot"
         };
 
         private static readonly HashSet<string> KnownAnchorTypes = new HashSet<string>(StringComparer.Ordinal)
@@ -331,6 +332,10 @@ namespace MRModuleEditor.Core.Validation
                 {
                     ValidateObjectIdParameter(step, objectIds, location, issues);
                     ValidateJointIndexParameter(step, location, issues);
+                }
+                else if (step.type == "resetRobot")
+                {
+                    ValidateObjectIdParameter(step, objectIds, location, issues);
                 }
                 else if (step.type == "image")
                 {
