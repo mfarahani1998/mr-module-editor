@@ -28,7 +28,7 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
             RobotLiteRig rig;
             string error;
-            if (!TryResolveRig(context, objectId, out rig, out error))
+            if (!RobotLiteRigResolver.TryResolveRig(context, objectId, out rig, out error))
             {
                 if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
                 yield break;
@@ -82,31 +82,6 @@ namespace MRModuleEditor.Domains.RoboticsLite
             {
                 if (context.LogError != null) context.LogError(error);
             }
-        }
-
-        private static bool TryResolveRig(
-            RuntimeContext context,
-            string objectId,
-            out RobotLiteRig rig,
-            out string error)
-        {
-            rig = null;
-            error = "";
-
-            GameObject robotObject;
-            if (!context.TryResolveObject(objectId, out robotObject, out error))
-            {
-                return false;
-            }
-
-            rig = robotObject.GetComponentInChildren<RobotLiteRig>(true);
-            if (rig == null)
-            {
-                error = "Object '" + objectId + "' does not have a RobotLiteRig component.";
-                return false;
-            }
-
-            return true;
         }
     }
 }

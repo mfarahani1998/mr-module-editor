@@ -16,6 +16,7 @@ namespace MRModuleEditor.Tests.EditMode
 
             Assert.IsTrue(document.steps.Any(step => step.type == "showFrame"));
             Assert.IsTrue(document.steps.Any(step => step.type == "rotateJoint"));
+            Assert.IsTrue(document.steps.Any(step => step.type == "resetRobot"));
         }
 
         [Test]
@@ -52,6 +53,30 @@ namespace MRModuleEditor.Tests.EditMode
             var issues = ModuleValidator.Validate(document);
 
             Assert.IsTrue(issues.Any(issue => issue.code == "robotics.angleDegrees.missing"));
+        }
+
+        [Test]
+        public void ResetRobotWithoutObjectId_ReportsError()
+        {
+            ModuleDocument document = ModuleTemplateFactory.CreateForwardKinematicsMini();
+            ModuleStep reset = document.steps.First(step => step.type == "resetRobot");
+            reset.parameters.Remove("objectId");
+
+            var issues = ModuleValidator.Validate(document);
+
+            Assert.IsTrue(issues.Any(issue => issue.code == "step.objectId.missing"));
+        }
+
+        [Test]
+        public void ResetRobotWithUnknownObjectId_ReportsError()
+        {
+            ModuleDocument document = ModuleTemplateFactory.CreateForwardKinematicsMini();
+            ModuleStep reset = document.steps.First(step => step.type == "resetRobot");
+            reset.parameters["objectId"] = JToken.FromObject("object.missing");
+
+            var issues = ModuleValidator.Validate(document);
+
+            Assert.IsTrue(issues.Any(issue => issue.code == "step.objectId.unknown"));
         }
     }
 }

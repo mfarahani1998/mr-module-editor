@@ -235,9 +235,14 @@ namespace MRModuleEditor.Core.Templates
 
             ModuleStep summary = Step("step.012", "text", "Summary", 6f);
             summary.parameters["text"] = JToken.FromObject(
-                "Forward kinematics maps joint values to the robot end-effector pose.");
+                "Forward kinematics maps joint values to the robot end-effector pose." +
+                "After this summary, the demo resets the robot to its home pose.");
             summary.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             document.steps.Add(summary);
+
+            ModuleStep resetRobot = Step("step.013", "resetRobot", "Reset Robot to Home", 0.5f);
+            resetRobot.parameters["objectId"] = JToken.FromObject("object.robot_preview");
+            document.steps.Add(resetRobot);
 
             return document;
         }
