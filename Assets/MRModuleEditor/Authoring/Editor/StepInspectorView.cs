@@ -18,7 +18,8 @@ namespace MRModuleEditor.Authoring.Editor
             "moveObject",
             "mcq",
             "showFrame",
-            "rotateJoint"
+            "rotateJoint",
+            "resetRobot"
         };
 
         public static void Draw(ModuleDocument document, int selectedStepIndex)
@@ -142,6 +143,12 @@ namespace MRModuleEditor.Authoring.Editor
                 if (string.IsNullOrWhiteSpace(step.title)) step.title = "Rotate Joint";
                 if (step.durationSeconds <= 0f) step.durationSeconds = 2f;
             }
+            else if (step.type == "resetRobot")
+            {
+                SetIfMissing(step, "objectId", "object.robot_preview");
+                if (string.IsNullOrWhiteSpace(step.title)) step.title = "Reset Robot";
+                if (step.durationSeconds <= 0f) step.durationSeconds = 0.5f;
+            }
             else if (step.type == "mcq")
             {
                 SetIfMissing(step, "question", "What does forward kinematics compute?");
@@ -218,6 +225,14 @@ namespace MRModuleEditor.Authoring.Editor
                 DrawInt(step, "jointIndex", "Joint Index", 0);
                 DrawFloat(step, "angleDegrees", "Angle Degrees", 0f);
                 DrawBool(step, "showFrame", "Show Frame", true);
+            }
+            else if (step.type == "resetRobot")
+            {
+                EditorIdDropdowns.DrawObjectIdDropdown(document, step, "objectId", "Object");
+                EditorGUILayout.HelpBox(
+                    "Reset Robot returns the selected RobotLiteRig to its captured home pose, " +
+                    "zeros tracked joint angles, and hides frame gizmos. Duration Seconds is an optional hold after reset.",
+                    MessageType.Info);
             }
             else if (step.type == "mcq")
             {

@@ -64,6 +64,7 @@ namespace MRModuleEditor.Authoring.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Show Frame")) selectedStepIndex = Add(addStep, document, "showFrame");
             if (GUILayout.Button("Rotate Joint")) selectedStepIndex = Add(addStep, document, "rotateJoint");
+            if (GUILayout.Button("Reset Robot")) selectedStepIndex = Add(addStep, document, "resetRobot");
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.Space(8);
