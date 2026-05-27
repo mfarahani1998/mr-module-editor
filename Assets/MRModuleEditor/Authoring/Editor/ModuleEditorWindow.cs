@@ -25,7 +25,7 @@ namespace MRModuleEditor.Authoring.Editor
         private bool isDirty;
         private bool showModuleDataEditors = true;
 
-        [MenuItem("MR Module Editor/Authoring/Module Editor")]
+        [MenuItem("MR Module Editor/Module Editor")]
         public static void Open()
         {
             ModuleEditorWindow window = GetWindow<ModuleEditorWindow>("MR Module Editor");

@@ -14,7 +14,7 @@ namespace MRModuleEditor.Authoring.Editor
 
         private const string IntroImageRelativePath = "assets/images/intro.png";
 
-        [MenuItem("MR Module Editor/Templates/Create Placeholder Intro Image")]
+        [MenuItem("MR Module Editor/Temporary/Create Placeholder Intro Image")]
         public static void CreatePlaceholderIntroImage()
         {
             string imagePath = Path.Combine(SampleModuleFolder, IntroImageRelativePath)
@@ -60,7 +60,7 @@ namespace MRModuleEditor.Authoring.Editor
             Debug.Log("Created placeholder intro image at: " + imagePath);
         }
 
-        [MenuItem("MR Module Editor/Authoring/Copy FK Sample To StreamingAssets")]
+        [MenuItem("MR Module Editor/Temporary/Copy FK Sample To StreamingAssets")]
         public static void CopyForwardKinematicsSampleToStreamingAssets()
         {
             string sampleImagePath = Path.Combine(SampleModuleFolder, IntroImageRelativePath)
@@ -71,13 +71,22 @@ namespace MRModuleEditor.Authoring.Editor
                 CreatePlaceholderIntroImage();
             }
 
-            if (Directory.Exists(StreamingAssetsTargetFolder))
+            string sampleModuleJsonPath = Path.Combine(SampleModuleFolder, "module.json")
+                .Replace("\\", "/");
+
+            string error;
+            if (!ModuleExportUtility.TryExportModuleFolderToExactTarget(
+                    sampleModuleJsonPath,
+                    StreamingAssetsTargetFolder,
+                    true,
+                    out error))
             {
-                Directory.Delete(StreamingAssetsTargetFolder, true);
+                EditorUtility.DisplayDialog("Copy FK Sample Failed", error, "OK");
+                Debug.LogError(error);
+                return;
             }
 
-            CopyDirectoryWithoutMetaFiles(SampleModuleFolder, StreamingAssetsTargetFolder);
-            AssetDatabase.Refresh();
+            ModuleExportUtility.RefreshAssetDatabaseIfInsideProject(StreamingAssetsTargetFolder);
 
             Debug.Log("Copied ForwardKinematicsMini sample to StreamingAssets: "
                 + StreamingAssetsTargetFolder);
@@ -94,30 +103,6 @@ namespace MRModuleEditor.Authoring.Editor
                 {
                     texture.SetPixel(xx, yy, color);
                 }
-            }
-        }
-
-        private static void CopyDirectoryWithoutMetaFiles(string sourceDirectory, string targetDirectory)
-        {
-            Directory.CreateDirectory(targetDirectory);
-
-            foreach (string sourceFile in Directory.GetFiles(sourceDirectory))
-            {
-                if (sourceFile.EndsWith(".meta"))
-                {
-                    continue;
-                }
-
-                string fileName = Path.GetFileName(sourceFile);
-                string targetFile = Path.Combine(targetDirectory, fileName);
-                File.Copy(sourceFile, targetFile, true);
-            }
-
-            foreach (string sourceSubdirectory in Directory.GetDirectories(sourceDirectory))
-            {
-                string directoryName = Path.GetFileName(sourceSubdirectory);
-                string targetSubdirectory = Path.Combine(targetDirectory, directoryName);
-                CopyDirectoryWithoutMetaFiles(sourceSubdirectory, targetSubdirectory);
             }
         }
     }
