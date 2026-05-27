@@ -30,13 +30,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public void RegisterDefaultHandlers()
         {
-            Register(new TextStepHandler());
-            Register(new WaitStepHandler());
-            Register(new ShowObjectStepHandler());
-            Register(new MoveObjectStepHandler());
-            Register(new ImageStepHandler());
-            Register(new MCQStepHandler());
-            Register(new AudioStepHandler());
+            BuiltInStepInstaller.RegisterHandlers(this);
         }
     }
 }

@@ -159,6 +159,13 @@ namespace MRModuleEditor.Core.Templates
             welcome.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
             document.steps.Add(welcome);
 
+            ModuleStep introConfirm = Step("step.001.confirm", "confirm", "Ready Check", 0f);
+            introConfirm.parameters["message"] = JToken.FromObject("When the welcome panel is readable and the scene feels centered, press Continue.");
+            introConfirm.parameters["buttonLabel"] = JToken.FromObject("Continue");
+            introConfirm.parameters["autoContinueAfterSeconds"] = JToken.FromObject(0f);
+            introConfirm.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(introConfirm);
+            
             ModuleStep introAudio = Step("step.001.audio", "audio", "Intro Narration", 0f);
             introAudio.parameters["assetId"] = JToken.FromObject("asset.narration_intro");
             introAudio.parameters["waitForCompletion"] = JToken.FromObject(true);

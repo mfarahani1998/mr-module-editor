@@ -237,6 +237,18 @@
       }
     },
     {
+      "id": "step.001.confirm",
+      "type": "confirm",
+      "title": "Ready Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "message": "When the welcome panel is readable and the scene feels centered, press Continue.",
+        "buttonLabel": "Continue",
+        "autoContinueAfterSeconds": 0.0,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
       "id": "step.001.audio",
       "type": "audio",
       "title": "Intro Narration",

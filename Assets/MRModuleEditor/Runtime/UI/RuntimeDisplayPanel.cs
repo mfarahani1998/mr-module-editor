@@ -9,7 +9,8 @@ namespace MRModuleEditor.Runtime.UI
             None,
             Text,
             Image,
-            MCQ
+            MCQ,
+            Confirm
         }
 
         [SerializeField]
@@ -26,6 +27,8 @@ namespace MRModuleEditor.Runtime.UI
         private int correctIndex = -1;
         private int selectedIndex = -1;
         private string feedback = "";
+        private bool confirmationReceived;
+        private string confirmButtonLabel = "Continue";
 
         public bool ShowDebugOverlay
         {
@@ -43,6 +46,11 @@ namespace MRModuleEditor.Runtime.UI
             get { return selectedIndex; }
         }
 
+        public bool HasConfirmation
+        {
+            get { return confirmationReceived; }
+        }
+
         public void Clear()
         {
             mode = PanelMode.None;
@@ -53,6 +61,8 @@ namespace MRModuleEditor.Runtime.UI
             correctIndex = -1;
             selectedIndex = -1;
             feedback = "";
+            confirmationReceived = false;
+            confirmButtonLabel = "Continue";
         }
 
         public void ShowText(string newTitle, string newBody)
@@ -64,6 +74,7 @@ namespace MRModuleEditor.Runtime.UI
             choices = new string[0];
             selectedIndex = -1;
             feedback = "";
+            confirmationReceived = false;
         }
 
         public void ShowImage(string newTitle, string newBody, Texture2D newImage)
@@ -75,6 +86,7 @@ namespace MRModuleEditor.Runtime.UI
             choices = new string[0];
             selectedIndex = -1;
             feedback = "";
+            confirmationReceived = false;
         }
 
         public void ShowMCQ(string newTitle, string question, string[] newChoices, int newCorrectIndex)
@@ -87,6 +99,21 @@ namespace MRModuleEditor.Runtime.UI
             correctIndex = newCorrectIndex;
             selectedIndex = -1;
             feedback = "";
+            confirmationReceived = false;
+        }
+
+        public void ShowConfirm(string newTitle, string message, string buttonLabel)
+        {
+            mode = PanelMode.Confirm;
+            title = newTitle ?? "";
+            body = message ?? "";
+            image = null;
+            choices = new string[0];
+            correctIndex = -1;
+            selectedIndex = -1;
+            feedback = "";
+            confirmationReceived = false;
+            confirmButtonLabel = string.IsNullOrWhiteSpace(buttonLabel) ? "Continue" : buttonLabel;
         }
 
         public void SubmitMcqAnswer(int answerIndex)
@@ -107,6 +134,17 @@ namespace MRModuleEditor.Runtime.UI
                 : "Not quite. Correct answer: " + SafeChoice(correctIndex);
         }
 
+        public void SubmitConfirmation()
+        {
+            if (mode != PanelMode.Confirm)
+            {
+                return;
+            }
+
+            confirmationReceived = true;
+            feedback = "Confirmed.";
+        }
+
         public void ShowFeedback(string message)
         {
             feedback = message ?? "";
@@ -114,6 +152,14 @@ namespace MRModuleEditor.Runtime.UI
 
         private void Update()
         {
+            if (mode == PanelMode.Confirm && !confirmationReceived)
+            {
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
+                {
+                    SubmitConfirmation();
+                }
+            }
+
             if (!enableKeyboardNumbers || mode != PanelMode.MCQ || selectedIndex >= 0)
             {
                 return;
@@ -163,6 +209,17 @@ namespace MRModuleEditor.Runtime.UI
                     }
                     GUI.enabled = true;
                 }
+            }
+
+            if (mode == PanelMode.Confirm)
+            {
+                GUILayout.Space(8);
+                GUI.enabled = !confirmationReceived;
+                if (GUILayout.Button(confirmButtonLabel, GUILayout.Height(32)))
+                {
+                    SubmitConfirmation();
+                }
+                GUI.enabled = true;
             }
 
             if (!string.IsNullOrEmpty(feedback))

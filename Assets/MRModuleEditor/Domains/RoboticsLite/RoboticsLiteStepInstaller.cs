@@ -11,6 +11,8 @@ namespace MRModuleEditor.Domains.RoboticsLite
 
         private void Awake()
         {
+            RoboticsLiteStepDefinitions.Register();
+
             if (moduleRunner == null)
             {
                 moduleRunner = FindFirstObjectByType<ModuleRunner>();

@@ -1,26 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using MRModuleEditor.Core.Models;
+using MRModuleEditor.Core.StepTypes;
 using Newtonsoft.Json.Linq;
 
 namespace MRModuleEditor.Core.Validation
 {
     public static class ModuleValidator
     {
-        private static readonly HashSet<string> KnownStepTypes = new HashSet<string>(StringComparer.Ordinal)
-        {
-            "text",
-            "image",
-            "wait",
-            "showObject",
-            "moveObject",
-            "mcq",
-            "audio",
-            "rotateJoint",
-            "showFrame",
-            "resetRobot"
-        };
-
         private static readonly HashSet<string> KnownAnchorTypes = new HashSet<string>(StringComparer.Ordinal)
         {
             "head",
@@ -30,8 +18,12 @@ namespace MRModuleEditor.Core.Validation
 
         public static List<ValidationIssue> Validate(ModuleDocument document)
         {
+            return Validate(document, StepCatalog.Global);
+        }
+
+        public static List<ValidationIssue> Validate(ModuleDocument document, StepCatalog stepCatalog)
+        {
             Dictionary<string, string> assetTypesById = new Dictionary<string, string>(StringComparer.Ordinal);
-            
             List<ValidationIssue> issues = new List<ValidationIssue>();
 
             if (document == null)
@@ -40,6 +32,16 @@ namespace MRModuleEditor.Core.Validation
                     ValidationSeverity.Error,
                     "document.null",
                     "ModuleDocument is null."));
+                return issues;
+            }
+
+            StepCatalog catalog = stepCatalog ?? StepCatalog.Global;
+            if (catalog == null)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "stepCatalog.missing",
+                    "Step catalog is missing."));
                 return issues;
             }
 
@@ -60,7 +62,7 @@ namespace MRModuleEditor.Core.Validation
             ValidateObjects(document, objectIds, seenIds, issues);
             ValidateAnchors(document, objectIds, anchorIds, seenIds, issues);
             ValidateLayouts(document, anchorIds, layoutTargetIds, seenIds, issues);
-            ValidateSteps(document, objectIds, assetIds, assetTypesById, anchorIds, stepIds, seenIds, issues);
+            ValidateSteps(document, catalog, objectIds, assetIds, assetTypesById, anchorIds, stepIds, seenIds, issues);
 
             return issues;
         }
@@ -268,6 +270,7 @@ namespace MRModuleEditor.Core.Validation
 
         private static void ValidateSteps(
             ModuleDocument document,
+            StepCatalog catalog,
             HashSet<string> objectIds,
             HashSet<string> assetIds,
             Dictionary<string, string> assetTypesById,
@@ -285,6 +288,14 @@ namespace MRModuleEditor.Core.Validation
                 return;
             }
 
+            StepValidationContext context = new StepValidationContext(
+                document,
+                objectIds,
+                assetIds,
+                assetTypesById,
+                anchorIds,
+                stepIds);
+
             for (int i = 0; i < document.steps.Count; i++)
             {
                 ModuleStep step = document.steps[i];
@@ -300,7 +311,8 @@ namespace MRModuleEditor.Core.Validation
                 CheckRequiredString(step.type, "step.type", "Step type is missing.", location, issues);
                 AddId(step.id, "step", location, seenIds, issues);
 
-                if (!string.IsNullOrWhiteSpace(step.type) && !KnownStepTypes.Contains(step.type))
+                StepTypeDefinition definition = null;
+                if (!string.IsNullOrWhiteSpace(step.type) && !catalog.TryGet(step.type, out definition))
                 {
                     issues.Add(new ValidationIssue(
                         ValidationSeverity.Error,
@@ -311,55 +323,133 @@ namespace MRModuleEditor.Core.Validation
                 }
 
                 ValidateCommonAnchorReference(step, anchorIds, location, issues);
-                
                 ValidateFlowReferences(step, stepIds, location, issues);
 
-                if (step.type == "showObject")
+                if (definition != null)
                 {
-                    ValidateObjectIdParameter(step, objectIds, location, issues);
+                    ValidateCatalogParameters(step, definition, context, location, issues);
                 }
-                else if (step.type == "moveObject")
+            }
+        }
+
+        private static void ValidateCatalogParameters(
+            ModuleStep step,
+            StepTypeDefinition definition,
+            StepValidationContext context,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            StepParameterDefinition[] parameters = definition.Parameters ?? new StepParameterDefinition[0];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                StepParameterDefinition parameter = parameters[i];
+                if (parameter == null || string.IsNullOrWhiteSpace(parameter.Key))
                 {
-                    ValidateObjectIdParameter(step, objectIds, location, issues);
-                }
-                else if (step.type == "rotateJoint")
-                {
-                    ValidateObjectIdParameter(step, objectIds, location, issues);
-                    ValidateJointIndexParameter(step, location, issues);
-                    ValidateAngleDegreesParameter(step, location, issues);
-                }
-                else if (step.type == "showFrame")
-                {
-                    ValidateObjectIdParameter(step, objectIds, location, issues);
-                    ValidateJointIndexParameter(step, location, issues);
-                }
-                else if (step.type == "resetRobot")
-                {
-                    ValidateObjectIdParameter(step, objectIds, location, issues);
-                }
-                else if (step.type == "image")
-                {
-                    ValidateAssetIdParameter(step, assetIds, location, issues);
-                    ValidateAssetTypeParameter(step, assetTypesById, "image", location, issues);
-                }
-                else if (step.type == "mcq")
-                {
-                    ValidateMcq(step, location, issues);
-                }
-                else if (step.type == "audio")
-                {
-                    ValidateAssetIdParameter(step, assetIds, location, issues);
-                    ValidateAssetTypeParameter(step, assetTypesById, "audio", location, issues);
+                    continue;
                 }
 
-                if (step.GetBool("waitForCompletion", true) && step.GetBool("loop", false))
+                if (!IsParameterActive(step, parameter))
                 {
-                    issues.Add(new ValidationIssue(
-                        ValidationSeverity.Error,
-                        "audio.loopWait.invalid",
-                        "Audio step cannot both loop and wait for completion, because the step would never finish.",
-                        location));
+                    continue;
                 }
+
+                JToken token = step.GetToken(parameter.Key);
+                if (IsMissingToken(token))
+                {
+                    if (parameter.Required)
+                    {
+                        issues.Add(new ValidationIssue(
+                            ValidationSeverity.Error,
+                            "step." + parameter.Key + ".missing",
+                            "Step is missing required parameter " + parameter.Key + ".",
+                            location));
+                    }
+
+                    continue;
+                }
+
+                ValidateParameterKind(step, parameter, token, context, location, issues);
+            }
+
+            if (definition.CustomValidator != null)
+            {
+                definition.CustomValidator(step, context, location, issues);
+            }
+        }
+
+        private static bool IsParameterActive(ModuleStep step, StepParameterDefinition parameter)
+        {
+            if (!parameter.HasVisibilityCondition)
+            {
+                return true;
+            }
+
+            return step.GetBool(parameter.VisibleWhenParameterKey, !parameter.VisibleWhenBoolValue) == parameter.VisibleWhenBoolValue;
+        }
+
+        private static bool IsMissingToken(JToken token)
+        {
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                return true;
+            }
+
+            if (token.Type == JTokenType.String && string.IsNullOrWhiteSpace(token.Value<string>()))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static void ValidateParameterKind(
+            ModuleStep step,
+            StepParameterDefinition parameter,
+            JToken token,
+            StepValidationContext context,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            switch (parameter.Kind)
+            {
+                case StepParameterKind.ObjectId:
+                    ValidateObjectReference(step.GetString(parameter.Key, ""), context.ObjectIds, parameter.Key, location, issues);
+                    break;
+                case StepParameterKind.AssetId:
+                    ValidateAssetReference(step.GetString(parameter.Key, ""), context.AssetIds, parameter.Key, location, issues);
+                    ValidateAssetType(step.GetString(parameter.Key, ""), context.AssetTypesById, parameter.ExpectedAssetType, location, issues);
+                    break;
+                case StepParameterKind.AnchorId:
+                    if (parameter.Key != "anchorId")
+                    {
+                        ValidateAnchorReference(step.GetString(parameter.Key, ""), context.AnchorIds, parameter.Key, location, issues);
+                    }
+                    break;
+                case StepParameterKind.StepId:
+                    ValidateStepReference(step.GetString(parameter.Key, ""), context.StepIds, parameter.Key, "flow." + parameter.Key + ".unknown", location, issues);
+                    break;
+                case StepParameterKind.Int:
+                    ValidateInt(parameter.Key, token, location, issues);
+                    break;
+                case StepParameterKind.Float:
+                    ValidateFloat(parameter.Key, token, location, issues);
+                    break;
+                case StepParameterKind.Bool:
+                    ValidateBool(parameter.Key, token, location, issues);
+                    break;
+                case StepParameterKind.Vector3:
+                    ValidateVector3(parameter.Key, token, location, issues);
+                    break;
+                case StepParameterKind.StringArray:
+                    if (!(token is JArray))
+                    {
+                        issues.Add(new ValidationIssue(
+                            ValidationSeverity.Error,
+                            "step." + parameter.Key + ".invalidStringArray",
+                            "Parameter " + parameter.Key + " must be a JSON array of strings.",
+                            location));
+                    }
+                    break;
             }
         }
 
@@ -370,30 +460,18 @@ namespace MRModuleEditor.Core.Validation
             List<ValidationIssue> issues)
         {
             string anchorId = step.GetString("anchorId", "");
-            if (!string.IsNullOrWhiteSpace(anchorId) && !anchorIds.Contains(anchorId))
-            {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "step.anchorId.unknown",
-                    "Step references unknown anchor id '" + anchorId + "'.",
-                    location));
-            }
+            ValidateAnchorReference(anchorId, anchorIds, "anchorId", location, issues);
         }
 
-        private static void ValidateObjectIdParameter(
-            ModuleStep step,
+        private static void ValidateObjectReference(
+            string objectId,
             HashSet<string> objectIds,
+            string parameterKey,
             string location,
             List<ValidationIssue> issues)
         {
-            string objectId = step.GetString("objectId", "");
             if (string.IsNullOrWhiteSpace(objectId))
             {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "step.objectId.missing",
-                    "Step is missing required parameter objectId.",
-                    location));
                 return;
             }
 
@@ -401,26 +479,21 @@ namespace MRModuleEditor.Core.Validation
             {
                 issues.Add(new ValidationIssue(
                     ValidationSeverity.Error,
-                    "step.objectId.unknown",
+                    "step." + parameterKey + ".unknown",
                     "Step references unknown object id '" + objectId + "'.",
                     location));
             }
         }
 
-        private static void ValidateAssetIdParameter(
-            ModuleStep step,
+        private static void ValidateAssetReference(
+            string assetId,
             HashSet<string> assetIds,
+            string parameterKey,
             string location,
             List<ValidationIssue> issues)
         {
-            string assetId = step.GetString("assetId", "");
             if (string.IsNullOrWhiteSpace(assetId))
             {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "step.assetId.missing",
-                    "Image step is missing required parameter assetId.",
-                    location));
                 return;
             }
 
@@ -428,77 +501,111 @@ namespace MRModuleEditor.Core.Validation
             {
                 issues.Add(new ValidationIssue(
                     ValidationSeverity.Error,
-                    "step.assetId.unknown",
-                    "Image step references unknown asset id '" + assetId + "'.",
+                    "step." + parameterKey + ".unknown",
+                    "Step references unknown asset id '" + assetId + "'.",
                     location));
             }
         }
 
-        private static void ValidateMcq(ModuleStep step, string location, List<ValidationIssue> issues)
+        private static void ValidateAnchorReference(
+            string anchorId,
+            HashSet<string> anchorIds,
+            string parameterKey,
+            string location,
+            List<ValidationIssue> issues)
         {
-            string question = step.GetString("question", "");
-            if (string.IsNullOrWhiteSpace(question))
+            if (string.IsNullOrWhiteSpace(anchorId))
             {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "mcq.question.missing",
-                    "MCQ step is missing question.",
-                    location));
+                return;
             }
 
-            JToken choicesToken = step.GetToken("choices");
-            JArray choices = choicesToken as JArray;
-            if (choices == null || choices.Count == 0)
+            if (!anchorIds.Contains(anchorId))
             {
                 issues.Add(new ValidationIssue(
                     ValidationSeverity.Error,
-                    "mcq.choices.empty",
-                    "MCQ step must contain at least one choice.",
+                    parameterKey == "anchorId" ? "step.anchorId.unknown" : "step." + parameterKey + ".unknown",
+                    "Step references unknown anchor id '" + anchorId + "'.",
+                    location));
+            }
+        }
+
+        private static void ValidateStepReference(
+            string targetStepId,
+            HashSet<string> stepIds,
+            string displayName,
+            string issueCode,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            if (string.IsNullOrWhiteSpace(targetStepId))
+            {
+                return;
+            }
+
+            if (stepIds == null || !stepIds.Contains(targetStepId))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    issueCode,
+                    displayName + " references unknown step id '" + targetStepId + "'.",
+                    location));
+            }
+        }
+
+        private static void ValidateInt(string parameterKey, JToken token, string location, List<ValidationIssue> issues)
+        {
+            int parsed;
+            if (!int.TryParse(token.ToString(), out parsed))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "step." + parameterKey + ".invalidInt",
+                    "Parameter " + parameterKey + " must be an integer.",
+                    location));
+            }
+        }
+
+        private static void ValidateFloat(string parameterKey, JToken token, string location, List<ValidationIssue> issues)
+        {
+            float parsed;
+            if (token == null || token.Type == JTokenType.Null || !float.TryParse(token.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out parsed))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "step." + parameterKey + ".invalidFloat",
+                    "Parameter " + parameterKey + " must be a number.",
+                    location));
+            }
+        }
+
+        private static void ValidateBool(string parameterKey, JToken token, string location, List<ValidationIssue> issues)
+        {
+            bool parsed;
+            if (!bool.TryParse(token.ToString(), out parsed))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "step." + parameterKey + ".invalidBool",
+                    "Parameter " + parameterKey + " must be true or false.",
+                    location));
+            }
+        }
+
+        private static void ValidateVector3(string parameterKey, JToken token, string location, List<ValidationIssue> issues)
+        {
+            if (token == null || token.Type != JTokenType.Object)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "step." + parameterKey + ".invalidVector3",
+                    "Parameter " + parameterKey + " must be an object with x, y, and z fields.",
                     location));
                 return;
             }
 
-            int correctIndex = step.GetInt("correctIndex", -1);
-            if (correctIndex < 0 || correctIndex >= choices.Count)
-            {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "mcq.correctIndex.invalid",
-                    "MCQ correctIndex is outside the choices array.",
-                    location));
-            }
-        }
-
-        private static void ValidateJointIndexParameter(
-            ModuleStep step,
-            string location,
-            List<ValidationIssue> issues)
-        {
-            int jointIndex = step.GetInt("jointIndex", -1);
-            if (jointIndex < 0)
-            {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "robotics.jointIndex.invalid",
-                    "Robotics step must have a non-negative jointIndex.",
-                    location));
-            }
-        }
-
-        private static void ValidateAngleDegreesParameter(
-            ModuleStep step,
-            string location,
-            List<ValidationIssue> issues)
-        {
-            JToken token = step.GetToken("angleDegrees");
-            if (token == null || token.Type == JTokenType.Null)
-            {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    "robotics.angleDegrees.missing",
-                    "rotateJoint step is missing angleDegrees.",
-                    location));
-            }
+            ValidateFloat(parameterKey + ".x", token["x"], location, issues);
+            ValidateFloat(parameterKey + ".y", token["y"], location, issues);
+            ValidateFloat(parameterKey + ".z", token["z"], location, issues);
         }
 
         private static void CheckRequiredString(
@@ -621,12 +728,11 @@ namespace MRModuleEditor.Core.Validation
             string location,
             List<ValidationIssue> issues)
         {
-            ValidateStepReferenceParameter(
-                step,
+            ValidateStepReference(
+                step.GetString("nextStepId", ""),
                 stepIds,
                 "nextStepId",
                 "flow.nextStepId.unknown",
-                "nextStepId",
                 location,
                 issues);
 
@@ -635,21 +741,19 @@ namespace MRModuleEditor.Core.Validation
 
             if (step.type == "mcq")
             {
-                ValidateStepReferenceParameter(
-                    step,
+                ValidateStepReference(
+                    step.GetString("onCorrectStepId", ""),
                     stepIds,
                     "onCorrectStepId",
                     "flow.onCorrectStepId.unknown",
-                    "onCorrectStepId",
                     location,
                     issues);
 
-                ValidateStepReferenceParameter(
-                    step,
+                ValidateStepReference(
+                    step.GetString("onWrongStepId", ""),
                     stepIds,
                     "onWrongStepId",
                     "flow.onWrongStepId.unknown",
-                    "onWrongStepId",
                     location,
                     issues);
             }
@@ -661,61 +765,32 @@ namespace MRModuleEditor.Core.Validation
                     "onCorrectStepId/onWrongStepId are only used by mcq steps.",
                     location));
 
-                // Still validate the references so typos are visible even before the author fixes the step type.
-                ValidateStepReferenceParameter(
-                    step,
+                ValidateStepReference(
+                    step.GetString("onCorrectStepId", ""),
                     stepIds,
                     "onCorrectStepId",
                     "flow.onCorrectStepId.unknown",
-                    "onCorrectStepId",
                     location,
                     issues);
 
-                ValidateStepReferenceParameter(
-                    step,
+                ValidateStepReference(
+                    step.GetString("onWrongStepId", ""),
                     stepIds,
                     "onWrongStepId",
                     "flow.onWrongStepId.unknown",
-                    "onWrongStepId",
                     location,
                     issues);
             }
         }
 
-        private static void ValidateStepReferenceParameter(
-            ModuleStep step,
-            HashSet<string> stepIds,
-            string parameterKey,
-            string issueCode,
-            string displayName,
-            string location,
-            List<ValidationIssue> issues)
-        {
-            string targetStepId = step.GetString(parameterKey, "");
-            if (string.IsNullOrWhiteSpace(targetStepId))
-            {
-                return;
-            }
-
-            if (stepIds == null || !stepIds.Contains(targetStepId))
-            {
-                issues.Add(new ValidationIssue(
-                    ValidationSeverity.Error,
-                    issueCode,
-                    displayName + " references unknown step id '" + targetStepId + "'.",
-                    location));
-            }
-        }
-
-        private static void ValidateAssetTypeParameter(
-            ModuleStep step,
+        private static void ValidateAssetType(
+            string assetId,
             Dictionary<string, string> assetTypesById,
             string expectedType,
             string location,
             List<ValidationIssue> issues)
         {
-            string assetId = step.GetString("assetId", "");
-            if (string.IsNullOrWhiteSpace(assetId) || assetTypesById == null)
+            if (string.IsNullOrWhiteSpace(assetId) || string.IsNullOrWhiteSpace(expectedType) || assetTypesById == null)
             {
                 return;
             }
