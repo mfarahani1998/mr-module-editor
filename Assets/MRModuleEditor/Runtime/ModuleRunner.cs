@@ -44,9 +44,6 @@ namespace MRModuleEditor.Runtime
         private RuntimeVariableStore variableStore;
 
         [SerializeField]
-        private RuntimeCalloutService calloutService;
-
-        [SerializeField]
         private int maximumStepExecutionsPerRun = 1000;
 
         [SerializeField]
@@ -143,11 +140,6 @@ namespace MRModuleEditor.Runtime
             if (variableStore == null)
             {
                 variableStore = FindFirstObjectByType<RuntimeVariableStore>(FindObjectsInactive.Include);
-            }
-
-            if (calloutService == null)
-            {
-                calloutService = FindFirstObjectByType<RuntimeCalloutService>(FindObjectsInactive.Include);
             }
 
             if (controlPanel != null)
@@ -335,8 +327,7 @@ namespace MRModuleEditor.Runtime
                 message => LogInfoForExecution(executionToken, message),
                 message => SetErrorForExecution(executionToken, message),
                 interactionContext,
-                variableStore,
-                calloutService);
+                variableStore);
 
             if (CurrentModule == null || CurrentModule.steps == null)
             {

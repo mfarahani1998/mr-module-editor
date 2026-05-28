@@ -30,8 +30,7 @@ namespace MRModuleEditor.Runtime
             Action<string> logInfo,
             Action<string> logError,
             InteractionContext interactionContext = null,
-            RuntimeVariableStore variableStore = null,
-            RuntimeCalloutService calloutService = null)
+            RuntimeVariableStore variableStore = null)
             : this(
                 module,
                 moduleDirectory,
@@ -45,8 +44,7 @@ namespace MRModuleEditor.Runtime
                 logInfo,
                 logError,
                 interactionContext,
-                variableStore,
-                calloutService)
+                variableStore)
         {
         }
 
@@ -63,8 +61,7 @@ namespace MRModuleEditor.Runtime
             Action<string> logInfo,
             Action<string> logError,
             InteractionContext interactionContext = null,
-            RuntimeVariableStore variableStore = null,
-            RuntimeCalloutService calloutService = null)
+            RuntimeVariableStore variableStore = null)
         {
             Module = module;
             ModuleDirectory = moduleDirectory ?? "";
@@ -74,7 +71,6 @@ namespace MRModuleEditor.Runtime
             SpatialUI = spatialUIService;
             Interaction = interactionContext;
             Variables = variableStore;
-            Callouts = calloutService;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             Results = new RuntimeResultStore();
             IsPaused = isPaused;
@@ -93,7 +89,6 @@ namespace MRModuleEditor.Runtime
         public SpatialUIService SpatialUI { get; private set; }
         public InteractionContext Interaction { get; private set; }
         public RuntimeVariableStore Variables { get; private set; }
-        public RuntimeCalloutService Callouts { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
         public RuntimeResultStore Results { get; private set; }
         public Func<bool> IsPaused { get; private set; }

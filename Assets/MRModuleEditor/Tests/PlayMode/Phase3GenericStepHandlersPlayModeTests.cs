@@ -1,6 +1,7 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime;
+using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.Interaction;
 using MRModuleEditor.Runtime.ObjectState;
 using MRModuleEditor.Runtime.SceneBinding;
@@ -78,13 +79,22 @@ namespace MRModuleEditor.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator ShowCalloutStepHandler_UsesRuntimeCalloutService()
+        public IEnumerator ShowCalloutStepHandler_UsesSpatialTextPanel()
         {
-            GameObject services = new GameObject("Callout Services");
-            RuntimeCalloutService callouts = services.AddComponent<RuntimeCalloutService>();
+            GameObject cameraObject = new GameObject("Main Camera");
+            cameraObject.tag = "MainCamera";
+            cameraObject.AddComponent<Camera>();
+
+            GameObject services = new GameObject("Spatial UI Services");
+            services.AddComponent<AnchorResolver>();
+            services.AddComponent<SpatialLayoutResolver>();
+            SpatialUIService spatialUI = services.AddComponent<SpatialUIService>();
+
+            GameObject panelObject = new GameObject("Spatial Text Panel");
+            SpatialTextPanel textPanel = panelObject.AddComponent<SpatialTextPanel>();
 
             ModuleDocument document = MakeDocument();
-            RuntimeContext context = MakeContext(document, null, null, null, callouts);
+            RuntimeContext context = MakeContext(document, null, null, null, spatialUI);
             ModuleStep step = new ModuleStep
             {
                 id = "step.callout",
@@ -94,11 +104,19 @@ namespace MRModuleEditor.Tests.PlayMode
             };
             step.parameters["text"] = JToken.FromObject("Look here.");
             step.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            step.parameters["localOffset"] = JToken.FromObject(new { x = 0f, y = 0.55f, z = 0f });
+            step.parameters["localEuler"] = JToken.FromObject(new { x = 0f, y = 0f, z = 0f });
+            step.parameters["localScale"] = JToken.FromObject(new { x = 0.75f, y = 0.75f, z = 0.75f });
 
             yield return new ShowCalloutStepHandler().Execute(step, context);
 
-            Assert.IsNotNull(callouts);
+            Assert.IsNotNull(textPanel);
+            Assert.IsTrue(panelObject.activeSelf);
+            Assert.AreEqual(0.75f, panelObject.transform.localScale.x, 0.001f);
+
+            Object.Destroy(panelObject);
             Object.Destroy(services);
+            Object.Destroy(cameraObject);
         }
 
         [UnityTest]
@@ -151,7 +169,7 @@ namespace MRModuleEditor.Tests.PlayMode
             InteractionContext interaction,
             SceneBindingRegistry sceneBindings,
             RuntimeVariableStore variables,
-            RuntimeCalloutService callouts)
+            SpatialUIService spatialUI)
         {
             return new RuntimeContext(
                 document,
@@ -159,15 +177,14 @@ namespace MRModuleEditor.Tests.PlayMode
                 sceneBindings,
                 null,
                 null,
-                null,
+                spatialUI,
                 new RuntimeExecutionToken(1),
                 () => false,
                 () => false,
                 null,
                 null,
                 interaction,
-                variables,
-                callouts);
+                variables);
         }
 
         private static ModuleDocument MakeDocument()

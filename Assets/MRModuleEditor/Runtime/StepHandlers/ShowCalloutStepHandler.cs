@@ -14,35 +14,43 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
+            if (context.IsCancellationRequested)
+            {
+                yield break;
+            }
+
             string text = step.GetString("text", "");
-            string anchorId = step.GetString("anchorId", "anchor.head.default");
             Vector3 localOffset = StepParameterReader.GetVector3(step, "localOffset", new Vector3(0f, 0.55f, 0f));
             Vector3 localEuler = StepParameterReader.GetVector3(step, "localEuler", Vector3.zero);
             Vector3 localScale = StepParameterReader.GetVector3(step, "localScale", Vector3.one);
             bool clearOnComplete = step.GetBool("clearOnComplete", false);
             float durationSeconds = StepParameterReader.GetDuration(step, 0f);
 
-            RuntimeCalloutService callouts = context.Callouts;
-            if (callouts == null)
+            SpatialUIService spatialUI = context.SpatialUI;
+            if (spatialUI == null)
             {
-                callouts = Object.FindFirstObjectByType<RuntimeCalloutService>(FindObjectsInactive.Include);
+                spatialUI = Object.FindFirstObjectByType<SpatialUIService>(FindObjectsInactive.Include);
             }
 
-            if (callouts != null)
+            bool usedSpatialTextPanel = spatialUI != null && spatialUI.CanShowText;
+            bool usedDisplayPanel = false;
+
+            if (usedSpatialTextPanel)
             {
-                callouts.ShowCallout(context.Module, step, text, anchorId, localOffset, localEuler, localScale);
-            }
-            else if (context.SpatialUI != null)
-            {
-                context.SpatialUI.ShowText(context.Module, step, text);
+                spatialUI.ShowText(context.Module, step, text, localOffset, localEuler, localScale);
             }
             else if (context.DisplayPanel != null)
             {
                 context.DisplayPanel.ShowText(step.title, text);
+                usedDisplayPanel = true;
             }
-            else if (context.LogError != null)
+            else
             {
-                context.LogError("showCallout needs RuntimeCalloutService, SpatialUIService, or RuntimeDisplayPanel.");
+                if (context.LogError != null)
+                {
+                    context.LogError("showCallout needs SpatialUIService with a SpatialTextPanel, or RuntimeDisplayPanel fallback.");
+                }
+
                 yield break;
             }
 
@@ -50,15 +58,20 @@ namespace MRModuleEditor.Runtime.StepHandlers
             {
                 yield return context.WaitRespectingPause(durationSeconds);
 
+                if (context.IsCancellationRequested)
+                {
+                    yield break;
+                }
+
                 if (clearOnComplete)
                 {
-                    if (callouts != null)
+                    if (usedSpatialTextPanel)
                     {
-                        callouts.ClearStep(step.id);
+                        spatialUI.ClearStep(step.id);
                     }
-                    else if (context.SpatialUI != null)
+                    else if (usedDisplayPanel)
                     {
-                        context.SpatialUI.ClearStep(step.id);
+                        context.DisplayPanel.Clear();
                     }
                 }
             }
