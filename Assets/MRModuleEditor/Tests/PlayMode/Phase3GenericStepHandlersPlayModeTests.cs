@@ -2,6 +2,7 @@ using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime;
 using MRModuleEditor.Runtime.Interaction;
+using MRModuleEditor.Runtime.ObjectState;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.StepHandlers;
 using MRModuleEditor.Runtime.UI;
@@ -97,6 +98,51 @@ namespace MRModuleEditor.Tests.PlayMode
             yield return new ShowCalloutStepHandler().Execute(step, context);
 
             Assert.IsNotNull(callouts);
+            Object.Destroy(services);
+        }
+
+        [UnityTest]
+        public IEnumerator HighlightObjectStepHandler_AddsControllerAndAppliesHighlight()
+        {
+            GameObject services = new GameObject("Binding Services");
+            SceneBindingRegistry bindings = services.AddComponent<SceneBindingRegistry>();
+
+            GameObject target = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            target.name = "Equipment Demo";
+
+            BindableObject bindable = target.AddComponent<BindableObject>();
+            bindable.BindingKey = "Equipment Demo";
+
+            ModuleDocument document = MakeDocument();
+            document.objects.Add(new ModuleObject
+            {
+                id = "object.equipment_demo",
+                bindingKey = "Equipment Demo"
+            });
+
+            bindings.Rebuild();
+
+            RuntimeContext context = MakeContext(document, null, bindings, null, null);
+
+            ModuleStep step = new ModuleStep
+            {
+                id = "step.highlight",
+                type = "highlightObject",
+                title = "Highlight"
+            };
+
+            step.parameters["objectId"] = JToken.FromObject("object.equipment_demo");
+            step.parameters["enabled"] = JToken.FromObject(true);
+            step.parameters["colorHex"] = JToken.FromObject("#42A5FF");
+            step.parameters["pulseAmplitude"] = JToken.FromObject(0.08f);
+            step.parameters["pulseSeconds"] = JToken.FromObject(0.8f);
+            step.parameters["clearOnComplete"] = JToken.FromObject(false);
+
+            yield return new HighlightObjectStepHandler().Execute(step, context);
+
+            Assert.IsNotNull(target.GetComponent<ObjectHighlightController>());
+
+            Object.Destroy(target);
             Object.Destroy(services);
         }
 

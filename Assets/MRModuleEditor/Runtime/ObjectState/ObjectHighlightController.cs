@@ -4,7 +4,7 @@ namespace MRModuleEditor.Runtime.ObjectState
 {
     public class ObjectHighlightController : MonoBehaviour, IRuntimeResettable
     {
-        private readonly MaterialPropertyBlock propertyBlock = new MaterialPropertyBlock();
+        private MaterialPropertyBlock propertyBlock;
         private Renderer[] cachedRenderers = new Renderer[0];
         private Vector3 originalLocalScale = Vector3.one;
         private bool hasOriginalLocalScale;
@@ -28,6 +28,11 @@ namespace MRModuleEditor.Runtime.ObjectState
             return controller;
         }
 
+        private void Awake()
+        {
+            EnsurePropertyBlock();
+        }
+
         public void Apply(string colorHex, float newPulseAmplitude, float newPulseSeconds)
         {
             if (!hasOriginalLocalScale)
@@ -36,7 +41,9 @@ namespace MRModuleEditor.Runtime.ObjectState
                 hasOriginalLocalScale = true;
             }
 
-            cachedRenderers = GetComponentsInChildren<Renderer>(true);
+            Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+            cachedRenderers = renderers ?? new Renderer[0];
+
             pulseAmplitude = Mathf.Max(0f, newPulseAmplitude);
             pulseSeconds = Mathf.Max(0.05f, newPulseSeconds);
             highlightActive = true;
@@ -76,6 +83,8 @@ namespace MRModuleEditor.Runtime.ObjectState
 
         private void ApplyTint(Color tint)
         {
+            EnsurePropertyBlock();
+
             for (int i = 0; i < cachedRenderers.Length; i++)
             {
                 Renderer renderer = cachedRenderers[i];
@@ -85,10 +94,31 @@ namespace MRModuleEditor.Runtime.ObjectState
                 }
 
                 propertyBlock.Clear();
-                if (RendererHasProperty(renderer, "_BaseColor")) propertyBlock.SetColor("_BaseColor", tint);
-                if (RendererHasProperty(renderer, "_Color")) propertyBlock.SetColor("_Color", tint);
-                if (RendererHasProperty(renderer, "_EmissionColor")) propertyBlock.SetColor("_EmissionColor", tint * 0.35f);
-                renderer.SetPropertyBlock(propertyBlock);
+
+                bool wroteProperty = false;
+
+                if (RendererHasProperty(renderer, "_BaseColor"))
+                {
+                    propertyBlock.SetColor("_BaseColor", tint);
+                    wroteProperty = true;
+                }
+
+                if (RendererHasProperty(renderer, "_Color"))
+                {
+                    propertyBlock.SetColor("_Color", tint);
+                    wroteProperty = true;
+                }
+
+                if (RendererHasProperty(renderer, "_EmissionColor"))
+                {
+                    propertyBlock.SetColor("_EmissionColor", tint * 0.35f);
+                    wroteProperty = true;
+                }
+
+                if (wroteProperty)
+                {
+                    renderer.SetPropertyBlock(propertyBlock);
+                }
             }
         }
 
@@ -106,6 +136,14 @@ namespace MRModuleEditor.Runtime.ObjectState
                 {
                     renderers[i].SetPropertyBlock(null);
                 }
+            }
+        }
+
+        private void EnsurePropertyBlock()
+        {
+            if (propertyBlock == null)
+            {
+                propertyBlock = new MaterialPropertyBlock();
             }
         }
 

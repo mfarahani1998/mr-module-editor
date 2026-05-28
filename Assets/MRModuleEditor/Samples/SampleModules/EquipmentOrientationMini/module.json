@@ -9,13 +9,15 @@
   "objects": [
     {
       "id": "object.equipment_demo",
+      "label": "",
       "bindingKey": "Equipment Demo"
     }
   ],
   "anchors": [
     {
       "id": "anchor.head.default",
-      "type": "head"
+      "type": "head",
+      "targetObjectId": ""
     },
     {
       "id": "anchor.object.equipment",
@@ -29,7 +31,7 @@
       "id": "step.001.welcome",
       "type": "text",
       "title": "Welcome",
-      "durationSeconds": 4,
+      "durationSeconds": 4.0,
       "parameters": {
         "text": "This mini-module demonstrates the first generic MR learning features for Phase 3.",
         "anchorId": "anchor.head.default"
@@ -39,7 +41,7 @@
       "id": "step.002.ready",
       "type": "confirm",
       "title": "Ready Check",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "message": "Look at the equipment model. Select Continue when you are ready.",
         "buttonLabel": "Continue",
@@ -50,7 +52,7 @@
       "id": "step.003.showEquipment",
       "type": "showObject",
       "title": "Show Equipment",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "objectId": "object.equipment_demo",
         "visible": true
@@ -60,7 +62,7 @@
       "id": "step.004.highlight",
       "type": "highlightObject",
       "title": "Highlight Main Equipment",
-      "durationSeconds": 3,
+      "durationSeconds": 3.0,
       "parameters": {
         "objectId": "object.equipment_demo",
         "enabled": true,
@@ -74,13 +76,25 @@
       "id": "step.005.callout",
       "type": "showCallout",
       "title": "Object Callout",
-      "durationSeconds": 4,
+      "durationSeconds": 4.0,
       "parameters": {
         "text": "This is the inspection area.",
         "anchorId": "anchor.object.equipment",
-        "localOffset": { "x": 0, "y": 0.7, "z": 0 },
-        "localEuler": { "x": 0, "y": 0, "z": 0 },
-        "localScale": { "x": 0.75, "y": 0.75, "z": 0.75 },
+        "localOffset": {
+          "x": 0,
+          "y": 0.7,
+          "z": 0
+        },
+        "localEuler": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 0.75,
+          "y": 0.75,
+          "z": 0.75
+        },
         "clearOnComplete": true
       }
     },
@@ -88,7 +102,7 @@
       "id": "step.006.setVariable",
       "type": "setVariable",
       "title": "Record Status",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "variableKey": "equipment.status",
         "valueType": "String",
@@ -99,7 +113,7 @@
       "id": "step.007.signalGate",
       "type": "waitForSignal",
       "title": "Optional Signal Gate",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "action": "Select",
         "targetId": "step.007.signalGate.confirm",
@@ -112,7 +126,7 @@
       "id": "step.008.check",
       "type": "mcq",
       "title": "Quick Check",
-      "durationSeconds": 0,
+      "durationSeconds": 0.0,
       "parameters": {
         "question": "What did the callout identify?",
         "choices": [
@@ -128,7 +142,7 @@
       "id": "step.009.complete",
       "type": "text",
       "title": "Complete",
-      "durationSeconds": 4,
+      "durationSeconds": 4.0,
       "parameters": {
         "text": "Phase 3 generic feature demo complete.",
         "anchorId": "anchor.head.default"

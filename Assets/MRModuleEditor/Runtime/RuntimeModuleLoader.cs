@@ -52,25 +52,64 @@ namespace MRModuleEditor.Runtime
         public ModuleLoadMode LoadMode
         {
             get { return loadMode; }
-            set { loadMode = value; }
+            set
+            {
+                if (loadMode == value)
+                {
+                    return;
+                }
+
+                loadMode = value;
+                ClearLoadedModule();
+            }
         }
 
         public string RelativeModulePathFromAssets
         {
             get { return relativeModulePathFromAssets; }
-            set { relativeModulePathFromAssets = value; }
+            set
+            {
+                string normalized = NormalizeSerializedPath(value);
+                if (string.Equals(relativeModulePathFromAssets, normalized, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                relativeModulePathFromAssets = normalized;
+                ClearLoadedModule();
+            }
         }
 
         public string RelativeModulePathFromStreamingAssets
         {
             get { return relativeModulePathFromStreamingAssets; }
-            set { relativeModulePathFromStreamingAssets = value; }
+            set
+            {
+                string normalized = NormalizeSerializedPath(value);
+                if (string.Equals(relativeModulePathFromStreamingAssets, normalized, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                relativeModulePathFromStreamingAssets = normalized;
+                ClearLoadedModule();
+            }
         }
 
         public string AbsoluteModulePath
         {
             get { return absoluteModulePath; }
-            set { absoluteModulePath = value; }
+            set
+            {
+                string normalized = NormalizeSerializedPath(value);
+                if (string.Equals(absoluteModulePath, normalized, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                absoluteModulePath = normalized;
+                ClearLoadedModule();
+            }
         }
 
         private void Start()
@@ -260,6 +299,20 @@ namespace MRModuleEditor.Runtime
                     Debug.Log(issue.ToString());
                 }
             }
+        }
+
+        public void ClearLoadedModule()
+        {
+            LoadedModule = null;
+            LastLoadedPathOrUrl = "";
+            LastLoadedDirectory = "";
+            LastLoadSucceeded = false;
+            lastIssues = new List<ValidationIssue>();
+        }
+
+        private static string NormalizeSerializedPath(string path)
+        {
+            return string.IsNullOrWhiteSpace(path) ? "" : path.Replace("\\", "/");
         }
     }
 }

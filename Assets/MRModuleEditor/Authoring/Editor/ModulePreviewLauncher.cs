@@ -67,6 +67,7 @@ namespace MRModuleEditor.Authoring.Editor
             {
                 if (loaders[i] != null)
                 {
+                    loaders[i].LoadMode = ModuleLoadMode.AssetsRelative;
                     loaders[i].RelativeModulePathFromAssets = relativePathFromAssets;
                 }
             }
