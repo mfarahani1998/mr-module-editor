@@ -30,6 +30,9 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private MCQPanelStyle mcqPanel = new MCQPanelStyle();
 
+        [SerializeField]
+        private ConfirmPanelStyle confirmPanel = new ConfirmPanelStyle();
+
         [Header("Choice Cards")]
         [SerializeField]
         private ChoiceCardStyle choiceCards = new ChoiceCardStyle();
@@ -115,6 +118,20 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        public ConfirmPanelStyle ConfirmPanel
+        {
+            get
+            {
+                if (confirmPanel == null)
+                {
+                    confirmPanel = new ConfirmPanelStyle();
+                }
+
+                confirmPanel.Validate();
+                return confirmPanel;
+            }
+        }
+
         public ChoiceCardStyle ChoiceCards
         {
             get
@@ -156,6 +173,7 @@ namespace MRModuleEditor.Runtime.UI
             TextPanel.Validate();
             ImagePanel.Validate();
             MCQPanel.Validate();
+            ConfirmPanel.Validate();
             ChoiceCards.Validate();
             HeadFollow.Validate();
         }
@@ -312,6 +330,47 @@ namespace MRModuleEditor.Runtime.UI
                 titleQuestionGap = Mathf.Max(0f, titleQuestionGap);
                 questionChoiceGap = Mathf.Max(0f, questionChoiceGap);
                 feedbackGapBelowChoices = Mathf.Max(0f, feedbackGapBelowChoices);
+                estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
+            }
+        }
+
+        [System.Serializable]
+        public class ConfirmPanelStyle
+        {
+            public PanelChromeStyle chrome = new PanelChromeStyle(
+                new Color(0.03f, 0.03f, 0.03f, 0.90f),
+                new Vector2(0.10f, 0.09f),
+                0.02f,
+                true,
+                0.08f);
+            public TextRoleStyle title = new TextRoleStyle(Color.white, 0.026f, 0.12f);
+            public TextRoleStyle body = new TextRoleStyle(new Color(0.92f, 0.92f, 0.92f, 1f), 0.022f, 0.095f);
+            public TextRoleStyle button = new TextRoleStyle(Color.white, 0.022f, 0.065f);
+            public float titleBodyGap = 0.04f;
+            public float bodyButtonGap = 0.09f;
+            public float buttonHorizontalPadding = 0.12f;
+            public float buttonVerticalPadding = 0.04f;
+            public float buttonTextVerticalOffset = 0.005f;
+            public float estimatedCharacterWidth = 1.6f;
+            public Color buttonColor = new Color(0.14f, 0.28f, 0.38f, 0.96f);
+            public Color buttonGazeColor = new Color(0.24f, 0.46f, 0.74f, 0.96f);
+            public Color buttonConfirmedColor = new Color(0.20f, 0.55f, 0.35f, 0.96f);
+
+            public void Validate()
+            {
+                if (chrome == null) chrome = new PanelChromeStyle();
+                if (title == null) title = new TextRoleStyle(Color.white, 0.026f, 0.12f);
+                if (body == null) body = new TextRoleStyle(new Color(0.92f, 0.92f, 0.92f, 1f), 0.022f, 0.095f);
+                if (button == null) button = new TextRoleStyle(Color.white, 0.022f, 0.065f);
+
+                chrome.Validate();
+                title.Validate();
+                body.Validate();
+                button.Validate();
+                titleBodyGap = Mathf.Max(0f, titleBodyGap);
+                bodyButtonGap = Mathf.Max(0f, bodyButtonGap);
+                buttonHorizontalPadding = Mathf.Max(0f, buttonHorizontalPadding);
+                buttonVerticalPadding = Mathf.Max(0f, buttonVerticalPadding);
                 estimatedCharacterWidth = Mathf.Max(0.001f, estimatedCharacterWidth);
             }
         }

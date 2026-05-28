@@ -10,19 +10,29 @@ namespace MRModuleEditor.Runtime.UI
         private const float LocalZBackground = 0f;
         private const float LocalZAccent = 0.005f;
         private const float LocalZButton = 0.01f;
-        private const float LocalZText = 0.02f;
         private const float ColliderDepth = 0.04f;
+
+        private const int SortingBackground = 0;
+        private const int SortingAccent = 1;
+        private const int SortingButton = 1;
+        private const int SortingText = 2;
 
         [SerializeField]
         private SpatialLayoutResolver spatialLayoutResolver;
 
+        [Header("Style")]
         [SerializeField]
         private SpatialPanelStyle style;
 
+        [Header("Interaction")]
         [SerializeField]
         private InteractionContext interactionContext;
 
         [Header("Panel")]
+        [SerializeField]
+        private bool autoSizePanel = true;
+
+        // Used as the fixed size when autoSizePanel is disabled.
         [SerializeField]
         private Vector2 panelSize = new Vector2(1.65f, 1.2f);
 
@@ -32,10 +42,27 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private bool applyPanelLocalOffsetToAuthoredLayouts = false;
 
+        [SerializeField]
+        private Vector2 minimumPanelSize = new Vector2(0.95f, 0.48f);
+
+        [SerializeField]
+        private Vector2 maximumPanelSize = new Vector2(1.95f, 1.45f);
+
         [Header("Button")]
+        [SerializeField]
+        private bool autoSizeButton = true;
+
+        // Used as the fixed size when autoSizeButton is disabled.
         [SerializeField]
         private Vector2 buttonSize = new Vector2(0.95f, 0.22f);
 
+        [SerializeField]
+        private Vector2 minimumButtonSize = new Vector2(0.46f, 0.18f);
+
+        [SerializeField]
+        private float maximumButtonWidth = 1.25f;
+
+        // Used as a lower bound for the button position when autoSizePanel is disabled.
         [SerializeField]
         private float buttonBottomInset = 0.12f;
 
@@ -85,19 +112,14 @@ namespace MRModuleEditor.Runtime.UI
             get { return style == null ? SpatialPanelStyle.Fallback : style; }
         }
 
-        private SpatialPanelStyle.TextPanelStyle TextStyle
+        private SpatialPanelStyle.ConfirmPanelStyle ConfirmStyle
         {
-            get { return Style.TextPanel; }
+            get { return Style.ConfirmPanel; }
         }
 
         private SpatialPanelStyle.PanelChromeStyle Chrome
         {
-            get { return TextStyle.chrome; }
-        }
-
-        private SpatialPanelStyle.ChoiceCardStyle ChoiceStyle
-        {
-            get { return Style.ChoiceCards; }
+            get { return ConfirmStyle.chrome; }
         }
 
         private InteractionContext Interaction
@@ -121,8 +143,15 @@ namespace MRModuleEditor.Runtime.UI
 
         private void OnValidate()
         {
-            panelSize = SpatialRenderUtility.ClampVector(panelSize, new Vector2(0.25f, 0.25f));
-            buttonSize = SpatialRenderUtility.ClampVector(buttonSize, new Vector2(0.1f, 0.08f));
+            panelSize = SpatialRenderUtility.ClampVector(panelSize, new Vector2(0.1f, 0.1f));
+            minimumPanelSize = SpatialRenderUtility.ClampVector(minimumPanelSize, new Vector2(0.1f, 0.1f));
+            maximumPanelSize = new Vector2(
+                Mathf.Max(maximumPanelSize.x, minimumPanelSize.x),
+                Mathf.Max(maximumPanelSize.y, minimumPanelSize.y));
+
+            buttonSize = SpatialRenderUtility.ClampVector(buttonSize, new Vector2(0.01f, 0.01f));
+            minimumButtonSize = SpatialRenderUtility.ClampVector(minimumButtonSize, new Vector2(0.01f, 0.01f));
+            maximumButtonWidth = Mathf.Max(minimumButtonSize.x, maximumButtonWidth);
             buttonBottomInset = Mathf.Max(0f, buttonBottomInset);
 
             if (background != null)
@@ -146,11 +175,17 @@ namespace MRModuleEditor.Runtime.UI
             hasAppliedPose = false;
             poseLocked = false;
 
-            titleText.text = SpatialRenderUtility.Wrap(step == null ? "Confirm" : step.title ?? "Confirm", GetEffectiveWrapCharacters(TextStyle.title.characterSize));
-            bodyText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(TextStyle.body.characterSize));
-            buttonText.text = SpatialRenderUtility.Wrap(string.IsNullOrWhiteSpace(buttonLabel) ? "Continue" : buttonLabel, GetEffectiveWrapCharacters(TextStyle.body.characterSize));
+            string resolvedTitle = ResolveTitle(step);
+            string resolvedButtonLabel = string.IsNullOrWhiteSpace(buttonLabel) ? "Continue" : buttonLabel;
 
-            confirmTarget.Configure(showingStepId, BuildConfirmTargetId(showingStepId), 0);
+            titleText.text = SpatialRenderUtility.Wrap(resolvedTitle, GetEffectiveWrapCharacters(ConfirmStyle.title.characterSize, 0f));
+            bodyText.text = SpatialRenderUtility.Wrap(message ?? "", GetEffectiveWrapCharacters(ConfirmStyle.body.characterSize, 0f));
+            buttonText.text = SpatialRenderUtility.Wrap(resolvedButtonLabel, GetEffectiveButtonWrapCharacters());
+
+            if (confirmTarget != null)
+            {
+                confirmTarget.Configure(showingStepId, BuildConfirmTargetId(showingStepId), 0);
+            }
 
             ApplyTextSettings();
             UpdateMaterialColors();
@@ -199,6 +234,7 @@ namespace MRModuleEditor.Runtime.UI
             hoverActive = false;
             hoverProgress = 0f;
             hasAppliedPose = false;
+            poseLocked = false;
 
             if (titleText != null) titleText.text = "";
             if (bodyText != null) bodyText.text = "";
@@ -259,6 +295,12 @@ namespace MRModuleEditor.Runtime.UI
                 return false;
             }
 
+            ApplyResolvedPose(targetPose, targetScale);
+            return true;
+        }
+
+        private void ApplyResolvedPose(Pose targetPose, Vector3 targetScale)
+        {
             transform.localScale = targetScale;
 
             if (!Style.HeadFollow.smoothFollow || !Application.isPlaying || !hasAppliedPose)
@@ -266,7 +308,7 @@ namespace MRModuleEditor.Runtime.UI
                 transform.position = targetPose.position;
                 transform.rotation = targetPose.rotation;
                 hasAppliedPose = true;
-                return true;
+                return;
             }
 
             float t = 1f - Mathf.Exp(-Style.HeadFollow.followSharpness * Time.deltaTime);
@@ -280,7 +322,6 @@ namespace MRModuleEditor.Runtime.UI
             }
 
             transform.rotation = Quaternion.Slerp(transform.rotation, targetPose.rotation, t);
-            return true;
         }
 
         private void EnsureVisuals()
@@ -292,7 +333,7 @@ namespace MRModuleEditor.Runtime.UI
                     "Confirm Background",
                     SpatialRenderUtility.CreateTransparentColorMaterial(Chrome.panelColor, nameof(SpatialConfirmPanel)),
                     false,
-                    0,
+                    SortingBackground,
                     ColliderDepth);
             }
 
@@ -303,7 +344,7 @@ namespace MRModuleEditor.Runtime.UI
                     "Confirm Accent",
                     SpatialRenderUtility.CreateTransparentColorMaterial(Style.AccentColor, nameof(SpatialConfirmPanel)),
                     false,
-                    1,
+                    SortingAccent,
                     ColliderDepth);
             }
 
@@ -312,12 +353,24 @@ namespace MRModuleEditor.Runtime.UI
                 buttonCard = SpatialRenderUtility.CreateQuad(
                     transform,
                     "Confirm Button",
-                    SpatialRenderUtility.CreateTransparentColorMaterial(ChoiceStyle.choiceColor, nameof(SpatialConfirmPanel)),
+                    SpatialRenderUtility.CreateTransparentColorMaterial(ConfirmStyle.buttonColor, nameof(SpatialConfirmPanel)),
                     true,
-                    2,
+                    SortingButton,
                     ColliderDepth);
+            }
+
+            if (buttonRenderer == null && buttonCard != null)
+            {
                 buttonRenderer = buttonCard.GetComponent<Renderer>();
-                confirmTarget = buttonCard.AddComponent<InteractableTarget>();
+            }
+
+            if (confirmTarget == null && buttonCard != null)
+            {
+                confirmTarget = buttonCard.GetComponent<InteractableTarget>();
+                if (confirmTarget == null)
+                {
+                    confirmTarget = buttonCard.AddComponent<InteractableTarget>();
+                }
             }
 
             if (titleText == null)
@@ -325,12 +378,12 @@ namespace MRModuleEditor.Runtime.UI
                 titleText = SpatialRenderUtility.CreateText(
                     transform,
                     "Confirm Title",
-                    TextStyle.title.characterSize,
+                    ConfirmStyle.title.characterSize,
                     Style.TextFontSize,
-                    TextStyle.title.color,
+                    ConfirmStyle.title.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
-                    3);
+                    SortingText);
             }
 
             if (bodyText == null)
@@ -338,12 +391,12 @@ namespace MRModuleEditor.Runtime.UI
                 bodyText = SpatialRenderUtility.CreateText(
                     transform,
                     "Confirm Body",
-                    TextStyle.body.characterSize,
+                    ConfirmStyle.body.characterSize,
                     Style.TextFontSize,
-                    TextStyle.body.color,
+                    ConfirmStyle.body.color,
                     TextAnchor.UpperLeft,
                     TextAlignment.Left,
-                    3);
+                    SortingText);
             }
 
             if (buttonText == null)
@@ -351,12 +404,12 @@ namespace MRModuleEditor.Runtime.UI
                 buttonText = SpatialRenderUtility.CreateText(
                     transform,
                     "Confirm Button Text",
-                    TextStyle.body.characterSize,
+                    ConfirmStyle.button.characterSize,
                     Style.TextFontSize,
-                    TextStyle.body.color,
+                    ConfirmStyle.button.color,
                     TextAnchor.MiddleCenter,
                     TextAlignment.Center,
-                    3);
+                    SortingText + 1);
             }
 
             ApplyTextSettings();
@@ -380,21 +433,21 @@ namespace MRModuleEditor.Runtime.UI
 
         private void ApplyTextSettings()
         {
-            ConfigureText(titleText, TextStyle.title.characterSize, TextStyle.title.color, TextAnchor.UpperLeft, TextAlignment.Left);
-            ConfigureText(bodyText, TextStyle.body.characterSize, TextStyle.body.color, TextAnchor.UpperLeft, TextAlignment.Left);
-            ConfigureText(buttonText, TextStyle.body.characterSize, TextStyle.body.color, TextAnchor.MiddleCenter, TextAlignment.Center);
+            ConfigureText(titleText, ConfirmStyle.title, TextAnchor.UpperLeft, TextAlignment.Left);
+            ConfigureText(bodyText, ConfirmStyle.body, TextAnchor.UpperLeft, TextAlignment.Left);
+            ConfigureText(buttonText, ConfirmStyle.button, TextAnchor.MiddleCenter, TextAlignment.Center);
         }
 
-        private void ConfigureText(TextMesh textMesh, float characterSize, Color color, TextAnchor anchor, TextAlignment alignment)
+        private void ConfigureText(TextMesh textMesh, SpatialPanelStyle.TextRoleStyle textStyle, TextAnchor anchor, TextAlignment alignment)
         {
-            if (textMesh == null)
+            if (textMesh == null || textStyle == null)
             {
                 return;
             }
 
             textMesh.fontSize = Style.TextFontSize;
-            textMesh.characterSize = Mathf.Max(0.001f, characterSize);
-            textMesh.color = color;
+            textMesh.characterSize = Mathf.Max(0.001f, textStyle.characterSize);
+            textMesh.color = textStyle.color;
             textMesh.anchor = anchor;
             textMesh.alignment = alignment;
         }
@@ -404,14 +457,14 @@ namespace MRModuleEditor.Runtime.UI
             SpatialRenderUtility.SetRendererColor(background, Chrome.panelColor);
             SpatialRenderUtility.SetRendererColor(accentBar, Style.AccentColor);
 
-            Color buttonColor = ChoiceStyle.choiceColor;
+            Color buttonColor = ConfirmStyle.buttonColor;
             if (confirmationReceived)
             {
-                buttonColor = ChoiceStyle.selectedColor;
+                buttonColor = ConfirmStyle.buttonConfirmedColor;
             }
             else if (hoverActive)
             {
-                buttonColor = Color.Lerp(ChoiceStyle.gazeColor, ChoiceStyle.selectedColor, Mathf.Clamp01(hoverProgress));
+                buttonColor = Color.Lerp(ConfirmStyle.buttonGazeColor, ConfirmStyle.buttonConfirmedColor, Mathf.Clamp01(hoverProgress));
             }
 
             if (buttonRenderer != null && buttonRenderer.sharedMaterial != null)
@@ -427,43 +480,211 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
+            string title = titleText.text ?? "";
+            string body = bodyText.text ?? "";
+            string button = buttonText.text ?? "";
+            bool hasTitle = !string.IsNullOrWhiteSpace(title);
+            bool hasBody = !string.IsNullOrWhiteSpace(body);
+            bool hasButton = !string.IsNullOrWhiteSpace(button);
+
+            Vector2 actualSize = autoSizePanel ? CalculatePanelSize(title, body, button, hasTitle, hasBody, hasButton) : panelSize;
+            actualSize = new Vector2(Mathf.Max(0.1f, actualSize.x), Mathf.Max(0.1f, actualSize.y));
+
             background.transform.localPosition = new Vector3(0f, 0f, LocalZBackground);
             background.transform.localRotation = Quaternion.identity;
-            background.transform.localScale = new Vector3(panelSize.x, panelSize.y, 1f);
+            background.transform.localScale = new Vector3(actualSize.x, actualSize.y, 1f);
 
-            accentBar.SetActive(Chrome.showAccentBar);
-            if (Chrome.showAccentBar)
+            float extraLeftInset = GetExtraLeftInset();
+            float contentLeft = -actualSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
+            float contentTop = actualSize.y * 0.5f - Chrome.padding.y;
+            float contentWidth = Mathf.Max(0.01f, actualSize.x - Chrome.padding.x * 2f - extraLeftInset);
+            float contentCenterX = contentLeft + contentWidth * 0.5f;
+
+            if (accentBar != null)
             {
-                accentBar.transform.localPosition = new Vector3(-panelSize.x * 0.5f + Chrome.padding.x * 0.5f, 0f, LocalZAccent);
+                accentBar.SetActive(Chrome.showAccentBar);
+                accentBar.transform.localPosition = new Vector3(
+                    -actualSize.x * 0.5f + Chrome.padding.x * 0.5f,
+                    0f,
+                    LocalZAccent);
                 accentBar.transform.localRotation = Quaternion.identity;
-                accentBar.transform.localScale = new Vector3(Style.AccentWidth, Mathf.Max(0.01f, panelSize.y - Chrome.padding.y * 1.5f), 1f);
+                accentBar.transform.localScale = new Vector3(
+                    Style.AccentWidth,
+                    Mathf.Max(0.01f, actualSize.y - Chrome.padding.y * 1.5f),
+                    1f);
             }
 
-            float extraLeftInset = Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
-            float contentLeft = -panelSize.x * 0.5f + Chrome.padding.x + extraLeftInset;
-            float contentTop = panelSize.y * 0.5f - Chrome.padding.y;
-            float contentWidth = Mathf.Max(0.01f, panelSize.x - Chrome.padding.x * 2f - extraLeftInset);
+            titleText.gameObject.SetActive(hasTitle);
+            bodyText.gameObject.SetActive(hasBody);
+            buttonCard.SetActive(hasButton);
+            buttonText.gameObject.SetActive(hasButton);
 
-            titleText.transform.localPosition = new Vector3(contentLeft, contentTop, LocalZText);
-            float titleHeight = Mathf.Max(1, SpatialRenderUtility.CountLines(titleText.text)) * TextStyle.title.lineHeight;
+            float cursorY = contentTop;
+            titleText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
+            if (hasTitle)
+            {
+                cursorY -= SpatialRenderUtility.CountLines(title) * ConfirmStyle.title.lineHeight;
+            }
 
-            bodyText.transform.localPosition = new Vector3(contentLeft, contentTop - titleHeight - TextStyle.titleBodyGap, LocalZText);
+            if (hasTitle && hasBody)
+            {
+                cursorY -= ConfirmStyle.titleBodyGap;
+            }
 
-            buttonCard.transform.localPosition = new Vector3(0f, -panelSize.y * 0.5f + buttonBottomInset + buttonSize.y * 0.5f, LocalZButton);
-            buttonCard.transform.localRotation = Quaternion.identity;
-            buttonCard.transform.localScale = new Vector3(Mathf.Min(buttonSize.x, contentWidth), buttonSize.y, 1f);
+            bodyText.transform.localPosition = new Vector3(contentLeft, cursorY, Chrome.textDepthOffset);
+            if (hasBody)
+            {
+                cursorY -= SpatialRenderUtility.CountLines(body) * ConfirmStyle.body.lineHeight;
+            }
 
-            buttonText.transform.localPosition = new Vector3(0f, buttonCard.transform.localPosition.y + TextStyle.body.characterSize * 0.5f, LocalZText + 0.01f);
-            buttonText.transform.localRotation = Quaternion.identity;
+            if ((hasTitle || hasBody) && hasButton)
+            {
+                cursorY -= ConfirmStyle.bodyButtonGap;
+            }
+
+            if (hasButton)
+            {
+                Vector2 actualButtonSize = CalculateButtonSize(button, contentWidth);
+                float buttonCenterY = cursorY - actualButtonSize.y * 0.5f;
+
+                if (!autoSizePanel)
+                {
+                    float bottomButtonCenterY = -actualSize.y * 0.5f + buttonBottomInset + actualButtonSize.y * 0.5f;
+                    buttonCenterY = Mathf.Max(buttonCenterY, bottomButtonCenterY);
+                }
+
+                buttonCard.transform.localPosition = new Vector3(contentCenterX, buttonCenterY, LocalZButton);
+                buttonCard.transform.localRotation = Quaternion.identity;
+                buttonCard.transform.localScale = new Vector3(actualButtonSize.x, actualButtonSize.y, 1f);
+
+                buttonText.transform.localPosition = new Vector3(
+                    contentCenterX,
+                    buttonCenterY + ConfirmStyle.buttonTextVerticalOffset,
+                    Chrome.textDepthOffset + 0.01f);
+                buttonText.transform.localRotation = Quaternion.identity;
+            }
         }
 
-        private int GetEffectiveWrapCharacters(float characterSize)
+        private Vector2 CalculatePanelSize(string title, string body, string button, bool hasTitle, bool hasBody, bool hasButton)
         {
-            float extraLeftInset = Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
-            float contentWidth = panelSize.x - Chrome.padding.x * 2f - extraLeftInset;
-            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * TextStyle.estimatedCharacterWidth);
+            float extraLeftInset = GetExtraLeftInset();
+            float availableContentWidth = Mathf.Max(0.01f, maximumPanelSize.x - Chrome.padding.x * 2f - extraLeftInset);
+
+            float titleWidth = SpatialRenderUtility.LongestLineLength(title) * ConfirmStyle.title.characterSize * ConfirmStyle.estimatedCharacterWidth;
+            float bodyWidth = SpatialRenderUtility.LongestLineLength(body) * ConfirmStyle.body.characterSize * ConfirmStyle.estimatedCharacterWidth;
+            Vector2 preferredButtonSize = hasButton ? CalculateButtonSize(button, availableContentWidth) : Vector2.zero;
+
+            float desiredContentWidth = Mathf.Max(Mathf.Max(titleWidth, bodyWidth), preferredButtonSize.x);
+            float desiredWidth = desiredContentWidth + Chrome.padding.x * 2f + extraLeftInset;
+            desiredWidth = Mathf.Clamp(desiredWidth, minimumPanelSize.x, maximumPanelSize.x);
+
+            float desiredHeight = Chrome.padding.y * 2f;
+            if (hasTitle)
+            {
+                desiredHeight += SpatialRenderUtility.CountLines(title) * ConfirmStyle.title.lineHeight;
+            }
+
+            if (hasTitle && hasBody)
+            {
+                desiredHeight += ConfirmStyle.titleBodyGap;
+            }
+
+            if (hasBody)
+            {
+                desiredHeight += SpatialRenderUtility.CountLines(body) * ConfirmStyle.body.lineHeight;
+            }
+
+            if ((hasTitle || hasBody) && hasButton)
+            {
+                desiredHeight += ConfirmStyle.bodyButtonGap;
+            }
+
+            if (hasButton)
+            {
+                desiredHeight += preferredButtonSize.y;
+            }
+
+            if (!hasTitle && !hasBody && !hasButton)
+            {
+                desiredHeight += ConfirmStyle.body.lineHeight;
+            }
+
+            desiredHeight = Mathf.Clamp(desiredHeight, minimumPanelSize.y, maximumPanelSize.y);
+            return new Vector2(desiredWidth, desiredHeight);
+        }
+
+        private Vector2 CalculateButtonSize(string button, float availableContentWidth)
+        {
+            float contentWidth = Mathf.Max(0.01f, availableContentWidth);
+
+            if (!autoSizeButton)
+            {
+                return new Vector2(
+                    Mathf.Max(0.01f, Mathf.Min(buttonSize.x, contentWidth)),
+                    Mathf.Max(0.01f, buttonSize.y));
+            }
+
+            float minimumWidth = Mathf.Min(Mathf.Max(0.01f, minimumButtonSize.x), contentWidth);
+            float maximumWidth = Mathf.Max(minimumWidth, Mathf.Min(Mathf.Max(minimumWidth, maximumButtonWidth), contentWidth));
+            float textWidth = SpatialRenderUtility.LongestLineLength(button) * ConfirmStyle.button.characterSize * ConfirmStyle.estimatedCharacterWidth;
+            float desiredWidth = textWidth + ConfirmStyle.buttonHorizontalPadding * 2f;
+            desiredWidth = Mathf.Clamp(desiredWidth, minimumWidth, maximumWidth);
+
+            int lineCount = Mathf.Max(1, SpatialRenderUtility.CountLines(button));
+            float desiredHeight = lineCount * ConfirmStyle.button.lineHeight + ConfirmStyle.buttonVerticalPadding * 2f;
+            desiredHeight = Mathf.Max(minimumButtonSize.y, desiredHeight);
+            return new Vector2(desiredWidth, desiredHeight);
+        }
+
+        private int GetEffectiveWrapCharacters(float characterSize, float extraHorizontalInset)
+        {
+            int result = Mathf.Max(1, Style.WrapCharacters);
+            float panelWidth = autoSizePanel ? maximumPanelSize.x : panelSize.x;
+            float contentWidth = panelWidth - Chrome.padding.x * 2f - GetExtraLeftInset() - extraHorizontalInset;
+            float averageCharacterWidth = Mathf.Max(0.001f, characterSize * ConfirmStyle.estimatedCharacterWidth);
             int fit = Mathf.FloorToInt(contentWidth / averageCharacterWidth);
-            return Mathf.Max(12, Mathf.Min(Style.WrapCharacters, fit));
+
+            if (fit > 0)
+            {
+                result = Mathf.Min(result, fit);
+            }
+
+            return Mathf.Max(12, result);
+        }
+
+        private int GetEffectiveButtonWrapCharacters()
+        {
+            int result = Mathf.Max(1, Style.WrapCharacters);
+            float panelWidth = autoSizePanel ? maximumPanelSize.x : panelSize.x;
+            float contentWidth = Mathf.Max(0.01f, panelWidth - Chrome.padding.x * 2f - GetExtraLeftInset());
+            float availableButtonWidth = autoSizeButton
+                ? Mathf.Min(maximumButtonWidth, contentWidth)
+                : Mathf.Min(buttonSize.x, contentWidth);
+            float textWidth = Mathf.Max(0.01f, availableButtonWidth - ConfirmStyle.buttonHorizontalPadding * 2f);
+            float averageCharacterWidth = Mathf.Max(0.001f, ConfirmStyle.button.characterSize * ConfirmStyle.estimatedCharacterWidth);
+            int fit = Mathf.FloorToInt(textWidth / averageCharacterWidth);
+
+            if (fit > 0)
+            {
+                result = Mathf.Min(result, fit);
+            }
+
+            return Mathf.Max(8, result);
+        }
+
+        private float GetExtraLeftInset()
+        {
+            return Chrome.showAccentBar ? Style.AccentWidth + Chrome.accentGap : 0f;
+        }
+
+        private static string ResolveTitle(ModuleStep step)
+        {
+            if (step == null || string.IsNullOrWhiteSpace(step.title))
+            {
+                return "Confirm";
+            }
+
+            return step.title;
         }
 
         private static string BuildConfirmTargetId(string stepId)

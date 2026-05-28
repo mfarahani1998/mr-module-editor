@@ -410,11 +410,18 @@ MonoBehaviour:
   spatialLayoutResolver: {fileID: 1762172289}
   style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
   interactionContext: {fileID: 2029452397}
-  panelSize: {x: 1.65, y: 0.85}
-  panelLocalOffset: {x: 0, y: -0.65, z: 0}
+  autoSizePanel: 1
+  panelSize: {x: 1.65, y: 1.2}
+  panelLocalOffset: {x: 0, y: 0, z: 0}
   applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.95, y: 0.48}
+  maximumPanelSize: {x: 1.95, y: 1.45}
+  autoSizeButton: 1
   buttonSize: {x: 0.95, y: 0.22}
+  minimumButtonSize: {x: 0.46, y: 0.18}
+  maximumButtonWidth: 1.25
   buttonBottomInset: 0.12
+  lockHeadAnchoredPanelForGaze: 1
 --- !u!4 &458023871
 Transform:
   m_ObjectHideFlags: 0
