@@ -14,6 +14,9 @@ namespace MRModuleEditor.Runtime.UI
         [SerializeField]
         private SpatialMCQPanel mcqPanel;
 
+        [SerializeField]
+        private SpatialConfirmPanel confirmPanel;
+
         public bool CanShowText
         {
             get { EnsurePanels(); return textPanel != null; }
@@ -29,6 +32,11 @@ namespace MRModuleEditor.Runtime.UI
             get { EnsurePanels(); return mcqPanel != null; }
         }
 
+        public bool CanShowConfirm
+        {
+            get { EnsurePanels(); return confirmPanel != null; }
+        }
+
         public bool HasMCQAnswer
         {
             get { EnsurePanels(); return mcqPanel != null && mcqPanel.HasAnswer; }
@@ -37,6 +45,11 @@ namespace MRModuleEditor.Runtime.UI
         public int SelectedMCQAnswer
         {
             get { EnsurePanels(); return mcqPanel == null ? -1 : mcqPanel.SelectedAnswer; }
+        }
+
+        public bool HasConfirmation
+        {
+            get { EnsurePanels(); return confirmPanel != null && confirmPanel.HasConfirmation; }
         }
 
         private void Awake()
@@ -89,9 +102,43 @@ namespace MRModuleEditor.Runtime.UI
                 imagePanel.Clear();
             }
 
+            if (confirmPanel != null)
+            {
+                confirmPanel.Clear();
+            }
+
             if (mcqPanel != null)
             {
                 mcqPanel.ShowMCQ(module, step, question, choices, correctIndex);
+            }
+        }
+
+        public void ShowConfirm(ModuleDocument module, ModuleStep step, string message, string buttonLabel)
+        {
+            EnsurePanels();
+
+            if (textPanel != null)
+            {
+                textPanel.Clear();
+            }
+
+            if (imagePanel != null)
+            {
+                imagePanel.Clear();
+            }
+
+            if (mcqPanel != null)
+            {
+                mcqPanel.Clear();
+            }
+
+            if (confirmPanel != null)
+            {
+                confirmPanel.ShowConfirm(module, step, message, buttonLabel);
+            }
+            else if (textPanel != null)
+            {
+                textPanel.ShowText(module, step, message);
             }
         }
 
@@ -112,6 +159,7 @@ namespace MRModuleEditor.Runtime.UI
             if (textPanel != null) textPanel.ClearIfShowingStep(stepId);
             if (imagePanel != null) imagePanel.ClearIfShowingStep(stepId);
             if (mcqPanel != null) mcqPanel.ClearIfShowingStep(stepId);
+            if (confirmPanel != null) confirmPanel.ClearIfShowingStep(stepId);
         }
 
         public void ClearAll()
@@ -121,6 +169,7 @@ namespace MRModuleEditor.Runtime.UI
             if (textPanel != null) textPanel.Clear();
             if (imagePanel != null) imagePanel.Clear();
             if (mcqPanel != null) mcqPanel.Clear();
+            if (confirmPanel != null) confirmPanel.Clear();
         }
 
         private void EnsurePanels()
@@ -138,6 +187,11 @@ namespace MRModuleEditor.Runtime.UI
             if (mcqPanel == null)
             {
                 mcqPanel = FindFirstObjectByType<SpatialMCQPanel>(FindObjectsInactive.Include);
+            }
+
+            if (confirmPanel == null)
+            {
+                confirmPanel = FindFirstObjectByType<SpatialConfirmPanel>(FindObjectsInactive.Include);
             }
         }
     }

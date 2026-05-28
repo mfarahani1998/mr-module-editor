@@ -687,6 +687,7 @@ GameObject:
   - component: {fileID: 945083562}
   - component: {fileID: 945083561}
   - component: {fileID: 945083564}
+  - component: {fileID: 945083565}
   m_Layer: 0
   m_Name: RuntimeInteraction
   m_TagString: Untagged
@@ -755,6 +756,25 @@ MonoBehaviour:
   inputArmDelaySeconds: 0.35
   requireFreshTarget: 1
   rayDistance: 10
+--- !u!114 &945083565
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 945083560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6027a9a64b9c00a8543e60dcfc6ad8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionContext: {fileID: 945083562}
+  enableHeadRayButtonSelect: 1
+  usePrimaryButton: 1
+  useTriggerButton: 1
+  allowMouseClickInEditor: 1
+  rayDistance: 10
+  inputArmDelaySeconds: 0.25
 --- !u!1 &961739749
 GameObject:
   m_ObjectHideFlags: 0
@@ -1181,7 +1201,7 @@ MonoBehaviour:
   controlPanel: {fileID: 1762172281}
   anchorResolver: {fileID: 1762172286}
   layoutApplier: {fileID: 1762172288}
-  spatialUIService: {fileID: 0}
+  spatialUIService: {fileID: 1762172290}
   maximumStepExecutionsPerRun: 1000
   loadOnStart: 1
   playOnStart: 0
@@ -1198,7 +1218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showDebugOverlay: 1
-  recenterController: {fileID: 0}
+  recenterController: {fileID: 1762172287}
 --- !u!114 &1762172282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1333,6 +1353,7 @@ MonoBehaviour:
   textPanel: {fileID: 2146630565}
   imagePanel: {fileID: 671819798}
   mcqPanel: {fileID: 1930746979}
+  confirmPanel: {fileID: 1999606220}
 --- !u!114 &1762172291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1446,6 +1467,65 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1999606219
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1999606221}
+  - component: {fileID: 1999606220}
+  m_Layer: 0
+  m_Name: SpatialConfirmPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1999606220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999606219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5f0be78e219ccac8a05d16d1053e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  interactionContext: {fileID: 945083562}
+  autoSizePanel: 1
+  panelSize: {x: 1.65, y: 1.2}
+  panelLocalOffset: {x: 0, y: 0, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.95, y: 0.48}
+  maximumPanelSize: {x: 1.95, y: 1.45}
+  autoSizeButton: 1
+  buttonSize: {x: 0.95, y: 0.22}
+  minimumButtonSize: {x: 0.46, y: 0.18}
+  maximumButtonWidth: 1.25
+  buttonBottomInset: 0.12
+  lockHeadAnchoredPanelForGaze: 1
+--- !u!4 &1999606221
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1999606219}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.88338846, y: 0.19595844, z: -0.24062355}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1606,5 +1686,6 @@ SceneRoots:
   - {fileID: 2146630566}
   - {fileID: 671819799}
   - {fileID: 1930746980}
+  - {fileID: 1999606221}
   - {fileID: 945083563}
   - {fileID: 881202593}

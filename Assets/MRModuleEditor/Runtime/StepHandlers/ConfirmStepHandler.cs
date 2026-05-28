@@ -21,7 +21,8 @@ namespace MRModuleEditor.Runtime.StepHandlers
             string buttonLabel = step.GetString("buttonLabel", "Continue");
             float autoContinueAfterSeconds = step.GetFloat("autoContinueAfterSeconds", 0f);
 
-            bool hasDebugConfirm = context.DisplayPanel != null;
+            bool hasDebugConfirm = context.DisplayPanel != null && context.DisplayPanel.ShowDebugOverlay;
+            bool hasSpatialConfirm = context.SpatialUI != null && context.SpatialUI.CanShowConfirm;
 
             if (context.DisplayPanel != null)
             {
@@ -30,7 +31,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             if (context.SpatialUI != null)
             {
-                context.SpatialUI.ShowText(context.Module, step, message);
+                context.SpatialUI.ShowConfirm(context.Module, step, message, buttonLabel);
             }
 
             if (context.LogInfo != null)
@@ -38,7 +39,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 context.LogInfo("Confirm step: " + step.title);
             }
 
-            if (!hasDebugConfirm && autoContinueAfterSeconds <= 0f)
+            if (!hasDebugConfirm && !hasSpatialConfirm && autoContinueAfterSeconds <= 0f)
             {
                 autoContinueAfterSeconds = StepParameterReader.GetDuration(step, 1f);
             }
@@ -58,6 +59,11 @@ namespace MRModuleEditor.Runtime.StepHandlers
                 }
 
                 if (hasDebugConfirm && context.DisplayPanel.HasConfirmation)
+                {
+                    break;
+                }
+
+                if (hasSpatialConfirm && context.SpatialUI.HasConfirmation)
                 {
                     break;
                 }

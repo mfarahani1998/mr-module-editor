@@ -378,6 +378,65 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &458023869
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 458023871}
+  - component: {fileID: 458023870}
+  m_Layer: 0
+  m_Name: SpatialConfirmPanel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &458023870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458023869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5f0be78e219ccac8a05d16d1053e7d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spatialLayoutResolver: {fileID: 1762172289}
+  style: {fileID: 11400000, guid: 64682caa1f721e7069e3d21c8a987b24, type: 2}
+  interactionContext: {fileID: 2029452397}
+  autoSizePanel: 1
+  panelSize: {x: 1.65, y: 1.2}
+  panelLocalOffset: {x: 0, y: 0, z: 0}
+  applyPanelLocalOffsetToAuthoredLayouts: 0
+  minimumPanelSize: {x: 0.95, y: 0.48}
+  maximumPanelSize: {x: 1.95, y: 1.45}
+  autoSizeButton: 1
+  buttonSize: {x: 0.95, y: 0.22}
+  minimumButtonSize: {x: 0.46, y: 0.18}
+  maximumButtonWidth: 1.25
+  buttonBottomInset: 0.12
+  lockHeadAnchoredPanelForGaze: 1
+--- !u!4 &458023871
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458023869}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.88338846, y: 0.19595844, z: -0.24062355}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &701381732
 GameObject:
   m_ObjectHideFlags: 0
@@ -1528,6 +1587,7 @@ MonoBehaviour:
   textPanel: {fileID: 1423660583}
   imagePanel: {fileID: 1957249103}
   mcqPanel: {fileID: 1966342141}
+  confirmPanel: {fileID: 458023870}
 --- !u!114 &1762172291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1764,6 +1824,7 @@ GameObject:
   - component: {fileID: 2029452397}
   - component: {fileID: 2029452396}
   - component: {fileID: 2029452398}
+  - component: {fileID: 2029452399}
   m_Layer: 0
   m_Name: RuntimeInteraction
   m_TagString: Untagged
@@ -1832,6 +1893,25 @@ MonoBehaviour:
   inputArmDelaySeconds: 0.35
   requireFreshTarget: 1
   rayDistance: 10
+--- !u!114 &2029452399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029452394}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6027a9a64b9c00a8543e60dcfc6ad8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interactionContext: {fileID: 0}
+  enableHeadRayButtonSelect: 1
+  usePrimaryButton: 1
+  useTriggerButton: 1
+  allowMouseClickInEditor: 1
+  rayDistance: 10
+  inputArmDelaySeconds: 0.25
 --- !u!1 &2072459197
 GameObject:
   m_ObjectHideFlags: 0
@@ -1936,6 +2016,7 @@ SceneRoots:
   - {fileID: 1423660584}
   - {fileID: 1957249104}
   - {fileID: 1966342142}
+  - {fileID: 458023871}
   - {fileID: 840358894}
   - {fileID: 2029452395}
   - {fileID: 1261983636}
