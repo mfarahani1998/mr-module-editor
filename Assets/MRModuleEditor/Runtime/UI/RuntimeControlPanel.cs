@@ -31,7 +31,7 @@ namespace MRModuleEditor.Runtime.UI
                 return;
             }
 
-            GUILayout.BeginArea(new Rect(20, Screen.height - 220, 560, 200), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(20, Screen.height - 250, 640, 230), GUI.skin.box);
             GUILayout.Label("<b>Runtime Controls</b>");
             GUILayout.Label("State: " + runner.State);
             GUILayout.Label("Module: " + runner.CurrentModuleTitle);
@@ -40,6 +40,11 @@ namespace MRModuleEditor.Runtime.UI
             if (!string.IsNullOrEmpty(runner.LastError))
             {
                 GUILayout.Label("Error: " + runner.LastError);
+            }
+
+            if (!string.IsNullOrEmpty(runner.PreviewPreparationSummary))
+            {
+                GUILayout.Label("Preview prep: " + runner.PreviewPreparationSummary);
             }
 
             GUILayout.BeginHorizontal();

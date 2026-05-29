@@ -1,12 +1,13 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime;
+using MRModuleEditor.Runtime.Preview;
 using MRModuleEditor.Runtime.StepHandlers;
 using UnityEngine;
 
 namespace MRModuleEditor.Domains.RoboticsLite
 {
-    public class RotateJointStepHandler : IStepHandler
+    public class RotateJointStepHandler : IStepHandler, IPreviewPreparationStepHandler
     {
         public string StepType
         {
@@ -78,10 +79,54 @@ namespace MRModuleEditor.Domains.RoboticsLite
                 yield break;
             }
 
-            if (!rig.TrySetJointAngle(jointIndex, targetAngle, out error))
+            if (!TryApplyFinalJointState(rig, jointIndex, targetAngle, showFrame, out error))
             {
                 if (context.LogError != null) context.LogError(error);
             }
+        }
+
+        public bool PrepareForPreview(
+            ModuleStep step,
+            RuntimeContext context,
+            PreviewPreparationContext preparationContext,
+            int stepIndex)
+        {
+            string objectId = step.GetString("objectId", "object.robot_preview");
+            int jointIndex = step.GetInt("jointIndex", 0);
+            float targetAngle = step.GetFloat("angleDegrees", 0f);
+            bool showFrame = step.GetBool("showFrame", false);
+
+            RobotLiteRig rig;
+            string error;
+            if (!RobotLiteRigResolver.TryResolveRig(context, objectId, out rig, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            if (!TryApplyFinalJointState(rig, jointIndex, targetAngle, showFrame, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            preparationContext.MarkApplied(step, stepIndex, "Applied final robot joint angle without playing the rotation animation.");
+            return true;
+        }
+
+        private static bool TryApplyFinalJointState(
+            RobotLiteRig rig,
+            int jointIndex,
+            float targetAngle,
+            bool showFrame,
+            out string error)
+        {
+            if (showFrame && !rig.TrySetFrameVisible(jointIndex, true, out error))
+            {
+                return false;
+            }
+
+            return rig.TrySetJointAngle(jointIndex, targetAngle, out error);
         }
     }
 }

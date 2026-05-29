@@ -1,10 +1,11 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
+using MRModuleEditor.Runtime.Preview;
 using UnityEngine;
 
 namespace MRModuleEditor.Runtime.StepHandlers
 {
-    public class MoveObjectStepHandler : IStepHandler
+    public class MoveObjectStepHandler : IStepHandler, IPreviewPreparationStepHandler
     {
         public string StepType
         {
@@ -34,17 +35,9 @@ namespace MRModuleEditor.Runtime.StepHandlers
             Transform transform = target.transform;
             Vector3 startPosition = transform.localPosition;
             Quaternion startRotation = transform.localRotation;
-
-            Vector3 targetPosition = StepParameterReader.GetVector3(step, "position", startPosition);
-            Vector3 targetEuler = StepParameterReader.GetVector3(step, "rotationEuler", transform.localEulerAngles);
-            Quaternion targetRotation = Quaternion.Euler(targetEuler);
-
-            if (StepParameterReader.GetBool(step, "isRelative", false))
-            {
-                targetPosition += StepParameterReader.GetVector3(step, "positionDelta", Vector3.zero);
-                Vector3 rotationDeltaEuler = StepParameterReader.GetVector3(step, "rotationEulerDelta", Vector3.zero);
-                targetRotation *= Quaternion.Euler(rotationDeltaEuler);
-            }
+            Vector3 targetPosition;
+            Quaternion targetRotation;
+            ResolveTargetTransform(step, transform, out targetPosition, out targetRotation);
 
             float elapsed = 0f;
             while (elapsed < duration)
@@ -74,6 +67,66 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             transform.localPosition = targetPosition;
             transform.localRotation = targetRotation;
+        }
+
+        public bool PrepareForPreview(
+            ModuleStep step,
+            RuntimeContext context,
+            PreviewPreparationContext preparationContext,
+            int stepIndex)
+        {
+            string error;
+            if (!TryApplyFinalTransform(step, context, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            preparationContext.MarkApplied(step, stepIndex, "Applied final object transform without playing the movement animation.");
+            return true;
+        }
+
+        private static bool TryApplyFinalTransform(ModuleStep step, RuntimeContext context, out string error)
+        {
+            error = "";
+            if (context.IsCancellationRequested)
+            {
+                error = "The current module execution has been cancelled.";
+                return false;
+            }
+
+            string objectId = step.GetString("objectId", "");
+
+            GameObject target;
+            if (!context.TryResolveObject(objectId, out target, out error))
+            {
+                return false;
+            }
+
+            Vector3 targetPosition;
+            Quaternion targetRotation;
+            ResolveTargetTransform(step, target.transform, out targetPosition, out targetRotation);
+            target.transform.localPosition = targetPosition;
+            target.transform.localRotation = targetRotation;
+            return true;
+        }
+
+        private static void ResolveTargetTransform(
+            ModuleStep step,
+            Transform transform,
+            out Vector3 targetPosition,
+            out Quaternion targetRotation)
+        {
+            targetPosition = StepParameterReader.GetVector3(step, "position", transform.localPosition);
+            Vector3 targetEuler = StepParameterReader.GetVector3(step, "rotationEuler", transform.localEulerAngles);
+            targetRotation = Quaternion.Euler(targetEuler);
+
+            if (StepParameterReader.GetBool(step, "isRelative", false))
+            {
+                targetPosition += StepParameterReader.GetVector3(step, "positionDelta", Vector3.zero);
+                Vector3 rotationDeltaEuler = StepParameterReader.GetVector3(step, "rotationEulerDelta", Vector3.zero);
+                targetRotation *= Quaternion.Euler(rotationDeltaEuler);
+            }
         }
     }
 }

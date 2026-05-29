@@ -6,6 +6,7 @@ using MRModuleEditor.Core.Validation;
 using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.Flow;
 using MRModuleEditor.Runtime.Interaction;
+using MRModuleEditor.Runtime.Preview;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.StepHandlers;
 using MRModuleEditor.Runtime.UI;
@@ -52,6 +53,12 @@ namespace MRModuleEditor.Runtime
         [SerializeField]
         private bool playOnStart = false;
 
+        [SerializeField]
+        private string startStepId = "";
+
+        [SerializeField]
+        private bool prepareStepsBeforeStartStep;
+
         private readonly StepHandlerRegistry handlers = new StepHandlerRegistry();
         private readonly StepFlowResolver flowResolver = new StepFlowResolver();
         private Coroutine runCoroutine;
@@ -59,11 +66,23 @@ namespace MRModuleEditor.Runtime
         private int nextExecutionId;
         private bool stopRequested;
         private bool paused;
+        private readonly List<PreviewPreparationIssue> lastPreviewPreparationIssues = new List<PreviewPreparationIssue>();
+        private string previewPreparationSummary = "";
 
         public RuntimeRunnerState State { get; private set; } = RuntimeRunnerState.Idle;
         public ModuleDocument CurrentModule { get; private set; }
         public int CurrentStepIndex { get; private set; } = -1;
         public string LastError { get; private set; } = "";
+
+        public List<PreviewPreparationIssue> LastPreviewPreparationIssues
+        {
+            get { return new List<PreviewPreparationIssue>(lastPreviewPreparationIssues); }
+        }
+
+        public string PreviewPreparationSummary
+        {
+            get { return previewPreparationSummary; }
+        }
 
         /// <summary>
         /// Legacy extension point kept for existing sample/domain components.
@@ -93,6 +112,18 @@ namespace MRModuleEditor.Runtime
                 int displayIndex = Mathf.Clamp(CurrentStepIndex + 1, 1, CurrentModule.steps.Count);
                 return displayIndex + " / " + CurrentModule.steps.Count;
             }
+        }
+
+        public string StartStepId
+        {
+            get { return startStepId; }
+            set { startStepId = value ?? ""; }
+        }
+
+        public bool PrepareStepsBeforeStartStep
+        {
+            get { return prepareStepsBeforeStartStep; }
+            set { prepareStepsBeforeStartStep = value; }
         }
 
         private void Awake()
@@ -182,6 +213,8 @@ namespace MRModuleEditor.Runtime
         {
             CancelActiveExecution("Loading module.");
             LastError = "";
+            previewPreparationSummary = "";
+            lastPreviewPreparationIssues.Clear();
             CurrentStepIndex = -1;
             CurrentModule = null;
             stopRequested = false;
@@ -260,6 +293,8 @@ namespace MRModuleEditor.Runtime
 
             CancelActiveExecution("Starting a new run.");
             LastError = "";
+            previewPreparationSummary = "";
+            lastPreviewPreparationIssues.Clear();
             CurrentStepIndex = -1;
             stopRequested = false;
             paused = false;
@@ -336,7 +371,17 @@ namespace MRModuleEditor.Runtime
             }
 
             Dictionary<string, int> stepIndexById = BuildStepIndexById(CurrentModule);
-            int currentIndex = 0;
+            int currentIndex;
+            if (!TryResolveStartStepIndex(executionToken, stepIndexById, out currentIndex))
+            {
+                yield break;
+            }
+
+            if (!PrepareSelectedPreviewStartIfNeeded(executionToken, currentIndex, context))
+            {
+                yield break;
+            }
+
             int executedStepCount = 0;
 
             while (currentIndex >= 0 && currentIndex < CurrentModule.steps.Count)
@@ -413,6 +458,119 @@ namespace MRModuleEditor.Runtime
             if (displayPanel != null)
             {
                 displayPanel.ShowText("Complete", "Module finished.");
+            }
+        }
+
+
+        private bool PrepareSelectedPreviewStartIfNeeded(
+            RuntimeExecutionToken executionToken,
+            int startIndex,
+            RuntimeContext context)
+        {
+            if (!prepareStepsBeforeStartStep || string.IsNullOrWhiteSpace(startStepId) || startIndex <= 0)
+            {
+                return true;
+            }
+
+            PreviewPreparationContext preparation = new PreviewPreparationContext(context);
+            preparation.AddWarning(
+                CurrentModule.steps[startIndex],
+                startIndex,
+                "Preview Selected is preparing prior deterministic side effects before starting here. Learner-dependent choices, media playback, and timing are not simulated.");
+
+            for (int i = 0; i < startIndex; i++)
+            {
+                if (IsStopRequestedForExecution(executionToken))
+                {
+                    return false;
+                }
+
+                ModuleStep step = CurrentModule.steps[i];
+                if (step == null)
+                {
+                    preparation.AddError(null, i, "Cannot prepare a null step.");
+                    break;
+                }
+
+                if (PreviewPreparationUtility.HasFlowCaveat(step))
+                {
+                    preparation.AddWarning(
+                        step,
+                        i,
+                        "This previous step contains explicit flow or branch targets. Preparation uses editor order up to the selected step, so the actual full-run path may differ.");
+                }
+
+                IStepHandler handler;
+                if (!handlers.TryGet(step.type, out handler))
+                {
+                    preparation.AddError(step, i, "No handler registered for step type '" + step.type + "'.");
+                    break;
+                }
+
+                IPreviewPreparationStepHandler preparer = handler as IPreviewPreparationStepHandler;
+                if (preparer == null)
+                {
+                    preparation.MarkSkipped(step, i, PreviewPreparationUtility.DescribeSkippedStep(step));
+                    continue;
+                }
+
+                try
+                {
+                    bool prepared = preparer.PrepareForPreview(step, context, preparation, i);
+                    if (!prepared && preparation.HasErrors)
+                    {
+                        break;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    preparation.AddError(step, i, "Preview preparation failed: " + exception.Message);
+                    break;
+                }
+            }
+
+            StoreAndLogPreviewPreparation(preparation);
+            if (preparation.HasErrors)
+            {
+                SetErrorForExecution(
+                    executionToken,
+                    "Preview preparation failed before start step '" + startStepId + "'. See the preparation messages above for details.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private void StoreAndLogPreviewPreparation(PreviewPreparationContext preparation)
+        {
+            lastPreviewPreparationIssues.Clear();
+            if (preparation == null)
+            {
+                previewPreparationSummary = "";
+                return;
+            }
+
+            lastPreviewPreparationIssues.AddRange(preparation.Issues);
+            previewPreparationSummary = "Prepared " + preparation.AppliedStepCount + " previous step(s), skipped "
+                + preparation.SkippedStepCount + " dynamic/unsupported step(s), warnings: "
+                + preparation.WarningCount + ", errors: " + preparation.ErrorCount + ".";
+
+            Debug.Log("Preview preparation: " + previewPreparationSummary);
+            for (int i = 0; i < preparation.Issues.Count; i++)
+            {
+                PreviewPreparationIssue issue = preparation.Issues[i];
+                if (issue.Severity == PreviewPreparationSeverity.Error)
+                {
+                    Debug.LogError(issue.ToString());
+                }
+                else if (issue.Severity == PreviewPreparationSeverity.Warning)
+                {
+                    Debug.LogWarning(issue.ToString());
+                }
+                else
+                {
+                    Debug.Log(issue.ToString());
+                }
             }
         }
 
@@ -624,6 +782,29 @@ namespace MRModuleEditor.Runtime
 
             ModuleStep nextStep = module.steps[nextIndex];
             return nextStep == null ? "" : nextStep.id ?? "";
+        }
+
+        private bool TryResolveStartStepIndex(
+            RuntimeExecutionToken executionToken,
+            Dictionary<string, int> stepIndexById,
+            out int startIndex)
+        {
+            startIndex = 0;
+
+            if (string.IsNullOrWhiteSpace(startStepId))
+            {
+                return true;
+            }
+
+            if (stepIndexById != null && stepIndexById.TryGetValue(startStepId, out startIndex))
+            {
+                return true;
+            }
+
+            SetErrorForExecution(
+                executionToken,
+                "Start step id '" + startStepId + "' does not exist in this module.");
+            return false;
         }
 
         private bool TryResolveNextStepIndex(

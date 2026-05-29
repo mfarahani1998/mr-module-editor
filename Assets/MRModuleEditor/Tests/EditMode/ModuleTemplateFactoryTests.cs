@@ -37,6 +37,33 @@ namespace MRModuleEditor.Tests.EditMode
         }
 
         [Test]
+        public void GenericBlankLessonTemplate_ValidatesWithoutErrors()
+        {
+            ModuleDocument document = ModuleTemplateFactory.CreateGenericBlankLesson();
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.IsFalse(
+                ModuleValidator.HasError(issues),
+                string.Join("\n", issues.Select(issue => issue.ToString()).ToArray()));
+            Assert.IsTrue(document.steps.Any(step => step != null && step.type == "confirm"));
+            Assert.IsTrue(document.steps.Any(step => step != null && step.type == "mcq"));
+        }
+
+        [Test]
+        public void EquipmentOrientationTemplate_UsesGenericObjectFeatures()
+        {
+            ModuleDocument document = ModuleTemplateFactory.CreateEquipmentOrientationMini();
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.IsFalse(
+                ModuleValidator.HasError(issues),
+                string.Join("\n", issues.Select(issue => issue.ToString()).ToArray()));
+            Assert.IsTrue(document.steps.Any(step => step != null && step.type == "highlightObject"));
+            Assert.IsTrue(document.steps.Any(step => step != null && step.type == "showCallout"));
+            Assert.IsTrue(document.layouts.Any(layout => layout != null && layout.targetId == "object.equipment_demo"));
+        }
+
+        [Test]
         public void EmptyTemplate_HasRequiredDefaultAnchors()
         {
             ModuleDocument document = ModuleTemplateFactory.CreateEmptyModule();

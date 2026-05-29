@@ -52,7 +52,7 @@ namespace MRModuleEditor.Authoring.Editor
                 }
                 else
                 {
-                    NewTemplate(false);
+                    NewForwardKinematicsTemplate(false);
                 }
             }
         }
@@ -149,9 +149,19 @@ namespace MRModuleEditor.Authoring.Editor
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-            if (GUILayout.Button("New Template", EditorStyles.toolbarButton))
+            if (GUILayout.Button("New FK Demo", EditorStyles.toolbarButton))
             {
-                if (ConfirmLoseUnsavedChanges()) NewTemplate(true);
+                if (ConfirmLoseUnsavedChanges()) NewForwardKinematicsTemplate(true);
+            }
+
+            if (GUILayout.Button("New Orientation Lesson", EditorStyles.toolbarButton))
+            {
+                if (ConfirmLoseUnsavedChanges()) NewEquipmentOrientationTemplate(true);
+            }
+
+            if (GUILayout.Button("New Blank Lesson", EditorStyles.toolbarButton))
+            {
+                if (ConfirmLoseUnsavedChanges()) NewGenericBlankLesson(true);
             }
 
             if (GUILayout.Button("New Empty", EditorStyles.toolbarButton))
@@ -184,14 +194,19 @@ namespace MRModuleEditor.Authoring.Editor
 
             if (GUILayout.Button("Export", EditorStyles.toolbarButton))
             {
-                ModuleExportUtility.ExportCurrentModuleToStreamingAssetsMenu();
+                ModuleExportUtility.ExportCurrentModuleToStreamingAssets();
             }
 
             GUILayout.FlexibleSpace();
 
             if (GUILayout.Button("Preview", EditorStyles.toolbarButton))
             {
-                Preview();
+                Preview(false);
+            }
+
+            if (GUILayout.Button("Preview Selected", EditorStyles.toolbarButton))
+            {
+                Preview(true);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -228,20 +243,8 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            List<ValidationIssue> issues = ModuleValidator.Validate(document);
-            if (issues.Count == 0)
-            {
-                EditorGUILayout.HelpBox("Validation passed.", MessageType.Info);
-                return;
-            }
-
-            ValidationSeverity worst = issues.Any(issue => issue.severity == ValidationSeverity.Error)
-                ? ValidationSeverity.Error
-                : ValidationSeverity.Warning;
-
-            MessageType messageType = worst == ValidationSeverity.Error ? MessageType.Error : MessageType.Warning;
-            string text = string.Join("\n", issues.Select(issue => issue.ToString()).ToArray());
-            EditorGUILayout.HelpBox(text, messageType);
+            List<ValidationIssue> issues = EditorModuleValidationUtility.CollectIssues(document, currentPath);
+            EditorModuleValidationUtility.DrawGroupedIssues(issues);
         }
 
         private void DrawDataSummary()
@@ -252,7 +255,8 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Phase I Editor currently can edit steps and their directly associated layouts, as well as providing dropdowns for object/anchor references.",
+                "Authoring status: catalog-driven steps, direct asset import, grouped validation, object binding checks, step layouts, and object layouts are available. " +
+                "Save often and preview after each small change.",
                 MessageType.Info);
         }
 
@@ -269,7 +273,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             showModuleDataEditors = EditorGUILayout.Foldout(
                 showModuleDataEditors,
-                "Assets, Objects, and Anchors",
+                "Assets, Objects, Anchors, and Object Layouts",
                 true);
 
             if (!showModuleDataEditors)
@@ -282,26 +286,22 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             EditorGUI.indentLevel++;
-            changed |= AssetListView.Draw(document);
+            changed |= AssetListView.Draw(document, currentPath);
             EditorGUILayout.Space(6);
             changed |= ObjectListView.Draw(document);
             EditorGUILayout.Space(6);
             changed |= AnchorListView.Draw(document);
+            EditorGUILayout.Space(6);
+            changed |= ObjectLayoutListView.Draw(document);
             EditorGUI.indentLevel--;
-
-            EditorGUILayout.HelpBox(
-                "Layouts are edited per selected step below. Object layouts are still edited through JSON for now.",
-                MessageType.Info);
 
             return changed;
         }
 
-        private void NewTemplate(bool setDefaultPath)
+        private void NewForwardKinematicsTemplate(bool setDefaultPath)
         {
             document = ModuleTemplateFactory.CreateForwardKinematicsMini();
-            selectedStepIndex = document.steps.Count > 0 ? 0 : -1;
-            isDirty = true;
-            status = "Created Forward Kinematics Mini template.";
+            SelectFirstStepAndMarkDirty("Created Forward Kinematics Mini template.");
 
             if (setDefaultPath || string.IsNullOrEmpty(currentPath))
             {
@@ -310,6 +310,41 @@ namespace MRModuleEditor.Authoring.Editor
                     "Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json");
                 RememberCurrentPath();
             }
+        }
+
+        private void NewEquipmentOrientationTemplate(bool setDefaultPath)
+        {
+            document = ModuleTemplateFactory.CreateEquipmentOrientationMini();
+            SelectFirstStepAndMarkDirty("Created Equipment Orientation Mini template.");
+
+            if (setDefaultPath || string.IsNullOrEmpty(currentPath))
+            {
+                currentPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "Assets/MRModuleEditor/Samples/SampleModules/EquipmentOrientationMini/module.json");
+                RememberCurrentPath();
+            }
+        }
+
+        private void NewGenericBlankLesson(bool setDefaultPath)
+        {
+            document = ModuleTemplateFactory.CreateGenericBlankLesson();
+            SelectFirstStepAndMarkDirty("Created generic blank lesson template.");
+
+            if (setDefaultPath || string.IsNullOrEmpty(currentPath))
+            {
+                currentPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "Assets/MRModuleEditor/Samples/SampleModules/NewLesson/module.json");
+                RememberCurrentPath();
+            }
+        }
+
+        private void SelectFirstStepAndMarkDirty(string message)
+        {
+            selectedStepIndex = document != null && document.steps != null && document.steps.Count > 0 ? 0 : -1;
+            isDirty = true;
+            status = message;
         }
 
         private void NewEmpty()
@@ -357,9 +392,9 @@ namespace MRModuleEditor.Authoring.Editor
 
         private bool SaveAs()
         {
-            string startDirectory = Path.Combine(
-                Directory.GetCurrentDirectory(),
-                "Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini");
+            string startDirectory = !string.IsNullOrWhiteSpace(currentPath)
+                ? Path.GetDirectoryName(currentPath)
+                : Path.Combine(Directory.GetCurrentDirectory(), "Assets/MRModuleEditor/Samples/SampleModules");
 
             string path = EditorUtility.SaveFilePanel("Save module.json", startDirectory, "module.json", "json");
             if (string.IsNullOrEmpty(path))
@@ -372,24 +407,75 @@ namespace MRModuleEditor.Authoring.Editor
             return Save();
         }
 
-        private void Preview()
+        private void Preview(bool fromSelectedStep)
         {
             if (!Save())
             {
                 return;
             }
 
-            List<ValidationIssue> issues = ModuleValidator.Validate(document);
-            if (ModuleValidator.HasError(issues))
+            List<ValidationIssue> issues = EditorModuleValidationUtility.CollectIssues(document, currentPath);
+            if (EditorModuleValidationUtility.HasError(issues))
             {
-                string text = string.Join("\n", issues.Select(issue => issue.ToString()).ToArray());
+                string text = EditorModuleValidationUtility.FormatIssueList(issues);
                 EditorUtility.DisplayDialog("Cannot Preview", "Fix validation errors first:\n\n" + text, "OK");
                 return;
             }
 
+            string startStepId = "";
+            bool prepareStepsBeforeStart = false;
+            if (fromSelectedStep)
+            {
+                if (!TryGetSelectedStepId(out startStepId))
+                {
+                    EditorUtility.DisplayDialog("Cannot Preview Selected", "Select a step with a non-empty id first.", "OK");
+                    return;
+                }
+
+                bool previewFromStart;
+                if (!EditorPreviewPreparationUtility.ConfirmPreviewSelected(document, selectedStepIndex, out previewFromStart))
+                {
+                    return;
+                }
+
+                if (previewFromStart)
+                {
+                    startStepId = "";
+                    prepareStepsBeforeStart = false;
+                }
+                else
+                {
+                    prepareStepsBeforeStart = true;
+                }
+            }
+
             RememberCurrentPath();
             SessionState.SetBool(ReloadAfterPreviewKey, true);
-            ModulePreviewLauncher.LaunchPreview(currentPath);
+            ModulePreviewLauncher.LaunchPreview(currentPath, startStepId, prepareStepsBeforeStart);
+        }
+
+        private bool TryGetSelectedStepId(out string stepId)
+        {
+            stepId = "";
+
+            if (document == null || document.steps == null)
+            {
+                return false;
+            }
+
+            if (selectedStepIndex < 0 || selectedStepIndex >= document.steps.Count)
+            {
+                return false;
+            }
+
+            ModuleStep step = document.steps[selectedStepIndex];
+            if (step == null || string.IsNullOrWhiteSpace(step.id))
+            {
+                return false;
+            }
+
+            stepId = step.id;
+            return true;
         }
 
         private void AddStep(string type)
