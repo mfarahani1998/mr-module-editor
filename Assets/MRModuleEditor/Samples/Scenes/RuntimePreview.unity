@@ -1323,7 +1323,6 @@ MonoBehaviour:
   spatialUIService: {fileID: 1762172290}
   interactionContext: {fileID: 945083562}
   variableStore: {fileID: 1762172293}
-  calloutService: {fileID: 0}
   maximumStepExecutionsPerRun: 1000
   loadOnStart: 0
   playOnStart: 0
@@ -1380,8 +1379,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadMode: 0
-  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
-  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
+  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/EquipmentOrientationMini/module.json
+  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/EquipmentOrientationMini/module.json
   absoluteModulePath: 
   loadOnStart: 0
 --- !u!4 &1762172285
