@@ -11,8 +11,10 @@ namespace MRModuleEditor.Authoring.Editor
 {
     public static class ModuleExportUtility
     {
+        private const string StreamingAssetsFolderRelative = "Assets/StreamingAssets";
+
         public const string StreamingAssetsModuleRootRelative =
-            "Assets/StreamingAssets/MRModuleEditor/SampleModules";
+            StreamingAssetsFolderRelative + "/MRModuleEditor/SampleModules";
 
         [MenuItem("MR Module Editor/Export/Export Current Module Folder")]
         public static void ExportCurrentModuleFolderMenu()
@@ -65,12 +67,23 @@ namespace MRModuleEditor.Authoring.Editor
 
             RefreshAssetDatabaseIfInsideProject(exportedFolder);
 
-            Debug.Log("Exported module folder to: " + exportedFolder);
+            string sceneUpdateMessage = TryPersistStreamingAssetsPreviewDefaultsForStandardTarget(
+                moduleJsonPath,
+                exportedFolder);
+
+            Debug.Log(
+                "Exported module folder to: " + exportedFolder +
+                (string.IsNullOrWhiteSpace(sceneUpdateMessage) ? "" : "\n" + sceneUpdateMessage));
             EditorUtility.RevealInFinder(exportedFolder);
         }
 
         [MenuItem("MR Module Editor/Export/Export Current Module To StreamingAssets")]
         public static void ExportCurrentModuleToStreamingAssetsMenu()
+        {
+            ExportCurrentModuleToStreamingAssets();
+        }
+
+        public static void ExportCurrentModuleToStreamingAssets()
         {
             if (!ModuleEditorWindow.TrySaveCurrentModuleForExport(
                     out string moduleJsonPath,
@@ -92,10 +105,11 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            if (!TryExportModuleFolderToExactTarget(
+            if (!TryExportModuleFolderToStreamingAssets(
                     moduleJsonPath,
-                    targetFolder,
                     true,
+                    out targetFolder,
+                    out string relativePath,
                     out error))
             {
                 EditorUtility.DisplayDialog("StreamingAssets Export Failed", error, "OK");
@@ -104,30 +118,12 @@ namespace MRModuleEditor.Authoring.Editor
 
             RefreshAssetDatabaseIfInsideProject(targetFolder);
 
-            string relativePath = BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
-
-            bool updatedSceneDefaults = false;
-            string sceneUpdateMessage;
-            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-            {
-                updatedSceneDefaults = RuntimePreviewScenePathUtility
-                    .PersistStreamingAssetsRelativeModulePathForPreviewScenes(
-                        relativePath,
-                        out string sceneUpdateError);
-
-                sceneUpdateMessage = updatedSceneDefaults
-                    ? "Updated RuntimePreview scene defaults."
-                    : "Could not update RuntimePreview scene defaults: " + sceneUpdateError;
-            }
-            else
-            {
-                sceneUpdateMessage =
-                    "Skipped updating RuntimePreview scene defaults because modified scene changes were not saved.";
-            }
+            string sceneUpdateMessage = PersistStreamingAssetsPreviewSceneDefaults(relativePath);
 
             Debug.Log(
                 "Exported module to StreamingAssets: " + targetFolder +
-                "\nRuntimeModuleLoader StreamingAssets relative path should be: " + relativePath);
+                "\nRuntimeModuleLoader StreamingAssets relative path: " + relativePath +
+                "\n" + sceneUpdateMessage);
 
             EditorUtility.DisplayDialog(
                 "Exported To StreamingAssets",
@@ -135,6 +131,35 @@ namespace MRModuleEditor.Authoring.Editor
                 "\nRuntimeModuleLoader StreamingAssets relative path: " + relativePath +
                 "\n" + sceneUpdateMessage,
                 "OK");
+        }
+
+        public static bool TryExportModuleFolderToStreamingAssets(
+            string moduleJsonPath,
+            bool overwriteExistingFolder,
+            out string targetFolder,
+            out string streamingAssetsRelativeModulePath,
+            out string error)
+        {
+            targetFolder = "";
+            streamingAssetsRelativeModulePath = "";
+            error = "";
+
+            try
+            {
+                targetFolder = BuildStreamingAssetsTargetFolder(moduleJsonPath);
+                streamingAssetsRelativeModulePath = BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
+            }
+            catch (Exception exception)
+            {
+                error = exception.Message;
+                return false;
+            }
+
+            return TryExportModuleFolderToExactTarget(
+                moduleJsonPath,
+                targetFolder,
+                overwriteExistingFolder,
+                out error);
         }
 
         public static bool TryExportModuleFolderToRoot(
@@ -347,8 +372,10 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             string moduleFolderName = GetLastFolderName(moduleFolder);
-            return ("MRModuleEditor/SampleModules/" + moduleFolderName + "/module.json")
-                .Replace("\\", "/");
+            return CombineRelative(
+                GetStreamingAssetsModuleRootRelativeToStreamingAssets(),
+                moduleFolderName,
+                "module.json");
         }
 
         public static void RefreshAssetDatabaseIfInsideProject(string path)
@@ -365,6 +392,48 @@ namespace MRModuleEditor.Authoring.Editor
             {
                 AssetDatabase.Refresh();
             }
+        }
+
+        public static string PersistStreamingAssetsPreviewSceneDefaults(
+            string streamingAssetsRelativeModulePath)
+        {
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                bool updatedSceneDefaults = RuntimePreviewScenePathUtility
+                    .PersistStreamingAssetsRelativeModulePathForPreviewScenes(
+                        streamingAssetsRelativeModulePath,
+                        out string sceneUpdateError);
+
+                return updatedSceneDefaults
+                    ? "Updated RuntimePreview scene defaults."
+                    : "Could not update RuntimePreview scene defaults: " + sceneUpdateError;
+            }
+
+            return "Skipped updating RuntimePreview scene defaults because modified scene changes were not saved.";
+        }
+
+        private static string TryPersistStreamingAssetsPreviewDefaultsForStandardTarget(
+            string moduleJsonPath,
+            string exportedFolder)
+        {
+            string expectedStreamingAssetsTarget;
+            string streamingAssetsRelativePath;
+            try
+            {
+                expectedStreamingAssetsTarget = BuildStreamingAssetsTargetFolder(moduleJsonPath);
+                streamingAssetsRelativePath = BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
+            }
+            catch
+            {
+                return "";
+            }
+
+            if (!PathsAreSame(exportedFolder, expectedStreamingAssetsTarget))
+            {
+                return "";
+            }
+
+            return PersistStreamingAssetsPreviewSceneDefaults(streamingAssetsRelativePath);
         }
 
         private static void CopyDirectoryWithoutMetaFiles(string sourceDirectory, string targetDirectory)
@@ -428,6 +497,38 @@ namespace MRModuleEditor.Authoring.Editor
         {
             string clean = NormalizeFullPath(folderPath).TrimEnd('/');
             return Path.GetFileName(clean);
+        }
+
+        private static string GetStreamingAssetsModuleRootRelativeToStreamingAssets()
+        {
+            const string prefix = StreamingAssetsFolderRelative + "/";
+            if (!StreamingAssetsModuleRootRelative.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return StreamingAssetsModuleRootRelative;
+            }
+
+            return StreamingAssetsModuleRootRelative.Substring(prefix.Length);
+        }
+
+        private static string CombineRelative(params string[] parts)
+        {
+            if (parts == null || parts.Length == 0)
+            {
+                return "";
+            }
+
+            List<string> cleanParts = new List<string>();
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(parts[i]))
+                {
+                    continue;
+                }
+
+                cleanParts.Add(parts[i].Trim('/', '\\'));
+            }
+
+            return string.Join("/", cleanParts).Replace("\\", "/");
         }
 
         private static string NormalizeFullPath(string path)

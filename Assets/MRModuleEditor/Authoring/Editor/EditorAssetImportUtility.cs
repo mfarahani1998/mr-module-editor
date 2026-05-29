@@ -92,21 +92,47 @@ namespace MRModuleEditor.Authoring.Editor
 
             string relativeFolder = RelativeFolderForType(cleanType);
             string destinationFolder = Path.Combine(moduleFolder, relativeFolder);
-            Directory.CreateDirectory(destinationFolder);
-
-            string destinationFileName = BuildUniqueFileName(destinationFolder, Path.GetFileName(sourcePath));
-            string destinationPath = Path.Combine(destinationFolder, destinationFileName);
 
             string sourceFullPath = NormalizeFullPath(sourcePath);
-            string destinationFullPath = NormalizeFullPath(destinationPath);
+            string moduleAssetsFolder = NormalizeFullPath(Path.Combine(moduleFolder, "assets"));
+            string relativePath;
+            string fileNameWithoutExtension;
+            string destinationFullPath;
 
-            if (!PathsAreSame(sourceFullPath, destinationFullPath))
+            if (IsInsideFolder(sourceFullPath, moduleAssetsFolder))
             {
-                File.Copy(sourceFullPath, destinationFullPath, true);
+                if (!TryGetModuleRelativePath(moduleFolder, sourceFullPath, out relativePath))
+                {
+                    error = "Could not build a module-relative path for: " + sourceFullPath;
+                    return false;
+                }
+
+                destinationFullPath = sourceFullPath;
+                fileNameWithoutExtension = Path.GetFileNameWithoutExtension(sourceFullPath);
+            }
+            else
+            {
+                Directory.CreateDirectory(destinationFolder);
+
+                string destinationFileName = BuildUniqueFileName(destinationFolder, Path.GetFileName(sourcePath));
+                string destinationPath = Path.Combine(destinationFolder, destinationFileName);
+
+                destinationFullPath = NormalizeFullPath(destinationPath);
+
+                if (!PathsAreSame(sourceFullPath, destinationFullPath))
+                {
+                    File.Copy(sourceFullPath, destinationFullPath, true);
+                }
+
+                relativePath = CombineRelative(relativeFolder, destinationFileName);
+                fileNameWithoutExtension = Path.GetFileNameWithoutExtension(destinationFileName);
             }
 
-            string relativePath = CombineRelative(relativeFolder, destinationFileName);
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(destinationFileName);
+            if (TryFindExistingAssetByPath(document, cleanType, relativePath, out importedAsset))
+            {
+                ModuleExportUtility.RefreshAssetDatabaseIfInsideProject(destinationFullPath);
+                return true;
+            }
             string idPrefix = string.IsNullOrWhiteSpace(desiredIdPrefix)
                 ? "asset." + cleanType
                 : desiredIdPrefix;
@@ -270,6 +296,43 @@ namespace MRModuleEditor.Authoring.Editor
             return false;
         }
 
+        private static bool TryFindExistingAssetByPath(
+            ModuleDocument document,
+            string assetType,
+            string relativePath,
+            out ModuleAsset existingAsset)
+        {
+            existingAsset = null;
+            if (document == null || document.assets == null || string.IsNullOrWhiteSpace(relativePath))
+            {
+                return false;
+            }
+
+            string normalizedPath = NormalizeRelativePath(relativePath);
+            string cleanType = CleanType(assetType);
+            for (int i = 0; i < document.assets.Count; i++)
+            {
+                ModuleAsset asset = document.assets[i];
+                if (asset == null)
+                {
+                    continue;
+                }
+
+                if (!string.Equals(CleanType(asset.type), cleanType, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (string.Equals(NormalizeRelativePath(asset.path), normalizedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    existingAsset = asset;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static string[] BuildFilters(string assetType)
         {
             string cleanType = CleanType(assetType);
@@ -388,6 +451,31 @@ namespace MRModuleEditor.Authoring.Editor
             string normalizedFile = NormalizeFullPath(filePath);
             string normalizedFolder = NormalizeFullPath(folderPath);
             return normalizedFile.StartsWith(normalizedFolder + "/", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool TryGetModuleRelativePath(
+            string moduleFolder,
+            string absolutePath,
+            out string relativePath)
+        {
+            relativePath = "";
+            string normalizedModuleFolder = NormalizeFullPath(moduleFolder);
+            string normalizedPath = NormalizeFullPath(absolutePath);
+
+            if (!IsInsideFolder(normalizedPath, normalizedModuleFolder))
+            {
+                return false;
+            }
+
+            relativePath = NormalizeRelativePath(normalizedPath.Substring(normalizedModuleFolder.Length + 1));
+            return !string.IsNullOrWhiteSpace(relativePath);
+        }
+
+        private static string NormalizeRelativePath(string path)
+        {
+            return string.IsNullOrWhiteSpace(path)
+                ? ""
+                : path.Replace("\\", "/").TrimStart('/');
         }
 
         private static bool TryGetProjectRelativePath(string absolutePath, out string projectRelativePath)

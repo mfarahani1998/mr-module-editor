@@ -1381,8 +1381,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadMode: 0
-  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/NewLesson/module.json
-  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/NewLesson/module.json
+  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
+  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
   absoluteModulePath: 
   loadOnStart: 0
 --- !u!4 &1762172285

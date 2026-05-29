@@ -9,9 +9,6 @@ namespace MRModuleEditor.Authoring.Editor
         private const string SampleModuleFolder =
             "Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini";
 
-        private const string StreamingAssetsTargetFolder =
-            "Assets/StreamingAssets/MRModuleEditor/SampleModules/ForwardKinematicsMini";
-
         private const string IntroImageRelativePath = "assets/images/intro.png";
 
         [MenuItem("MR Module Editor/Temporary/Create Placeholder Intro Image")]
@@ -75,10 +72,11 @@ namespace MRModuleEditor.Authoring.Editor
                 .Replace("\\", "/");
 
             string error;
-            if (!ModuleExportUtility.TryExportModuleFolderToExactTarget(
+            if (!ModuleExportUtility.TryExportModuleFolderToStreamingAssets(
                     sampleModuleJsonPath,
-                    StreamingAssetsTargetFolder,
                     true,
+                    out string streamingAssetsTargetFolder,
+                    out string streamingAssetsRelativeModulePath,
                     out error))
             {
                 EditorUtility.DisplayDialog("Copy FK Sample Failed", error, "OK");
@@ -86,10 +84,15 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
-            ModuleExportUtility.RefreshAssetDatabaseIfInsideProject(StreamingAssetsTargetFolder);
+            ModuleExportUtility.RefreshAssetDatabaseIfInsideProject(streamingAssetsTargetFolder);
 
-            Debug.Log("Copied ForwardKinematicsMini sample to StreamingAssets: "
-                + StreamingAssetsTargetFolder);
+            string sceneUpdateMessage = ModuleExportUtility
+                .PersistStreamingAssetsPreviewSceneDefaults(streamingAssetsRelativeModulePath);
+
+            Debug.Log(
+                "Copied ForwardKinematicsMini sample to StreamingAssets: " + streamingAssetsTargetFolder +
+                "\nRuntimeModuleLoader StreamingAssets relative path: " + streamingAssetsRelativeModulePath +
+                "\n" + sceneUpdateMessage);
         }
 
         private static void FillRect(Texture2D texture, int x, int y, int width, int height, Color color)

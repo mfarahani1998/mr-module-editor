@@ -53,6 +53,59 @@ namespace MRModuleEditor.Tests.EditMode
         }
 
         [Test]
+        public void ImportAssetAlreadyInsideModuleAssetsReusesExistingFileWithoutCopying()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string moduleFolder = Path.Combine(root, "Module");
+                string moduleAssetFolder = Path.Combine(moduleFolder, "assets/images");
+                Directory.CreateDirectory(moduleAssetFolder);
+                string moduleJsonPath = Path.Combine(moduleFolder, "module.json");
+                File.WriteAllText(moduleJsonPath, "{}");
+
+                string sourcePath = Path.Combine(moduleAssetFolder, "Intro.png");
+                File.WriteAllText(sourcePath, "fake image bytes");
+
+                ModuleDocument document = new ModuleDocument();
+                document.assets = new List<ModuleAsset>();
+
+                bool imported = EditorAssetImportUtility.TryImportAssetFromSource(
+                    document,
+                    moduleJsonPath,
+                    sourcePath,
+                    "image",
+                    "asset.image",
+                    out ModuleAsset importedAsset,
+                    out string error);
+
+                Assert.That(imported, Is.True, error);
+                Assert.That(importedAsset, Is.Not.Null);
+                Assert.That(importedAsset.path, Is.EqualTo("assets/images/Intro.png"));
+                Assert.That(document.assets, Has.Count.EqualTo(1));
+                Assert.That(File.Exists(Path.Combine(moduleAssetFolder, "Intro_2.png")), Is.False);
+
+                bool importedAgain = EditorAssetImportUtility.TryImportAssetFromSource(
+                    document,
+                    moduleJsonPath,
+                    sourcePath,
+                    "image",
+                    "asset.image",
+                    out ModuleAsset importedAgainAsset,
+                    out error);
+
+                Assert.That(importedAgain, Is.True, error);
+                Assert.That(importedAgainAsset, Is.SameAs(importedAsset));
+                Assert.That(document.assets, Has.Count.EqualTo(1));
+                Assert.That(File.Exists(Path.Combine(moduleAssetFolder, "Intro_2.png")), Is.False);
+            }
+            finally
+            {
+                DeleteIfExists(root);
+            }
+        }
+
+        [Test]
         public void EditorValidationReportsMissingAssetFile()
         {
             string root = CreateTempRoot();

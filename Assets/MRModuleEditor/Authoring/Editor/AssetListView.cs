@@ -137,6 +137,10 @@ namespace MRModuleEditor.Authoring.Editor
 
         private static bool TryImportAsset(ModuleDocument document, string moduleJsonPath, string assetType)
         {
+            int assetCountBeforeImport = document == null || document.assets == null
+                ? 0
+                : document.assets.Count;
+
             ModuleAsset importedAsset;
             string error;
             if (!EditorAssetImportUtility.TryImportAssetWithFilePanel(
@@ -155,6 +159,19 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             string label = importedAsset == null ? assetType : importedAsset.label;
+            int assetCountAfterImport = document == null || document.assets == null
+                ? assetCountBeforeImport
+                : document.assets.Count;
+
+            if (assetCountAfterImport == assetCountBeforeImport)
+            {
+                EditorUtility.DisplayDialog(
+                    "Asset Already Imported",
+                    "This module already references: " + label,
+                    "OK");
+                return false;
+            }
+
             EditorUtility.DisplayDialog("Asset Imported", "Imported asset: " + label, "OK");
             return true;
         }

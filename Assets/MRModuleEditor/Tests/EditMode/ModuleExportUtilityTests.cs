@@ -112,6 +112,19 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.IsTrue(error.Contains("contains the source module folder"));
         }
 
+        [Test]
+        public void BuildStreamingAssetsRelativeModulePath_UsesStreamingAssetsModuleRoot()
+        {
+            string sourceFolder = CreateSourceModuleFolder();
+            string moduleJsonPath = Path.Combine(sourceFolder, "module.json");
+
+            string relativePath = ModuleExportUtility.BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
+
+            Assert.AreEqual(
+                "MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json",
+                relativePath);
+        }
+
         private string CreateSourceModuleFolder()
         {
             string sourceFolder = Path.Combine(testRoot, "Source/ForwardKinematicsMini");
