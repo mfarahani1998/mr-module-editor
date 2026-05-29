@@ -99,5 +99,5 @@ Assets/StreamingAssets/MRModuleEditor/SampleModules/ForwardKinematicsMini
 | Sample media missing | Make sure `intro.png` and `intro.mp3` exist in the real project. The source bundle may omit binary files. |
 | Preview opens but nothing starts | Look for runtime control panel and Console logs. Confirm `RuntimePreview.unity` contains a `ModuleRunner`. |
 | Robot object does not appear | Confirm the scene has a `BindableObject` with binding key `RobotPreview`. |
-| Unknown step type | Current known step types are hard-coded in `ModuleValidator.cs` and `StepInspectorView.cs`. This is fixed later in Phase 2. |
+| Unknown step type | Check that the step type has a `StepTypeDefinition` in the catalog and a matching runtime handler registration. |
 

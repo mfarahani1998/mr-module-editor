@@ -1,6 +1,6 @@
 # Adding Step Types with Step Catalog v0.2
 
-Step types are still saved as plain strings in `ModuleStep.type`, and parameters still live in `ModuleStep.parameters`. Phase 2 adds a catalog so the editor and validator can learn about a step from one definition instead of many hard-coded lists.
+Step types are saved as plain strings in `ModuleStep.type`, and parameters live in `ModuleStep.parameters`. The Step Catalog keeps editor UI, defaults, and validation aligned from one definition instead of many hard-coded lists.
 
 ## Generic built-in step workflow
 
@@ -33,8 +33,15 @@ catalog.Register(new StepTypeDefinition(
     new[]
     {
         new StepParameterDefinition("message", "Message", StepParameterKind.MultilineString, true, "Continue when ready."),
-        new StepParameterDefinition("buttonLabel", "Button Label", StepParameterKind.String, false, "Continue")
+        new StepParameterDefinition("buttonLabel", "Button Label", StepParameterKind.String, false, "Continue"),
+        new StepParameterDefinition("completeOnSignal", "Complete On Interaction Signal", StepParameterKind.Bool, false, false),
+        new StepParameterDefinition("signalTargetId", "Signal Target ID", StepParameterKind.String, false, "{stepId}.confirm")
+            .VisibleWhenBool("completeOnSignal", true)
     }));
 ```
 
 The add menu, type popup, defaults, generic fields, and basic validation all come from this definition.
+
+## Avoid near-duplicate gates
+
+Before adding a new flow/gating step, check whether `confirm` should be extended instead. `confirm` is the single built-in learner acknowledgement gate; its optional signal-completion parameters cover advanced interaction-gated confirmations without introducing a second author-facing step type.

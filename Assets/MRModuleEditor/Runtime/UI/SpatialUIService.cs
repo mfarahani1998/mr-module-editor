@@ -67,6 +67,22 @@ namespace MRModuleEditor.Runtime.UI
             }
         }
 
+        public void ShowText(
+            ModuleDocument module,
+            ModuleStep step,
+            string text,
+            Vector3 fallbackLocalOffset,
+            Vector3 fallbackLocalEuler,
+            Vector3 fallbackLocalScale)
+        {
+            EnsurePanels();
+
+            if (textPanel != null)
+            {
+                textPanel.ShowText(module, step, text, fallbackLocalOffset, fallbackLocalEuler, fallbackLocalScale);
+            }
+        }
+
         public void ShowImage(ModuleDocument module, ModuleStep step, Texture2D texture, string caption)
         {
             EnsurePanels();

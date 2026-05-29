@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.equipment_orientation_mini",
+  "title": "Equipment Orientation Mini",
+  "description": "A small non-robotics Phase 3 sample using confirm, highlightObject, showCallout, setVariable, and MCQ.",
+  "author": "MR Module Editor",
+  "estimatedDurationSeconds": 90,
+  "assets": [],
+  "objects": [
+    {
+      "id": "object.equipment_demo",
+      "label": "",
+      "bindingKey": "Equipment Demo"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head",
+      "targetObjectId": ""
+    },
+    {
+      "id": "anchor.object.equipment",
+      "type": "object",
+      "targetObjectId": "object.equipment_demo"
+    }
+  ],
+  "layouts": [],
+  "steps": [
+    {
+      "id": "step.001.welcome",
+      "type": "text",
+      "title": "Welcome",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "This mini-module demonstrates the first generic MR learning features for Phase 3.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002.ready",
+      "type": "confirm",
+      "title": "Ready Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "message": "Look at the equipment model. Select Continue when you are ready.",
+        "buttonLabel": "Continue",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.003.showEquipment",
+      "type": "showObject",
+      "title": "Show Equipment",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "objectId": "object.equipment_demo",
+        "visible": true
+      }
+    },
+    {
+      "id": "step.004.highlight",
+      "type": "highlightObject",
+      "title": "Highlight Main Equipment",
+      "durationSeconds": 3.0,
+      "parameters": {
+        "objectId": "object.equipment_demo",
+        "enabled": true,
+        "colorHex": "#42A5FF",
+        "pulseAmplitude": 0.08,
+        "pulseSeconds": 0.8,
+        "clearOnComplete": false
+      }
+    },
+    {
+      "id": "step.005.callout",
+      "type": "showCallout",
+      "title": "Object Callout",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "This is the inspection area.",
+        "anchorId": "anchor.object.equipment",
+        "localOffset": {
+          "x": 0,
+          "y": 0.7,
+          "z": 0
+        },
+        "localEuler": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "localScale": {
+          "x": 0.75,
+          "y": 0.75,
+          "z": 0.75
+        },
+        "clearOnComplete": true
+      }
+    },
+    {
+      "id": "step.006.setVariable",
+      "type": "setVariable",
+      "title": "Record Status",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "variableKey": "equipment.status",
+        "valueType": "String",
+        "stringValue": "inspection area found"
+      }
+    },
+    {
+      "id": "step.007.signalGate",
+      "type": "confirm",
+      "title": "Signal-Aware Confirm",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "message": "This uses the Confirm step as the single learner gate. Select Continue, or let the short auto-continue timeout advance the module.",
+        "buttonLabel": "Continue",
+        "autoContinueAfterSeconds": 5.0,
+        "anchorId": "anchor.head.default",
+        "completeOnSignal": true,
+        "signalAction": "Select",
+        "signalTargetId": "{stepId}.confirm",
+        "signalIntPayload": 0,
+        "resultVariableKey": "equipment.signalGate.received"
+      }
+    },
+    {
+      "id": "step.008.check",
+      "type": "mcq",
+      "title": "Quick Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "question": "What did the callout identify?",
+        "choices": [
+          "The inspection area",
+          "A software menu",
+          "The headset battery"
+        ],
+        "correctIndex": 0,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.009.complete",
+      "type": "text",
+      "title": "Complete",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "Phase 3 generic feature demo complete.",
+        "anchorId": "anchor.head.default"
+      }
+    }
+  ]
+}

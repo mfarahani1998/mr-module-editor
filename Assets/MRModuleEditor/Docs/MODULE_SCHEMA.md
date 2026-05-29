@@ -126,17 +126,7 @@ Dictionary<string, JToken>
 
 This is similar to a Python `dict[str, Any]`. It avoids needing a separate C# subclass for every step type.
 
-Tradeoff: parameter meaning is currently scattered across:
-
-```text
-Runtime handlers
-ModuleValidator.cs
-StepInspectorView.cs
-ModuleTemplateFactory.cs
-Tests
-```
-
-Phase 2 will keep this JSON shape but introduce a Step Catalog so parameter definitions are easier to share between validation, authoring, and runtime.
+Parameter definitions for built-in steps live in `StepCatalog` registrations so the editor, defaults, and generic validation stay aligned with runtime handlers.
 
 ## Current flow fields
 
@@ -152,6 +142,28 @@ MCQ-specific branch fields:
 "onCorrectStepId": "step.012",
 "onWrongStepId": "step.011"
 ```
+
+## Current confirm example
+
+`confirm` is the single built-in learner-gate step. It normally waits for the learner to press Continue, and can optionally complete from a filtered `InteractionContext` signal.
+
+```json
+{
+  "id": "step.002.ready",
+  "type": "confirm",
+  "title": "Ready Check",
+  "durationSeconds": 0,
+  "parameters": {
+    "message": "Look at the equipment model. Select Continue when you are ready.",
+    "buttonLabel": "Continue",
+    "autoContinueAfterSeconds": 0,
+    "anchorId": "anchor.head.default",
+    "completeOnSignal": false
+  }
+}
+```
+
+When `completeOnSignal` is true, `signalTargetId` may use `{stepId}` as a placeholder. For example, `{stepId}.confirm` resolves to the current confirm button target.
 
 ## Current MCQ example
 

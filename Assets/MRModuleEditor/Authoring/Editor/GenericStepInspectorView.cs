@@ -60,10 +60,10 @@ namespace MRModuleEditor.Authoring.Editor
             switch (parameter.Kind)
             {
                 case StepParameterKind.String:
-                    DrawString(step, parameter.Key, parameter.DisplayName);
+                    DrawString(step, parameter);
                     break;
                 case StepParameterKind.MultilineString:
-                    DrawMultilineString(step, parameter.Key, parameter.DisplayName);
+                    DrawMultilineString(step, parameter);
                     break;
                 case StepParameterKind.Int:
                     DrawInt(step, parameter.Key, parameter.DisplayName, ReadDefaultInt(parameter, 0));
@@ -75,7 +75,7 @@ namespace MRModuleEditor.Authoring.Editor
                     DrawBool(step, parameter.Key, parameter.DisplayName, ReadDefaultBool(parameter, false));
                     break;
                 case StepParameterKind.Vector3:
-                    DrawVector3(step, parameter.Key, parameter.DisplayName);
+                    DrawVector3(step, parameter);
                     break;
                 case StepParameterKind.StringArray:
                     DrawStringArray(step, parameter.Key, parameter.DisplayName);
@@ -103,17 +103,21 @@ namespace MRModuleEditor.Authoring.Editor
             }
         }
 
-        private static void DrawString(ModuleStep step, string key, string label)
+        private static void DrawString(ModuleStep step, StepParameterDefinition parameter)
         {
-            string next = EditorGUILayout.TextField(label, step.GetString(key, ""));
-            step.parameters[key] = JToken.FromObject(next);
+            string next = EditorGUILayout.TextField(
+                parameter.DisplayName,
+                step.GetString(parameter.Key, ReadDefaultString(parameter, "")));
+            step.parameters[parameter.Key] = JToken.FromObject(next);
         }
 
-        private static void DrawMultilineString(ModuleStep step, string key, string label)
+        private static void DrawMultilineString(ModuleStep step, StepParameterDefinition parameter)
         {
-            EditorGUILayout.LabelField(label);
-            string next = EditorGUILayout.TextArea(step.GetString(key, ""), GUILayout.MinHeight(60));
-            step.parameters[key] = JToken.FromObject(next);
+            EditorGUILayout.LabelField(parameter.DisplayName);
+            string next = EditorGUILayout.TextArea(
+                step.GetString(parameter.Key, ReadDefaultString(parameter, "")),
+                GUILayout.MinHeight(60));
+            step.parameters[parameter.Key] = JToken.FromObject(next);
         }
 
         private static void DrawBool(ModuleStep step, string key, string label, bool fallback)
@@ -134,11 +138,13 @@ namespace MRModuleEditor.Authoring.Editor
             step.parameters[key] = JToken.FromObject(next);
         }
 
-        private static void DrawVector3(ModuleStep step, string key, string label)
+        private static void DrawVector3(ModuleStep step, StepParameterDefinition parameter)
         {
-            Vector3 current = ReadVector3(step.GetToken(key));
-            Vector3 next = EditorGUILayout.Vector3Field(label, current);
-            step.parameters[key] = MakeVector(next);
+            Vector3 current = ReadVector3(
+                step.GetToken(parameter.Key),
+                ReadDefaultVector3(parameter, Vector3.zero));
+            Vector3 next = EditorGUILayout.Vector3Field(parameter.DisplayName, current);
+            step.parameters[parameter.Key] = MakeVector(next);
         }
 
         private static void DrawStringArray(ModuleStep step, string key, string label)
@@ -169,11 +175,11 @@ namespace MRModuleEditor.Authoring.Editor
             string[] choices = parameter.Choices ?? new string[0];
             if (choices.Length == 0)
             {
-                DrawString(step, parameter.Key, parameter.DisplayName);
+                DrawString(step, parameter);
                 return;
             }
 
-            string currentValue = step.GetString(parameter.Key, choices[0]);
+            string currentValue = step.GetString(parameter.Key, ReadDefaultString(parameter, choices[0]));
             int currentIndex = System.Array.IndexOf(choices, currentValue);
             if (currentIndex < 0)
             {
@@ -184,17 +190,39 @@ namespace MRModuleEditor.Authoring.Editor
             step.parameters[parameter.Key] = JToken.FromObject(choices[nextIndex]);
         }
 
-        private static Vector3 ReadVector3(JToken token)
+        private static Vector3 ReadVector3(JToken token, Vector3 fallback)
         {
             if (token == null || token.Type == JTokenType.Null)
             {
-                return Vector3.zero;
+                return fallback;
             }
 
             return new Vector3(
-                ReadFloat(token["x"], 0f),
-                ReadFloat(token["y"], 0f),
-                ReadFloat(token["z"], 0f));
+                ReadFloat(token["x"], fallback.x),
+                ReadFloat(token["y"], fallback.y),
+                ReadFloat(token["z"], fallback.z));
+        }
+
+        private static string ReadDefaultString(StepParameterDefinition parameter, string fallback)
+        {
+            if (parameter == null || parameter.DefaultValue == null)
+            {
+                return fallback;
+            }
+
+            return parameter.DefaultValue.Type == JTokenType.String
+                ? parameter.DefaultValue.Value<string>()
+                : parameter.DefaultValue.ToString();
+        }
+
+        private static Vector3 ReadDefaultVector3(StepParameterDefinition parameter, Vector3 fallback)
+        {
+            if (parameter == null || parameter.DefaultValue == null)
+            {
+                return fallback;
+            }
+
+            return ReadVector3(parameter.DefaultValue, fallback);
         }
 
         private static int ReadDefaultInt(StepParameterDefinition parameter, int fallback)

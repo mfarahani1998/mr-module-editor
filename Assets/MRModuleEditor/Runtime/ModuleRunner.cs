@@ -5,9 +5,11 @@ using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Validation;
 using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.Flow;
+using MRModuleEditor.Runtime.Interaction;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.StepHandlers;
 using MRModuleEditor.Runtime.UI;
+using MRModuleEditor.Runtime.Variables;
 using UnityEngine;
 
 namespace MRModuleEditor.Runtime
@@ -35,6 +37,11 @@ namespace MRModuleEditor.Runtime
         [SerializeField]
         private SpatialUIService spatialUIService;
 
+        [SerializeField]
+        private InteractionContext interactionContext;
+
+        [SerializeField]
+        private RuntimeVariableStore variableStore;
 
         [SerializeField]
         private int maximumStepExecutionsPerRun = 1000;
@@ -123,6 +130,16 @@ namespace MRModuleEditor.Runtime
             if (spatialUIService == null)
             {
                 spatialUIService = FindFirstObjectByType<SpatialUIService>(FindObjectsInactive.Include);
+            }
+
+            if (interactionContext == null)
+            {
+                interactionContext = FindFirstObjectByType<InteractionContext>(FindObjectsInactive.Include);
+            }
+
+            if (variableStore == null)
+            {
+                variableStore = FindFirstObjectByType<RuntimeVariableStore>(FindObjectsInactive.Include);
             }
 
             if (controlPanel != null)
@@ -308,7 +325,9 @@ namespace MRModuleEditor.Runtime
                 () => IsPausedForExecution(executionToken),
                 () => IsStopRequestedForExecution(executionToken),
                 message => LogInfoForExecution(executionToken, message),
-                message => SetErrorForExecution(executionToken, message));
+                message => SetErrorForExecution(executionToken, message),
+                interactionContext,
+                variableStore);
 
             if (CurrentModule == null || CurrentModule.steps == null)
             {

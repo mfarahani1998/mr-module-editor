@@ -10,7 +10,7 @@ namespace MRModuleEditor.Authoring.Editor
     [InitializeOnLoad]
     public static class ModulePreviewLauncher
     {
-        private const string RuntimePreviewScenePath = "Assets/MRModuleEditor/Samples/Scenes/RuntimePreview.unity";
+        private const string RuntimePreviewScenePath = RuntimePreviewScenePathUtility.RuntimePreviewScenePath;
         private const string PreviewRequestedKey = "MRModuleEditor.Authoring.PreviewRequested";
         private const string PreviewModulePathKey = "MRModuleEditor.Authoring.PreviewModulePathFromAssets";
 
@@ -35,6 +35,17 @@ namespace MRModuleEditor.Authoring.Editor
             {
                 return;
             }
+
+            if (!RuntimePreviewScenePathUtility.PersistAssetsRelativeModulePathForPreviewScenes(
+                    relativePathFromAssets,
+                    out string sceneUpdateError))
+            {
+                EditorUtility.DisplayDialog(
+                    "Could Not Update Preview Scene",
+                    sceneUpdateError,
+                    "OK");
+                return;
+            }            
 
             SessionState.SetBool(PreviewRequestedKey, true);
             SessionState.SetString(PreviewModulePathKey, relativePathFromAssets);
@@ -67,6 +78,7 @@ namespace MRModuleEditor.Authoring.Editor
             {
                 if (loaders[i] != null)
                 {
+                    loaders[i].LoadMode = ModuleLoadMode.AssetsRelative;
                     loaders[i].RelativeModulePathFromAssets = relativePathFromAssets;
                 }
             }

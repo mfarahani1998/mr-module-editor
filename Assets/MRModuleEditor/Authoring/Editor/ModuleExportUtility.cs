@@ -4,6 +4,7 @@ using System.IO;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Serialization;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace MRModuleEditor.Authoring.Editor
@@ -105,6 +106,25 @@ namespace MRModuleEditor.Authoring.Editor
 
             string relativePath = BuildStreamingAssetsRelativeModulePath(moduleJsonPath);
 
+            bool updatedSceneDefaults = false;
+            string sceneUpdateMessage;
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                updatedSceneDefaults = RuntimePreviewScenePathUtility
+                    .PersistStreamingAssetsRelativeModulePathForPreviewScenes(
+                        relativePath,
+                        out string sceneUpdateError);
+
+                sceneUpdateMessage = updatedSceneDefaults
+                    ? "Updated RuntimePreview scene defaults."
+                    : "Could not update RuntimePreview scene defaults: " + sceneUpdateError;
+            }
+            else
+            {
+                sceneUpdateMessage =
+                    "Skipped updating RuntimePreview scene defaults because modified scene changes were not saved.";
+            }
+
             Debug.Log(
                 "Exported module to StreamingAssets: " + targetFolder +
                 "\nRuntimeModuleLoader StreamingAssets relative path should be: " + relativePath);
@@ -112,7 +132,8 @@ namespace MRModuleEditor.Authoring.Editor
             EditorUtility.DisplayDialog(
                 "Exported To StreamingAssets",
                 "Exported module to:\n\n" + targetFolder +
-                "\n\nRuntimeModuleLoader StreamingAssets relative path:\n\n" + relativePath,
+                "\nRuntimeModuleLoader StreamingAssets relative path: " + relativePath +
+                "\n" + sceneUpdateMessage,
                 "OK");
         }
 

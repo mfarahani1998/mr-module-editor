@@ -6,8 +6,10 @@ using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.Flow;
 using MRModuleEditor.Runtime.IO;
+using MRModuleEditor.Runtime.Interaction;
 using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.UI;
+using MRModuleEditor.Runtime.Variables;
 using UnityEngine;
 
 namespace MRModuleEditor.Runtime
@@ -26,7 +28,9 @@ namespace MRModuleEditor.Runtime
             Func<bool> isPaused,
             Func<bool> stopRequested,
             Action<string> logInfo,
-            Action<string> logError)
+            Action<string> logError,
+            InteractionContext interactionContext = null,
+            RuntimeVariableStore variableStore = null)
             : this(
                 module,
                 moduleDirectory,
@@ -38,7 +42,9 @@ namespace MRModuleEditor.Runtime
                 isPaused,
                 stopRequested,
                 logInfo,
-                logError)
+                logError,
+                interactionContext,
+                variableStore)
         {
         }
 
@@ -53,7 +59,9 @@ namespace MRModuleEditor.Runtime
             Func<bool> isPaused,
             Func<bool> stopRequested,
             Action<string> logInfo,
-            Action<string> logError)
+            Action<string> logError,
+            InteractionContext interactionContext = null,
+            RuntimeVariableStore variableStore = null)
         {
             Module = module;
             ModuleDirectory = moduleDirectory ?? "";
@@ -61,6 +69,8 @@ namespace MRModuleEditor.Runtime
             DisplayPanel = displayPanel;
             AnchorResolver = anchorResolver;
             SpatialUI = spatialUIService;
+            Interaction = interactionContext;
+            Variables = variableStore;
             ExecutionToken = executionToken ?? new RuntimeExecutionToken(0);
             Results = new RuntimeResultStore();
             IsPaused = isPaused;
@@ -77,6 +87,8 @@ namespace MRModuleEditor.Runtime
         public RuntimeDisplayPanel DisplayPanel { get; private set; }
         public AnchorResolver AnchorResolver { get; private set; }
         public SpatialUIService SpatialUI { get; private set; }
+        public InteractionContext Interaction { get; private set; }
+        public RuntimeVariableStore Variables { get; private set; }
         public RuntimeExecutionToken ExecutionToken { get; private set; }
         public RuntimeResultStore Results { get; private set; }
         public Func<bool> IsPaused { get; private set; }

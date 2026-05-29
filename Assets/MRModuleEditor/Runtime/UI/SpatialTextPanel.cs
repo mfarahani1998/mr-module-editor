@@ -42,6 +42,10 @@ namespace MRModuleEditor.Runtime.UI
         private ModuleStep currentStep;
         private string showingStepId = "";
         private bool hasAppliedPose;
+        private bool hasFallbackPoseOverride;
+        private Vector3 fallbackLocalOffsetOverride;
+        private Vector3 fallbackLocalEulerOverride;
+        private Vector3 fallbackLocalScaleOverride = Vector3.one;
 
         private SpatialLayoutResolver LayoutResolver
         {
@@ -94,12 +98,39 @@ namespace MRModuleEditor.Runtime.UI
 
         public void ShowText(ModuleDocument module, ModuleStep step, string body)
         {
+            ShowTextInternal(module, step, body, false, Vector3.zero, Vector3.zero, Vector3.one);
+        }
+
+        public void ShowText(
+            ModuleDocument module,
+            ModuleStep step,
+            string body,
+            Vector3 fallbackLocalOffset,
+            Vector3 fallbackLocalEuler,
+            Vector3 fallbackLocalScale)
+        {
+            ShowTextInternal(module, step, body, true, fallbackLocalOffset, fallbackLocalEuler, fallbackLocalScale);
+        }
+
+        private void ShowTextInternal(
+            ModuleDocument module,
+            ModuleStep step,
+            string body,
+            bool useFallbackPoseOverride,
+            Vector3 fallbackLocalOffset,
+            Vector3 fallbackLocalEuler,
+            Vector3 fallbackLocalScale)
+        {
             EnsureVisuals();
 
             currentModule = module;
             currentStep = step;
             showingStepId = step == null ? "" : step.id;
             hasAppliedPose = false;
+            hasFallbackPoseOverride = useFallbackPoseOverride;
+            fallbackLocalOffsetOverride = fallbackLocalOffset;
+            fallbackLocalEulerOverride = fallbackLocalEuler;
+            fallbackLocalScaleOverride = fallbackLocalScale == Vector3.zero ? Vector3.one : fallbackLocalScale;
 
             titleText.text = step == null ? "" : step.title ?? "";
             bodyText.text = SpatialRenderUtility.Wrap(body ?? "", GetEffectiveWrapCharacters());
@@ -127,6 +158,10 @@ namespace MRModuleEditor.Runtime.UI
             currentModule = null;
             currentStep = null;
             hasAppliedPose = false;
+            hasFallbackPoseOverride = false;
+            fallbackLocalOffsetOverride = Vector3.zero;
+            fallbackLocalEulerOverride = Vector3.zero;
+            fallbackLocalScaleOverride = Vector3.one;
 
             if (titleText != null) titleText.text = "";
             if (bodyText != null) bodyText.text = "";
@@ -158,13 +193,17 @@ namespace MRModuleEditor.Runtime.UI
             string error;
 
             string fallbackAnchorId = currentStep.GetString("anchorId", "anchor.head.default");
+            Vector3 fallbackLocalOffset = hasFallbackPoseOverride ? fallbackLocalOffsetOverride : panelLocalOffset;
+            Vector3 fallbackLocalEuler = hasFallbackPoseOverride ? fallbackLocalEulerOverride : Vector3.zero;
+            Vector3 fallbackLocalScale = hasFallbackPoseOverride ? fallbackLocalScaleOverride : Vector3.one;
+
             bool ok = resolver.TryResolvePoseForStep(
                 currentModule,
                 currentStep,
                 fallbackAnchorId,
-                panelLocalOffset,
-                Vector3.zero,
-                Vector3.one,
+                fallbackLocalOffset,
+                fallbackLocalEuler,
+                fallbackLocalScale,
                 applyPanelLocalOffsetToAuthoredLayouts,
                 out targetPose,
                 out targetScale,

@@ -184,7 +184,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             if (GUILayout.Button("Export", EditorStyles.toolbarButton))
             {
-                ModuleExportUtility.ExportCurrentModuleFolderMenu();
+                ModuleExportUtility.ExportCurrentModuleToStreamingAssetsMenu();
             }
 
             GUILayout.FlexibleSpace();

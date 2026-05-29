@@ -1,6 +1,6 @@
 # Adding Step Types — Current Workflow Before Step Catalog
 
-This document intentionally describes the current painful workflow. Phase 2 will replace it with a Step Catalog and modular validation/inspector flow.
+This document is historical. The project now uses the Step Catalog flow described in `ADDING_STEP_TYPES.md`; keep this only as context for why the catalog exists.
 
 ## Current rule
 

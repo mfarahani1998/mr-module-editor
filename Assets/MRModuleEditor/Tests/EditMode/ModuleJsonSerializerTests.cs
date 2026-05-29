@@ -86,6 +86,71 @@ namespace MRModuleEditor.Tests.EditMode
         }
 
         [Test]
+        public void Deserialize_MigratesDeprecatedSignalGateToConfirm()
+        {
+            string json = @"{
+  ""schemaVersion"": ""0.1"",
+  ""moduleId"": ""module.legacy_signal"",
+  ""title"": ""Legacy Signal"",
+  ""steps"": [
+    {
+      ""id"": ""step.legacy"",
+      ""type"": ""waitForSignal"",
+      ""title"": ""Legacy Gate"",
+      ""parameters"": {
+        ""action"": ""Select"",
+        ""targetId"": ""target.demo"",
+        ""intPayload"": 2,
+        ""timeoutSeconds"": 1.5,
+        ""variableKey"": ""demo.signalReceived""
+      }
+    }
+  ]
+}";
+
+            ModuleDocument document = ModuleJsonSerializer.Deserialize(json);
+            ModuleStep step = AssertStep(document, "step.legacy", "confirm");
+
+            Assert.IsTrue(step.GetBool("completeOnSignal", false));
+            Assert.AreEqual("Select", step.GetString("signalAction", ""));
+            Assert.AreEqual("target.demo", step.GetString("signalTargetId", ""));
+            Assert.AreEqual(2, step.GetInt("signalIntPayload", -1));
+            Assert.AreEqual(1.5f, step.GetFloat("autoContinueAfterSeconds", 0f), 0.001f);
+            Assert.AreEqual("demo.signalReceived", step.GetString("resultVariableKey", ""));
+            Assert.IsFalse(step.HasParameter("targetId"));
+            Assert.IsFalse(step.HasParameter("variableKey"));
+        }
+
+
+        [Test]
+        public void Deserialize_MigratesDeprecatedSignalGateWithoutTargetAsAnyTarget()
+        {
+            string json = @"{
+  ""schemaVersion"": ""0.1"",
+  ""moduleId"": ""module.legacy_signal_any_target"",
+  ""title"": ""Legacy Signal Any Target"",
+  ""steps"": [
+    {
+      ""id"": ""step.legacy.any"",
+      ""type"": ""waitForSignal"",
+      ""title"": ""Legacy Any Target Gate"",
+      ""parameters"": {
+        ""action"": ""Select""
+      }
+    }
+  ]
+}";
+
+            ModuleDocument document = ModuleJsonSerializer.Deserialize(json);
+            ModuleStep step = AssertStep(document, "step.legacy.any", "confirm");
+
+            Assert.IsTrue(step.GetBool("completeOnSignal", false));
+            Assert.AreEqual("Select", step.GetString("signalAction", ""));
+            Assert.AreEqual("", step.GetString("signalTargetId", "not-empty"));
+            Assert.AreEqual(-1, step.GetInt("signalIntPayload", 0));
+        }
+
+        [Test]
         public void SampleModule_ReferencedImageAssetExistsOnDisk()
         {
             ModuleDocument document = ModuleJsonSerializer.LoadFromFile(SamplePath);

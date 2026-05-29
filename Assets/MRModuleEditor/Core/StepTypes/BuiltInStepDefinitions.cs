@@ -72,7 +72,7 @@ namespace MRModuleEditor.Core.StepTypes
                 "confirm",
                 "Confirm",
                 "Flow",
-                "Shows a learner-paced acknowledgement step.",
+                "Shows a learner-paced acknowledgement step. It can optionally also complete from a filtered runtime interaction signal.",
                 true,
                 0f,
                 new[]
@@ -80,7 +80,35 @@ namespace MRModuleEditor.Core.StepTypes
                     new StepParameterDefinition("message", "Message", StepParameterKind.MultilineString, true, "Read this, then continue when you are ready."),
                     new StepParameterDefinition("buttonLabel", "Button Label", StepParameterKind.String, false, "Continue"),
                     new StepParameterDefinition("autoContinueAfterSeconds", "Auto Continue After Seconds", StepParameterKind.Float, false, 0f),
-                    new StepParameterDefinition("anchorId", "Fallback Anchor ID", StepParameterKind.AnchorId, false, "anchor.head.default")
+                    new StepParameterDefinition("anchorId", "Fallback Anchor ID", StepParameterKind.AnchorId, false, "anchor.head.default"),
+                    new StepParameterDefinition("completeOnSignal", "Complete On Interaction Signal", StepParameterKind.Bool, false, false),
+                    new StepParameterDefinition("signalAction", "Signal Action", StepParameterKind.Choice, false, "Select")
+                        .WithChoices("Any", "Select", "HoverEnter", "HoverExit", "HoverProgress", "RecenterWorld")
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("signalTargetId", "Signal Target ID", StepParameterKind.String, false, "{stepId}.confirm")
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("signalIntPayload", "Signal Int Payload (-1 = any)", StepParameterKind.Int, false, -1)
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("resultVariableKey", "Result Variable Key", StepParameterKind.String, false, "")
+                        .VisibleWhenBool("completeOnSignal", true)
+                }));
+
+
+            catalog.Register(new StepTypeDefinition(
+                "setVariable",
+                "Set Variable",
+                "Flow",
+                "Writes a simple string, float, int, or bool value into RuntimeVariableStore.",
+                false,
+                0f,
+                new[]
+                {
+                    new StepParameterDefinition("variableKey", "Variable Key", StepParameterKind.String, true, "demo.status"),
+                    new StepParameterDefinition("valueType", "Value Type", StepParameterKind.Choice, false, "String").WithChoices("String", "Float", "Int", "Bool"),
+                    new StepParameterDefinition("stringValue", "String Value", StepParameterKind.String, false, "ready"),
+                    new StepParameterDefinition("floatValue", "Float Value", StepParameterKind.Float, false, 0f),
+                    new StepParameterDefinition("intValue", "Int Value", StepParameterKind.Int, false, 0),
+                    new StepParameterDefinition("boolValue", "Bool Value", StepParameterKind.Bool, false, true)
                 }));
 
             catalog.Register(new StepTypeDefinition(
@@ -94,6 +122,41 @@ namespace MRModuleEditor.Core.StepTypes
                 {
                     new StepParameterDefinition("objectId", "Object", StepParameterKind.ObjectId, true, "object.robot_preview"),
                     new StepParameterDefinition("visible", "Visible", StepParameterKind.Bool, false, true)
+                }));
+
+
+            catalog.Register(new StepTypeDefinition(
+                "highlightObject",
+                "Highlight Object",
+                "Objects",
+                "Applies a reversible visual emphasis to a bound scene object.",
+                false,
+                0f,
+                new[]
+                {
+                    new StepParameterDefinition("objectId", "Object", StepParameterKind.ObjectId, true, "object.equipment_demo"),
+                    new StepParameterDefinition("enabled", "Enabled", StepParameterKind.Bool, false, true),
+                    new StepParameterDefinition("colorHex", "Color Hex", StepParameterKind.String, false, "#42A5FF"),
+                    new StepParameterDefinition("pulseAmplitude", "Pulse Amplitude", StepParameterKind.Float, false, 0.08f),
+                    new StepParameterDefinition("pulseSeconds", "Pulse Seconds", StepParameterKind.Float, false, 0.8f),
+                    new StepParameterDefinition("clearOnComplete", "Clear On Complete", StepParameterKind.Bool, false, false)
+                }));
+
+            catalog.Register(new StepTypeDefinition(
+                "showCallout",
+                "Show Callout",
+                "Objects",
+                "Shows a small text callout attached to a head, world, or object anchor.",
+                true,
+                0f,
+                new[]
+                {
+                    new StepParameterDefinition("text", "Text", StepParameterKind.MultilineString, true, "Look here."),
+                    new StepParameterDefinition("anchorId", "Anchor", StepParameterKind.AnchorId, false, "anchor.head.default"),
+                    new StepParameterDefinition("localOffset", "Local Offset", StepParameterKind.Vector3, false, MakeVector(0f, 0.55f, 0f)),
+                    new StepParameterDefinition("localEuler", "Local Euler", StepParameterKind.Vector3, false, MakeVector(0f, 0f, 0f)),
+                    new StepParameterDefinition("localScale", "Local Scale", StepParameterKind.Vector3, false, MakeVector(1f, 1f, 1f)),
+                    new StepParameterDefinition("clearOnComplete", "Clear On Complete", StepParameterKind.Bool, false, false)
                 }));
 
             catalog.Register(new StepTypeDefinition(
