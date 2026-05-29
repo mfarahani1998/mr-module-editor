@@ -3,6 +3,7 @@ using System.IO;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Serialization;
 using MRModuleEditor.Runtime;
+using MRModuleEditor.Runtime.SceneBinding;
 using MRModuleEditor.Runtime.UI;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -92,6 +93,53 @@ namespace MRModuleEditor.Tests.PlayMode
             File.Delete(path);
         }
 
+
+
+        [UnityTest]
+        public IEnumerator ModuleRunner_PrepareStepsBeforeStartStep_AppliesObjectCarryOnEffects()
+        {
+            string directory = Path.Combine(Application.temporaryCachePath, "MRModuleEditorPreviewPreparationTests");
+            Directory.CreateDirectory(directory);
+            string path = Path.Combine(directory, "module.json").Replace("\\", "/");
+            ModuleJsonSerializer.SaveToFile(MakePreparationCarryOnModule(), path);
+
+            GameObject services = new GameObject("Preview Preparation Runner Test Services");
+            RuntimeModuleLoader loader = services.AddComponent<RuntimeModuleLoader>();
+            services.AddComponent<SceneBindingRegistry>();
+            ModuleRunner runner = services.AddComponent<ModuleRunner>();
+
+            GameObject target = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            target.name = "Preview Box";
+            BindableObject bindable = target.AddComponent<BindableObject>();
+            bindable.BindingKey = "Preview Box";
+            target.SetActive(false);
+
+            loader.LoadMode = ModuleLoadMode.AbsolutePath;
+            loader.AbsoluteModulePath = path;
+            runner.StartStepId = "step.003";
+            runner.PrepareStepsBeforeStartStep = true;
+
+            yield return null;
+
+            Assert.IsTrue(runner.LoadModule(), runner.LastError);
+            Assert.That(target.activeSelf, Is.False, "Baseline should capture the object as hidden before the preview run.");
+            runner.Play();
+
+            float timeout = Time.time + 2f;
+            while (runner.State == RuntimeRunnerState.Playing && Time.time < timeout)
+            {
+                yield return null;
+            }
+
+            Assert.AreEqual(RuntimeRunnerState.Completed, runner.State, runner.LastError);
+            Assert.That(target.activeSelf, Is.True, "Preview preparation should apply the previous showObject carry-on effect before starting at step.003.");
+            Assert.That(runner.PreviewPreparationSummary, Does.Contain("Prepared"));
+
+            Object.Destroy(target);
+            Object.Destroy(services);
+            File.Delete(path);
+        }
+
         private static ModuleDocument MakeBranchingModule()
         {
             ModuleDocument document = new ModuleDocument();
@@ -144,6 +192,54 @@ namespace MRModuleEditor.Tests.PlayMode
                 durationSeconds = 0.05f
             };
             summary.parameters["text"] = JToken.FromObject("Summary.");
+            document.steps.Add(summary);
+
+            return document;
+        }
+
+
+
+        private static ModuleDocument MakePreparationCarryOnModule()
+        {
+            ModuleDocument document = new ModuleDocument();
+            document.schemaVersion = "0.1";
+            document.moduleId = "module.preview_preparation_test";
+            document.title = "Preview Preparation Test";
+            document.author = "Tests";
+            document.estimatedDurationSeconds = 10;
+            document.objects.Add(new ModuleObject
+            {
+                id = "object.preview_box",
+                label = "Preview Box",
+                bindingKey = "Preview Box"
+            });
+
+            ModuleStep showObject = new ModuleStep
+            {
+                id = "step.001",
+                type = "showObject",
+                title = "Show Box"
+            };
+            showObject.parameters["objectId"] = JToken.FromObject("object.preview_box");
+            showObject.parameters["visible"] = JToken.FromObject(true);
+            document.steps.Add(showObject);
+
+            ModuleStep wait = new ModuleStep
+            {
+                id = "step.002",
+                type = "wait",
+                title = "Skipped Wait",
+                durationSeconds = 5f
+            };
+            document.steps.Add(wait);
+
+            ModuleStep summary = new ModuleStep
+            {
+                id = "step.003",
+                type = "wait",
+                title = "Selected Step",
+                durationSeconds = 0.05f
+            };
             document.steps.Add(summary);
 
             return document;

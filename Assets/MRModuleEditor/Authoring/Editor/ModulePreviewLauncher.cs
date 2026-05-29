@@ -14,6 +14,7 @@ namespace MRModuleEditor.Authoring.Editor
         private const string PreviewRequestedKey = "MRModuleEditor.Authoring.PreviewRequested";
         private const string PreviewModulePathKey = "MRModuleEditor.Authoring.PreviewModulePathFromAssets";
         private const string PreviewStartStepIdKey = "MRModuleEditor.Authoring.PreviewStartStepId";
+        private const string PreviewPrepareStepsBeforeStartKey = "MRModuleEditor.Authoring.PreviewPrepareStepsBeforeStart";
 
         static ModulePreviewLauncher()
         {
@@ -26,6 +27,11 @@ namespace MRModuleEditor.Authoring.Editor
         }
 
         public static void LaunchPreview(string absoluteModulePath, string startStepId)
+        {
+            LaunchPreview(absoluteModulePath, startStepId, false);
+        }
+
+        public static void LaunchPreview(string absoluteModulePath, string startStepId, bool prepareStepsBeforeStart)
         {
             string relativePathFromAssets = ToRelativePathFromAssets(absoluteModulePath);
             if (string.IsNullOrWhiteSpace(relativePathFromAssets))
@@ -56,6 +62,7 @@ namespace MRModuleEditor.Authoring.Editor
             SessionState.SetBool(PreviewRequestedKey, true);
             SessionState.SetString(PreviewModulePathKey, relativePathFromAssets);
             SessionState.SetString(PreviewStartStepIdKey, startStepId ?? "");
+            SessionState.SetBool(PreviewPrepareStepsBeforeStartKey, prepareStepsBeforeStart);
 
             if (EditorSceneManager.GetActiveScene().path != RuntimePreviewScenePath)
             {
@@ -80,6 +87,7 @@ namespace MRModuleEditor.Authoring.Editor
             SessionState.SetBool(PreviewRequestedKey, false);
             string relativePathFromAssets = SessionState.GetString(PreviewModulePathKey, "");
             string startStepId = SessionState.GetString(PreviewStartStepIdKey, "");
+            bool prepareStepsBeforeStart = SessionState.GetBool(PreviewPrepareStepsBeforeStartKey, false);
 
             RuntimeModuleLoader[] loaders = Object.FindObjectsByType<RuntimeModuleLoader>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < loaders.Length; i++)
@@ -99,6 +107,7 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             runner.StartStepId = startStepId;
+            runner.PrepareStepsBeforeStartStep = prepareStepsBeforeStart;
 
             if (!runner.LoadModule())
             {
@@ -109,7 +118,10 @@ namespace MRModuleEditor.Authoring.Editor
             string startMessage = string.IsNullOrWhiteSpace(startStepId)
                 ? ""
                 : " Starting from step id: " + startStepId + ".";
-            Debug.Log("Preview loaded." + startMessage + " Press Play in the runtime control panel to start the module.");
+            string preparationMessage = prepareStepsBeforeStart
+                ? " Previous deterministic step effects will be prepared before Play reaches the selected step."
+                : "";
+            Debug.Log("Preview loaded." + startMessage + preparationMessage + " Press Play in the runtime control panel to start the module.");
         }
 
         private static string ToRelativePathFromAssets(string absolutePath)

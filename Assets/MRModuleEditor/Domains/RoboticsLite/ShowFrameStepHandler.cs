@@ -1,12 +1,13 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime;
+using MRModuleEditor.Runtime.Preview;
 using MRModuleEditor.Runtime.StepHandlers;
 using UnityEngine;
 
 namespace MRModuleEditor.Domains.RoboticsLite
 {
-    public class ShowFrameStepHandler : IStepHandler
+    public class ShowFrameStepHandler : IStepHandler, IPreviewPreparationStepHandler
     {
         public string StepType
         {
@@ -25,22 +26,10 @@ namespace MRModuleEditor.Domains.RoboticsLite
             bool visible = step.GetBool("visible", true);
             float duration = StepParameterReader.GetDuration(step, 0.5f);
 
-            RobotLiteRig rig;
             string error;
-            if (!TryResolveRig(context, objectId, out rig, out error))
+            if (!TrySetFrameVisible(context, objectId, jointIndex, visible, out error))
             {
                 if (!context.IsCancellationRequested && context.LogError != null) context.LogError(error);
-                yield break;
-            }
-
-            if (context.IsCancellationRequested)
-            {
-                yield break;
-            }
-
-            if (!rig.TrySetFrameVisible(jointIndex, visible, out error))
-            {
-                if (context.LogError != null) context.LogError(error);
                 yield break;
             }
 
@@ -50,29 +39,41 @@ namespace MRModuleEditor.Domains.RoboticsLite
             }
         }
 
-        private static bool TryResolveRig(
+        public bool PrepareForPreview(
+            ModuleStep step,
+            RuntimeContext context,
+            PreviewPreparationContext preparationContext,
+            int stepIndex)
+        {
+            string objectId = step.GetString("objectId", "object.robot_preview");
+            int jointIndex = step.GetInt("jointIndex", 0);
+            bool visible = step.GetBool("visible", true);
+
+            string error;
+            if (!TrySetFrameVisible(context, objectId, jointIndex, visible, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            preparationContext.MarkApplied(step, stepIndex, "Applied robot frame visibility without waiting for the step duration.");
+            return true;
+        }
+
+        private static bool TrySetFrameVisible(
             RuntimeContext context,
             string objectId,
-            out RobotLiteRig rig,
+            int jointIndex,
+            bool visible,
             out string error)
         {
-            rig = null;
-            error = "";
-
-            GameObject robotObject;
-            if (!context.TryResolveObject(objectId, out robotObject, out error))
+            RobotLiteRig rig;
+            if (!RobotLiteRigResolver.TryResolveRig(context, objectId, out rig, out error))
             {
                 return false;
             }
 
-            rig = robotObject.GetComponentInChildren<RobotLiteRig>(true);
-            if (rig == null)
-            {
-                error = "Object '" + objectId + "' does not have a RobotLiteRig component.";
-                return false;
-            }
-
-            return true;
+            return rig.TrySetFrameVisible(jointIndex, visible, out error);
         }
     }
 }

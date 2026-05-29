@@ -1,11 +1,12 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
+using MRModuleEditor.Runtime.Preview;
 using MRModuleEditor.Runtime.Variables;
 using UnityEngine;
 
 namespace MRModuleEditor.Runtime.StepHandlers
 {
-    public class SetVariableStepHandler : IStepHandler
+    public class SetVariableStepHandler : IStepHandler, IPreviewPreparationStepHandler
     {
         public string StepType
         {
@@ -14,14 +15,48 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
         public IEnumerator Execute(ModuleStep step, RuntimeContext context)
         {
-            string key = step.GetString("variableKey", "");
-            if (string.IsNullOrWhiteSpace(key))
+            string error;
+            if (!TryApplyVariable(step, context, out error))
             {
                 if (context.LogError != null)
                 {
-                    context.LogError("setVariable is missing variableKey.");
+                    context.LogError(error);
                 }
                 yield break;
+            }
+
+            float durationSeconds = StepParameterReader.GetDuration(step, 0f);
+            if (durationSeconds > 0f)
+            {
+                yield return context.WaitRespectingPause(durationSeconds);
+            }
+        }
+
+        public bool PrepareForPreview(
+            ModuleStep step,
+            RuntimeContext context,
+            PreviewPreparationContext preparationContext,
+            int stepIndex)
+        {
+            string error;
+            if (!TryApplyVariable(step, context, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            preparationContext.MarkApplied(step, stepIndex, "Applied variable value without waiting for the step duration.");
+            return true;
+        }
+
+        private static bool TryApplyVariable(ModuleStep step, RuntimeContext context, out string error)
+        {
+            error = "";
+            string key = step.GetString("variableKey", "");
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                error = "setVariable is missing variableKey.";
+                return false;
             }
 
             RuntimeVariableStore store = context.Variables;
@@ -32,11 +67,8 @@ namespace MRModuleEditor.Runtime.StepHandlers
 
             if (store == null)
             {
-                if (context.LogError != null)
-                {
-                    context.LogError("setVariable needs a RuntimeVariableStore in the scene.");
-                }
-                yield break;
+                error = "setVariable needs a RuntimeVariableStore in the scene.";
+                return false;
             }
 
             string valueType = step.GetString("valueType", "String");
@@ -58,12 +90,7 @@ namespace MRModuleEditor.Runtime.StepHandlers
             }
 
             store.FlushPendingUpdates();
-
-            float durationSeconds = StepParameterReader.GetDuration(step, 0f);
-            if (durationSeconds > 0f)
-            {
-                yield return context.WaitRespectingPause(durationSeconds);
-            }
+            return true;
         }
     }
 }

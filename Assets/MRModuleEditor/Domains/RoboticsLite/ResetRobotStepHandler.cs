@@ -1,11 +1,12 @@
 using System.Collections;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime;
+using MRModuleEditor.Runtime.Preview;
 using MRModuleEditor.Runtime.StepHandlers;
 
 namespace MRModuleEditor.Domains.RoboticsLite
 {
-    public class ResetRobotStepHandler : IStepHandler
+    public class ResetRobotStepHandler : IStepHandler, IPreviewPreparationStepHandler
     {
         public string StepType
         {
@@ -22,9 +23,8 @@ namespace MRModuleEditor.Domains.RoboticsLite
             string objectId = step.GetString("objectId", "object.robot_preview");
             float duration = StepParameterReader.GetDuration(step, 0f);
 
-            RobotLiteRig rig;
             string error;
-            if (!RobotLiteRigResolver.TryResolveRig(context, objectId, out rig, out error))
+            if (!TryResetRig(context, objectId, out error))
             {
                 if (!context.IsCancellationRequested && context.LogError != null)
                 {
@@ -32,13 +32,6 @@ namespace MRModuleEditor.Domains.RoboticsLite
                 }
                 yield break;
             }
-
-            if (context.IsCancellationRequested)
-            {
-                yield break;
-            }
-
-            rig.ResetRig();
 
             if (context.LogInfo != null)
             {
@@ -49,6 +42,36 @@ namespace MRModuleEditor.Domains.RoboticsLite
             {
                 yield return context.WaitRespectingPause(duration);
             }
+        }
+
+        public bool PrepareForPreview(
+            ModuleStep step,
+            RuntimeContext context,
+            PreviewPreparationContext preparationContext,
+            int stepIndex)
+        {
+            string objectId = step.GetString("objectId", "object.robot_preview");
+            string error;
+            if (!TryResetRig(context, objectId, out error))
+            {
+                preparationContext.AddError(step, stepIndex, error);
+                return false;
+            }
+
+            preparationContext.MarkApplied(step, stepIndex, "Reset robot rig without waiting for the step duration.");
+            return true;
+        }
+
+        private static bool TryResetRig(RuntimeContext context, string objectId, out string error)
+        {
+            RobotLiteRig rig;
+            if (!RobotLiteRigResolver.TryResolveRig(context, objectId, out rig, out error))
+            {
+                return false;
+            }
+
+            rig.ResetRig();
+            return true;
         }
     }
 }

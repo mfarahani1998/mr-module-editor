@@ -423,6 +423,7 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             string startStepId = "";
+            bool prepareStepsBeforeStart = false;
             if (fromSelectedStep)
             {
                 if (!TryGetSelectedStepId(out startStepId))
@@ -430,11 +431,27 @@ namespace MRModuleEditor.Authoring.Editor
                     EditorUtility.DisplayDialog("Cannot Preview Selected", "Select a step with a non-empty id first.", "OK");
                     return;
                 }
+
+                bool previewFromStart;
+                if (!EditorPreviewPreparationUtility.ConfirmPreviewSelected(document, selectedStepIndex, out previewFromStart))
+                {
+                    return;
+                }
+
+                if (previewFromStart)
+                {
+                    startStepId = "";
+                    prepareStepsBeforeStart = false;
+                }
+                else
+                {
+                    prepareStepsBeforeStart = true;
+                }
             }
 
             RememberCurrentPath();
             SessionState.SetBool(ReloadAfterPreviewKey, true);
-            ModulePreviewLauncher.LaunchPreview(currentPath, startStepId);
+            ModulePreviewLauncher.LaunchPreview(currentPath, startStepId, prepareStepsBeforeStart);
         }
 
         private bool TryGetSelectedStepId(out string stepId)

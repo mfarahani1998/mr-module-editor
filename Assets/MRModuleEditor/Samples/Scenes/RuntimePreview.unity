@@ -1327,6 +1327,7 @@ MonoBehaviour:
   loadOnStart: 0
   playOnStart: 0
   startStepId: 
+  prepareStepsBeforeStartStep: 0
 --- !u!114 &1762172281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1381,7 +1382,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   loadMode: 0
   relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/NewLesson/module.json
-  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/EquipmentOrientationMini/module.json
+  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/NewLesson/module.json
   absoluteModulePath: 
   loadOnStart: 0
 --- !u!4 &1762172285

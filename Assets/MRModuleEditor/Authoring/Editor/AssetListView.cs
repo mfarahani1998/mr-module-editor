@@ -1,3 +1,4 @@
+using System.IO;
 using MRModuleEditor.Core.Models;
 using UnityEditor;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             EditorModuleDataUtility.EnsureLists(document);
             bool changed = false;
+            int assetIndexToRemove = -1;
 
             EditorGUILayout.LabelField("Assets", EditorStyles.boldLabel);
 
@@ -48,14 +50,17 @@ namespace MRModuleEditor.Authoring.Editor
 
                 DrawPerAssetHints(asset, moduleJsonPath);
 
-                bool remove = GUILayout.Button("Remove Asset");
-                EditorGUILayout.EndVertical();
-
-                if (remove)
+                if (GUILayout.Button("Remove Asset"))
                 {
-                    document.assets.RemoveAt(i);
-                    return true;
+                    assetIndexToRemove = i;
                 }
+
+                EditorGUILayout.EndVertical();
+            }
+
+            if (assetIndexToRemove >= 0 && assetIndexToRemove < document.assets.Count)
+            {
+                return TryRemoveAsset(document, moduleJsonPath, assetIndexToRemove) || changed;
             }
 
             EditorGUILayout.Space(4);
@@ -65,22 +70,28 @@ namespace MRModuleEditor.Authoring.Editor
                 "Save the module as module.json before importing.",
                 MessageType.None);
 
+            string importType = "";
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Import Image..."))
             {
-                return TryImportAsset(document, moduleJsonPath, "image");
+                importType = "image";
             }
 
             if (GUILayout.Button("Import Audio..."))
             {
-                return TryImportAsset(document, moduleJsonPath, "audio");
+                importType = "audio";
             }
 
             if (GUILayout.Button("Import Video..."))
             {
-                return TryImportAsset(document, moduleJsonPath, "video");
+                importType = "video";
             }
             EditorGUILayout.EndHorizontal();
+
+            if (!string.IsNullOrWhiteSpace(importType))
+            {
+                return TryImportAsset(document, moduleJsonPath, importType) || changed;
+            }
 
             EditorGUILayout.Space(4);
             EditorGUILayout.LabelField("Manual Asset Entries", EditorStyles.miniBoldLabel);
@@ -146,6 +157,95 @@ namespace MRModuleEditor.Authoring.Editor
             string label = importedAsset == null ? assetType : importedAsset.label;
             EditorUtility.DisplayDialog("Asset Imported", "Imported asset: " + label, "OK");
             return true;
+        }
+
+        private static bool TryRemoveAsset(ModuleDocument document, string moduleJsonPath, int assetIndex)
+        {
+            ModuleAsset asset = document.assets[assetIndex];
+            string assetLabel = BuildAssetLabel(asset, assetIndex);
+            string resolvedPath;
+            string resolveError;
+            bool canDeleteFile = EditorAssetImportUtility.TryResolveManagedAssetFilePath(
+                moduleJsonPath,
+                asset,
+                out resolvedPath,
+                out resolveError);
+
+            int choice;
+            if (canDeleteFile)
+            {
+                choice = EditorUtility.DisplayDialogComplex(
+                    "Remove Asset",
+                    "Remove '" + assetLabel + "' from this module?\n\n" +
+                    "You can remove only the module entry, or also delete the copied file from the module assets folder:\n" +
+                    resolvedPath,
+                    "Remove Entry Only",
+                    "Cancel",
+                    "Remove Entry And Delete File");
+            }
+            else
+            {
+                choice = EditorUtility.DisplayDialogComplex(
+                    "Remove Asset",
+                    "Remove '" + assetLabel + "' from this module?\n\n" +
+                    "No safe module asset file was found to delete. " +
+                    "Only files inside this module's assets/ folder can be removed from here.\n\n" +
+                    "Details: " + resolveError,
+                    "Remove Entry",
+                    "Cancel",
+                    "Keep");
+            }
+
+            if (choice == 1 || (choice == 2 && !canDeleteFile))
+            {
+                return false;
+            }
+
+            if (choice == 2 && canDeleteFile)
+            {
+                string deletedPath;
+                string deleteError;
+                if (!EditorAssetImportUtility.TryDeleteManagedAssetFile(
+                        moduleJsonPath,
+                        asset,
+                        out deletedPath,
+                        out deleteError))
+                {
+                    EditorUtility.DisplayDialog(
+                        "Asset File Was Not Deleted",
+                        "The module entry will be kept because the file could not be deleted.\n\n" + deleteError,
+                        "OK");
+                    return false;
+                }
+            }
+
+            document.assets.RemoveAt(assetIndex);
+            return true;
+        }
+
+        private static string BuildAssetLabel(ModuleAsset asset, int index)
+        {
+            if (asset == null)
+            {
+                return "Asset " + (index + 1);
+            }
+
+            if (!string.IsNullOrWhiteSpace(asset.label))
+            {
+                return asset.label;
+            }
+
+            if (!string.IsNullOrWhiteSpace(asset.id))
+            {
+                return asset.id;
+            }
+
+            if (!string.IsNullOrWhiteSpace(asset.path))
+            {
+                return Path.GetFileName(asset.path);
+            }
+
+            return "Asset " + (index + 1);
         }
 
         private static void DrawPerAssetHints(ModuleAsset asset, string moduleJsonPath)

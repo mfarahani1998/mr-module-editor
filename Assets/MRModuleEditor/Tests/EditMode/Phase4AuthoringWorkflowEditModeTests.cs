@@ -118,6 +118,62 @@ namespace MRModuleEditor.Tests.EditMode
             }
         }
 
+        [Test]
+        public void DeleteManagedAssetFileRemovesCopiedFileButRejectsOutsidePath()
+        {
+            string root = CreateTempRoot();
+            try
+            {
+                string moduleFolder = Path.Combine(root, "Module");
+                Directory.CreateDirectory(Path.Combine(moduleFolder, "assets/images"));
+                string moduleJsonPath = Path.Combine(moduleFolder, "module.json");
+                File.WriteAllText(moduleJsonPath, "{}");
+
+                string copiedAssetPath = Path.Combine(moduleFolder, "assets/images/intro.png");
+                File.WriteAllText(copiedAssetPath, "fake image bytes");
+
+                ModuleAsset asset = new ModuleAsset
+                {
+                    id = "asset.image.intro",
+                    type = "image",
+                    path = "assets/images/intro.png",
+                    label = "Intro"
+                };
+
+                bool deleted = EditorAssetImportUtility.TryDeleteManagedAssetFile(
+                    moduleJsonPath,
+                    asset,
+                    out string deletedPath,
+                    out string deleteError);
+
+                Assert.That(deleted, Is.True, deleteError);
+                Assert.That(deletedPath.Replace("\\", "/"), Does.EndWith("assets/images/intro.png"));
+                Assert.That(File.Exists(copiedAssetPath), Is.False);
+
+                ModuleAsset outsideAsset = new ModuleAsset
+                {
+                    id = "asset.image.outside",
+                    type = "image",
+                    path = "../outside.png",
+                    label = "Outside"
+                };
+
+                string ignoredResolvedPath;
+                bool resolved = EditorAssetImportUtility.TryResolveManagedAssetFilePath(
+                    moduleJsonPath,
+                    outsideAsset,
+                    out ignoredResolvedPath,
+                    out string resolveError);
+
+                Assert.That(resolved, Is.False);
+                Assert.That(resolveError, Does.Contain(".."));
+            }
+            finally
+            {
+                DeleteIfExists(root);
+            }
+        }
+
         private static ModuleDocument MinimalValidDocument()
         {
             ModuleDocument document = new ModuleDocument();
