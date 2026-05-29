@@ -72,7 +72,7 @@ namespace MRModuleEditor.Core.StepTypes
                 "confirm",
                 "Confirm",
                 "Flow",
-                "Shows a learner-paced acknowledgement step.",
+                "Shows a learner-paced acknowledgement step. It can optionally also complete from a filtered runtime interaction signal.",
                 true,
                 0f,
                 new[]
@@ -80,7 +80,17 @@ namespace MRModuleEditor.Core.StepTypes
                     new StepParameterDefinition("message", "Message", StepParameterKind.MultilineString, true, "Read this, then continue when you are ready."),
                     new StepParameterDefinition("buttonLabel", "Button Label", StepParameterKind.String, false, "Continue"),
                     new StepParameterDefinition("autoContinueAfterSeconds", "Auto Continue After Seconds", StepParameterKind.Float, false, 0f),
-                    new StepParameterDefinition("anchorId", "Fallback Anchor ID", StepParameterKind.AnchorId, false, "anchor.head.default")
+                    new StepParameterDefinition("anchorId", "Fallback Anchor ID", StepParameterKind.AnchorId, false, "anchor.head.default"),
+                    new StepParameterDefinition("completeOnSignal", "Complete On Interaction Signal", StepParameterKind.Bool, false, false),
+                    new StepParameterDefinition("signalAction", "Signal Action", StepParameterKind.Choice, false, "Select")
+                        .WithChoices("Any", "Select", "HoverEnter", "HoverExit", "HoverProgress", "RecenterWorld")
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("signalTargetId", "Signal Target ID", StepParameterKind.String, false, "{stepId}.confirm")
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("signalIntPayload", "Signal Int Payload (-1 = any)", StepParameterKind.Int, false, -1)
+                        .VisibleWhenBool("completeOnSignal", true),
+                    new StepParameterDefinition("resultVariableKey", "Result Variable Key", StepParameterKind.String, false, "")
+                        .VisibleWhenBool("completeOnSignal", true)
                 }));
 
 
@@ -99,22 +109,6 @@ namespace MRModuleEditor.Core.StepTypes
                     new StepParameterDefinition("floatValue", "Float Value", StepParameterKind.Float, false, 0f),
                     new StepParameterDefinition("intValue", "Int Value", StepParameterKind.Int, false, 0),
                     new StepParameterDefinition("boolValue", "Bool Value", StepParameterKind.Bool, false, true)
-                }));
-
-            catalog.Register(new StepTypeDefinition(
-                "waitForSignal",
-                "Wait For Signal",
-                "Interaction",
-                "Waits for a runtime InteractionContext signal such as Select or HoverEnter.",
-                false,
-                0f,
-                new[]
-                {
-                    new StepParameterDefinition("action", "Action", StepParameterKind.Choice, false, "Select").WithChoices("Any", "Select", "HoverEnter", "HoverExit", "HoverProgress"),
-                    new StepParameterDefinition("targetId", "Target ID Filter", StepParameterKind.String, false, ""),
-                    new StepParameterDefinition("intPayload", "Int Payload Filter (-1 = any)", StepParameterKind.Int, false, -1),
-                    new StepParameterDefinition("timeoutSeconds", "Timeout Seconds (0 = wait forever)", StepParameterKind.Float, false, 0f),
-                    new StepParameterDefinition("variableKey", "Result Variable Key", StepParameterKind.String, false, "")
                 }));
 
             catalog.Register(new StepTypeDefinition(

@@ -58,7 +58,11 @@ Text
 Image
 Audio
 Wait
+Confirm
+Set Variable
 Show Object
+Highlight Object
+Show Callout
 Move Object
 MCQ
 Show Frame
@@ -66,7 +70,7 @@ Rotate Joint
 Reset Robot
 ```
 
-The RoboticsLite buttons are useful for the sample, but Phase 2 should move domain-specific definitions out of core/editor hard-coded lists.
+Confirm is the single built-in learner-gate step. Use its optional signal-completion fields for advanced interaction-gated confirmations instead of adding a second wait/gate step. RoboticsLite buttons are registered by the sample domain pack.
 
 ## Edit assets/objects/anchors/layouts
 
@@ -106,7 +110,7 @@ MR Module Editor > Export > Export Current Module To StreamingAssets
 ## Current limitations
 
 - Asset import/copy is not yet a comfortable editor workflow.
-- Adding new step types is still hard-coded.
+- New executable step types still need a runtime handler registration and tests.
 - Object layout editing needs improvement.
 - Preview-from-selected-step is not yet implemented.
 - Validation messages are not yet grouped by category.

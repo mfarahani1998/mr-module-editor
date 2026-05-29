@@ -2,7 +2,7 @@
   "schemaVersion": "0.1",
   "moduleId": "module.equipment_orientation_mini",
   "title": "Equipment Orientation Mini",
-  "description": "A small non-robotics Phase 3 sample using confirm, highlightObject, showCallout, setVariable, waitForSignal, and MCQ.",
+  "description": "A small non-robotics Phase 3 sample using confirm, highlightObject, showCallout, setVariable, and MCQ.",
   "author": "MR Module Editor",
   "estimatedDurationSeconds": 90,
   "assets": [],
@@ -111,15 +111,19 @@
     },
     {
       "id": "step.007.signalGate",
-      "type": "waitForSignal",
-      "title": "Optional Signal Gate",
+      "type": "confirm",
+      "title": "Signal-Aware Confirm",
       "durationSeconds": 0.0,
       "parameters": {
-        "action": "Select",
-        "targetId": "step.007.signalGate.confirm",
-        "intPayload": 0,
-        "timeoutSeconds": 1.5,
-        "variableKey": "equipment.signalGate.received"
+        "message": "This uses the Confirm step as the single learner gate. Select Continue, or let the short auto-continue timeout advance the module.",
+        "buttonLabel": "Continue",
+        "autoContinueAfterSeconds": 5.0,
+        "anchorId": "anchor.head.default",
+        "completeOnSignal": true,
+        "signalAction": "Select",
+        "signalTargetId": "{stepId}.confirm",
+        "signalIntPayload": 0,
+        "resultVariableKey": "equipment.signalGate.received"
       }
     },
     {

@@ -15,7 +15,41 @@ namespace MRModuleEditor.Tests.EditMode
             AssertDefinition("highlightObject", "Objects");
             AssertDefinition("showCallout", "Objects");
             AssertDefinition("setVariable", "Flow");
-            AssertDefinition("waitForSignal", "Interaction");
+            AssertDefinition("confirm", "Flow");
+
+            StepTypeDefinition removedDefinition;
+            Assert.IsFalse(StepCatalog.Global.TryGet("waitForSignal", out removedDefinition));
+        }
+
+        [Test]
+        public void ConfirmStepExposesSignalCompletionAsOptInParameters()
+        {
+            StepTypeDefinition definition;
+            Assert.IsTrue(StepCatalog.Global.TryGet("confirm", out definition));
+
+            StepParameterDefinition signalAction = definition.Parameters.First(parameter => parameter.Key == "signalAction");
+            StepParameterDefinition signalTarget = definition.Parameters.First(parameter => parameter.Key == "signalTargetId");
+            StepParameterDefinition signalPayload = definition.Parameters.First(parameter => parameter.Key == "signalIntPayload");
+
+            Assert.AreEqual("Select", signalAction.DefaultValue.Value<string>());
+            Assert.AreEqual("{stepId}.confirm", signalTarget.DefaultValue.Value<string>());
+            Assert.AreEqual(-1, signalPayload.DefaultValue.Value<int>());
+            Assert.IsTrue(signalAction.HasVisibilityCondition);
+            Assert.AreEqual("completeOnSignal", signalAction.VisibleWhenParameterKey);
+            Assert.IsTrue(signalAction.VisibleWhenBoolValue);
+
+            ModuleStep step = new ModuleStep
+            {
+                id = "step.confirmSignal",
+                type = "confirm"
+            };
+
+            StepCatalog.Global.ApplyDefaults(step);
+
+            Assert.IsFalse(step.GetBool("completeOnSignal", true));
+            Assert.IsFalse(step.HasParameter("signalAction"));
+            Assert.IsFalse(step.HasParameter("signalTargetId"));
+            Assert.IsFalse(step.HasParameter("signalIntPayload"));
         }
 
         [Test]

@@ -4,17 +4,17 @@ This is a living list. Update it whenever a limitation is discovered or fixed.
 
 ## Phase 1 baseline limitations
 
-### Step extension is too manual
+### Step extension still requires runtime registration
 
-Adding a new step type currently requires edits in runtime, validation, editor UI, defaults, templates, and tests. This is the main reason Phase 2 exists.
+Step metadata is centralized in the Step Catalog, so editor add buttons, defaults, and generic validation no longer need separate hard-coded lists. A new executable step still needs a matching runtime handler registration and tests.
 
-### RoboticsLite appears in platform core/editor
+### Domain packs still need installer discipline
 
-The current sample/domain steps are useful, but RoboticsLite step names are still known by platform validation/editor files. Phase 2 should move this toward catalog/domain registration.
+The RoboticsLite sample now lives behind domain step definitions/installers, but new domain packs should keep their type definitions and handlers out of platform core unless the behavior is truly generic.
 
-### Parameter schema is implicit
+### Parameter schema is catalog-driven but still flexible
 
-`ModuleStep.parameters` is flexible, but parameter meaning is spread across handlers, validators, and editor UI. Phase 2 should preserve the JSON shape while centralizing metadata.
+`ModuleStep.parameters` remains a flexible dictionary. Built-in and domain catalog definitions describe expected fields, but advanced/custom parameters are still possible and require clear docs/tests.
 
 ### Authoring UI is functional but still demo-level
 

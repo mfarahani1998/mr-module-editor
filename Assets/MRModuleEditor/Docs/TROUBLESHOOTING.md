@@ -50,16 +50,17 @@ Symptom:
 [Error] step.unknownType: Unknown step type '...'
 ```
 
-Current known types are hard-coded in `ModuleValidator.cs` and `StepInspectorView.cs`.
+Known types come from `StepCatalog` registrations plus runtime handlers.
 
 Known baseline step types:
 
 ```text
-text, image, audio, wait, showObject, moveObject, mcq,
+text, image, audio, wait, confirm, setVariable,
+showObject, highlightObject, showCallout, moveObject, mcq,
 showFrame, rotateJoint, resetRobot
 ```
 
-Phase 2 will replace this with a Step Catalog.
+`confirm` is also the interaction-gated acknowledgement step; there is no separate wait-for-signal step type.
 
 ## Object binding missing
 

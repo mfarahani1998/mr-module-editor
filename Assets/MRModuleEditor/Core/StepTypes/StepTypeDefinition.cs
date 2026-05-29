@@ -77,12 +77,28 @@ namespace MRModuleEditor.Core.StepTypes
                     continue;
                 }
 
+                if (!IsParameterVisibleForDefaults(step, parameter))
+                {
+                    continue;
+                }
+
                 Newtonsoft.Json.Linq.JToken defaultValue = parameter.CloneDefaultValue();
                 if (defaultValue != null)
                 {
                     step.parameters[parameter.Key] = defaultValue;
                 }
             }
+        }
+
+        private static bool IsParameterVisibleForDefaults(ModuleStep step, StepParameterDefinition parameter)
+        {
+            if (parameter == null || !parameter.HasVisibilityCondition)
+            {
+                return true;
+            }
+
+            return step.GetBool(parameter.VisibleWhenParameterKey, !parameter.VisibleWhenBoolValue)
+                == parameter.VisibleWhenBoolValue;
         }
     }
 }

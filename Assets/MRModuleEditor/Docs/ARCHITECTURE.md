@@ -62,7 +62,11 @@ The authoring window is an Editor script. It can use `UnityEditor` APIs and can 
 | `image` | Show an image panel from a module asset. |
 | `audio` | Play an audio asset. |
 | `wait` | Wait for `durationSeconds`. |
+| `confirm` | Show a learner-paced confirmation prompt. Can optionally complete from a filtered `InteractionContext` signal. |
+| `setVariable` | Write a value into `RuntimeVariableStore`. |
 | `showObject` | Show or hide a scene-bound object. |
+| `highlightObject` | Apply reversible visual emphasis to a scene-bound object. |
+| `showCallout` | Show a small spatial text callout. |
 | `moveObject` | Move a scene-bound object. |
 | `mcq` | Show a multiple-choice question and branch based on answer. |
 
@@ -76,20 +80,7 @@ The authoring window is an Editor script. It can use `UnityEditor` APIs and can 
 
 ## Important current limitation
 
-Adding a new step type currently touches too many places:
-
-```text
-Runtime/StepHandlers/<NewStepHandler>.cs
-Runtime/StepHandlers/StepHandlerRegistry.cs
-Core/Validation/ModuleValidator.cs
-Authoring/Editor/StepListView.cs
-Authoring/Editor/StepInspectorView.cs
-Core/Templates/ModuleTemplateFactory.cs, if the template uses it
-Tests/EditMode/*
-Tests/PlayMode/*
-```
-
-Phase 2 addresses this with a Step Catalog and modular validation/inspector flow.
+New built-in steps should be added through the Step Catalog: define one `StepTypeDefinition`, register one runtime handler, then add tests/docs. The editor add menu, type popup, defaults, and most validation flow from the catalog instead of separate hard-coded lists.
 
 ## Assembly definition notes
 

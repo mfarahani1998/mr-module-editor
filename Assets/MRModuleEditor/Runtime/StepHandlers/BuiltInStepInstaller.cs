@@ -13,7 +13,6 @@ namespace MRModuleEditor.Runtime.StepHandlers
             registry.Register(new WaitStepHandler());
             registry.Register(new ConfirmStepHandler());
             registry.Register(new SetVariableStepHandler());
-            registry.Register(new WaitForSignalStepHandler());
             registry.Register(new ShowObjectStepHandler());
             registry.Register(new HighlightObjectStepHandler());
             registry.Register(new ShowCalloutStepHandler());

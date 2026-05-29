@@ -8,7 +8,7 @@ The current baseline supports:
 - Unity Editor authoring through `MR Module Editor > Module Editor`.
 - Runtime preview scenes.
 - Head, world, and object anchors.
-- Text, image, audio, wait, object visibility/movement, MCQ, and RoboticsLite demo steps.
+- Text, image, audio, wait, confirm, variable, object visibility/highlight/callout/movement, MCQ, and RoboticsLite demo steps.
 - Validation, export, and a sample Forward Kinematics mini module.
 
 ## Start here
@@ -36,5 +36,5 @@ The next expansion should not make the platform robotics-centered. `Domains/Robo
 
 ## Current extension warning
 
-Adding a new step type currently touches too many files: runtime registry, validation, editor add menu, editor inspector, defaults, templates, and tests. Phase 2 should address this with a Step Catalog and modular validation/inspector flow.
+Generic step metadata is centralized in the Step Catalog so the editor add menu, inspector defaults, and generic validation stay aligned with runtime handlers.
 

@@ -41,7 +41,7 @@ namespace MRModuleEditor.Tests.PlayMode
         }
 
         [UnityTest]
-        public IEnumerator WaitForSignalStepHandler_CompletesWhenMatchingSignalArrives()
+        public IEnumerator ConfirmStepHandler_CompletesWhenConfiguredSignalArrives()
         {
             GameObject services = new GameObject("Interaction Services");
             InteractionContext interaction = services.AddComponent<InteractionContext>();
@@ -50,16 +50,19 @@ namespace MRModuleEditor.Tests.PlayMode
             RuntimeContext context = MakeContext(MakeDocument(), interaction, null, store, null);
             ModuleStep step = new ModuleStep
             {
-                id = "step.waitSignal",
-                type = "waitForSignal",
-                title = "Wait For Signal"
+                id = "step.signalConfirm",
+                type = "confirm",
+                title = "Signal-Aware Confirm"
             };
-            step.parameters["action"] = JToken.FromObject("Select");
-            step.parameters["targetId"] = JToken.FromObject("target.demo");
-            step.parameters["intPayload"] = JToken.FromObject(2);
-            step.parameters["variableKey"] = JToken.FromObject("demo.signalReceived");
+            step.parameters["message"] = JToken.FromObject("Continue when the matching signal arrives.");
+            step.parameters["buttonLabel"] = JToken.FromObject("Continue");
+            step.parameters["completeOnSignal"] = JToken.FromObject(true);
+            step.parameters["signalAction"] = JToken.FromObject("Select");
+            step.parameters["signalTargetId"] = JToken.FromObject("target.demo");
+            step.parameters["signalIntPayload"] = JToken.FromObject(2);
+            step.parameters["resultVariableKey"] = JToken.FromObject("demo.signalReceived");
 
-            IEnumerator routine = new WaitForSignalStepHandler().Execute(step, context);
+            IEnumerator routine = new ConfirmStepHandler().Execute(step, context);
             Assert.IsTrue(routine.MoveNext());
 
             interaction.Emit(InteractionSignal.Select(InteractionSource.Keyboard, "target.demo", 2));
@@ -71,9 +74,13 @@ namespace MRModuleEditor.Tests.PlayMode
             }
 
             bool received;
-            Assert.IsTrue(context.Results.TryGetStepBool("step.waitSignal", "received", out received));
+            Assert.IsTrue(context.Results.TryGetStepBool("step.signalConfirm", "received", out received));
             Assert.IsTrue(received);
             Assert.AreEqual("true", store.GetString("demo.signalReceived", ""));
+
+            string completionReason;
+            Assert.IsTrue(context.Results.TryGetStepString("step.signalConfirm", "completionReason", out completionReason));
+            Assert.AreEqual("signal", completionReason);
 
             Object.Destroy(services);
         }

@@ -34,6 +34,7 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.AreEqual("Confirm", step.title);
             Assert.AreEqual("Continue", step.GetString("buttonLabel", ""));
             Assert.IsFalse(string.IsNullOrWhiteSpace(step.GetString("message", "")));
+            Assert.IsFalse(step.GetBool("completeOnSignal", true));
         }
 
         [Test]
