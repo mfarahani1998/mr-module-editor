@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.new_mr_lesson",
+  "title": "New MR Lesson",
+  "description": "A small starter lesson that validates without assets or scene object bindings.",
+  "author": "Your Name",
+  "estimatedDurationSeconds": 60,
+  "assets": [],
+  "objects": [],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head",
+      "targetObjectId": ""
+    },
+    {
+      "id": "anchor.world.table",
+      "type": "world",
+      "targetObjectId": ""
+    }
+  ],
+  "layouts": [
+    {
+      "id": "layout.step.001.welcome.head_panel",
+      "targetId": "step.001.welcome",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.2,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.002.ready.head_panel",
+      "targetId": "step.002.ready",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    {
+      "id": "layout.step.003.check.head_panel",
+      "targetId": "step.003.check",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    }
+  ],
+  "steps": [
+    {
+      "id": "step.001.welcome",
+      "type": "text",
+      "title": "Welcome",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "Write the first instruction for your lesson here.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002.ready",
+      "type": "confirm",
+      "title": "Ready Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "message": "Select Continue when you are ready to start.",
+        "buttonLabel": "Continue",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.003.check",
+      "type": "mcq",
+      "title": "Quick Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "question": "Replace this question with a checkpoint for your lesson.",
+        "choices": [
+          "Option A",
+          "Option B",
+          "Option C"
+        ],
+        "correctIndex": 0,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.004.complete",
+      "type": "text",
+      "title": "Complete",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "Lesson complete. Replace this with your summary.",
+        "anchorId": "anchor.head.default"
+      }
+    }
+  ]
+}

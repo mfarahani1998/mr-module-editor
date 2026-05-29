@@ -6,7 +6,7 @@ namespace MRModuleEditor.Authoring.Editor
 {
     public static class AssetListView
     {
-        public static bool Draw(ModuleDocument document)
+        public static bool Draw(ModuleDocument document, string moduleJsonPath = "")
         {
             if (document == null)
             {
@@ -46,6 +46,8 @@ namespace MRModuleEditor.Authoring.Editor
                     "Do not use Unity asset GUIDs here.",
                     MessageType.None);
 
+                DrawPerAssetHints(asset, moduleJsonPath);
+
                 bool remove = GUILayout.Button("Remove Asset");
                 EditorGUILayout.EndVertical();
 
@@ -55,6 +57,33 @@ namespace MRModuleEditor.Authoring.Editor
                     return true;
                 }
             }
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Import Assets", EditorStyles.miniBoldLabel);
+            EditorGUILayout.HelpBox(
+                "Import copies a source file into this module folder and creates the ModuleAsset entry for you. " +
+                "Save the module as module.json before importing.",
+                MessageType.None);
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Import Image..."))
+            {
+                return TryImportAsset(document, moduleJsonPath, "image");
+            }
+
+            if (GUILayout.Button("Import Audio..."))
+            {
+                return TryImportAsset(document, moduleJsonPath, "audio");
+            }
+
+            if (GUILayout.Button("Import Video..."))
+            {
+                return TryImportAsset(document, moduleJsonPath, "video");
+            }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(4);
+            EditorGUILayout.LabelField("Manual Asset Entries", EditorStyles.miniBoldLabel);
 
             if (GUILayout.Button("Add Image Asset"))
             {
@@ -80,7 +109,67 @@ namespace MRModuleEditor.Authoring.Editor
                 return true;
             }
 
+            if (GUILayout.Button("Add Video Asset"))
+            {
+                document.assets.Add(new ModuleAsset
+                {
+                    id = EditorModuleDataUtility.MakeUniqueId(document, "asset.video"),
+                    type = "video",
+                    path = "assets/video/new_video.mp4",
+                    label = "New Video"
+                });
+                return true;
+            }
+
             return changed;
+        }
+
+        private static bool TryImportAsset(ModuleDocument document, string moduleJsonPath, string assetType)
+        {
+            ModuleAsset importedAsset;
+            string error;
+            if (!EditorAssetImportUtility.TryImportAssetWithFilePanel(
+                    document,
+                    moduleJsonPath,
+                    assetType,
+                    out importedAsset,
+                    out error))
+            {
+                if (!string.IsNullOrWhiteSpace(error) && error != "Import cancelled.")
+                {
+                    EditorUtility.DisplayDialog("Import Asset Failed", error, "OK");
+                }
+
+                return false;
+            }
+
+            string label = importedAsset == null ? assetType : importedAsset.label;
+            EditorUtility.DisplayDialog("Asset Imported", "Imported asset: " + label, "OK");
+            return true;
+        }
+
+        private static void DrawPerAssetHints(ModuleAsset asset, string moduleJsonPath)
+        {
+            if (asset == null)
+            {
+                return;
+            }
+
+            if (EditorAssetImportUtility.IsKnownAssetType(asset.type)
+                && !EditorAssetImportUtility.ExtensionMatchesType(asset.path, asset.type))
+            {
+                EditorGUILayout.HelpBox(
+                    "This path extension does not look like an " + asset.type + " file. " +
+                    "Validation will warn about this.",
+                    MessageType.Warning);
+            }
+
+            if (string.IsNullOrWhiteSpace(moduleJsonPath))
+            {
+                EditorGUILayout.HelpBox(
+                    "Save the module before relying on asset file checks or using Import.",
+                    MessageType.None);
+            }
         }
     }
 }

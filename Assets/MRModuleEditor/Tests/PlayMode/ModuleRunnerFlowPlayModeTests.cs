@@ -57,6 +57,41 @@ namespace MRModuleEditor.Tests.PlayMode
             File.Delete(path);
         }
 
+        [UnityTest]
+        public IEnumerator ModuleRunner_StartStepId_BeginsFromRequestedStep()
+        {
+            string directory = Path.Combine(Application.temporaryCachePath, "MRModuleEditorStartStepTests");
+            Directory.CreateDirectory(directory);
+            string path = Path.Combine(directory, "module.json").Replace("\\", "/");
+            ModuleJsonSerializer.SaveToFile(MakeStartStepModule(), path);
+
+            GameObject services = new GameObject("Start Step Runner Test Services");
+            RuntimeModuleLoader loader = services.AddComponent<RuntimeModuleLoader>();
+            services.AddComponent<RuntimeDisplayPanel>();
+            ModuleRunner runner = services.AddComponent<ModuleRunner>();
+
+            loader.LoadMode = ModuleLoadMode.AbsolutePath;
+            loader.AbsoluteModulePath = path;
+            runner.StartStepId = "step.002";
+
+            yield return null;
+
+            Assert.IsTrue(runner.LoadModule(), runner.LastError);
+            runner.Play();
+
+            float timeout = Time.time + 2f;
+            while (runner.State == RuntimeRunnerState.Playing && Time.time < timeout)
+            {
+                yield return null;
+            }
+
+            Assert.AreEqual(RuntimeRunnerState.Completed, runner.State, runner.LastError);
+            Assert.AreEqual(1, runner.CurrentStepIndex, "Runner should complete at the requested second step, not the skipped first step.");
+
+            Object.Destroy(services);
+            File.Delete(path);
+        }
+
         private static ModuleDocument MakeBranchingModule()
         {
             ModuleDocument document = new ModuleDocument();
@@ -110,6 +145,38 @@ namespace MRModuleEditor.Tests.PlayMode
             };
             summary.parameters["text"] = JToken.FromObject("Summary.");
             document.steps.Add(summary);
+
+            return document;
+        }
+
+        private static ModuleDocument MakeStartStepModule()
+        {
+            ModuleDocument document = new ModuleDocument();
+            document.schemaVersion = "0.1";
+            document.moduleId = "module.start_step_test";
+            document.title = "Start Step Test";
+            document.author = "Tests";
+            document.estimatedDurationSeconds = 10;
+
+            ModuleStep slowIntro = new ModuleStep
+            {
+                id = "step.001",
+                type = "text",
+                title = "Slow Intro",
+                durationSeconds = 5f
+            };
+            slowIntro.parameters["text"] = JToken.FromObject("This should be skipped.");
+            document.steps.Add(slowIntro);
+
+            ModuleStep quickSummary = new ModuleStep
+            {
+                id = "step.002",
+                type = "text",
+                title = "Quick Summary",
+                durationSeconds = 0.05f
+            };
+            quickSummary.parameters["text"] = JToken.FromObject("This is the requested start step.");
+            document.steps.Add(quickSummary);
 
             return document;
         }

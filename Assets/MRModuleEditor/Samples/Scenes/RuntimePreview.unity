@@ -1326,6 +1326,7 @@ MonoBehaviour:
   maximumStepExecutionsPerRun: 1000
   loadOnStart: 0
   playOnStart: 0
+  startStepId: 
 --- !u!114 &1762172281
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1379,7 +1380,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadMode: 0
-  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/EquipmentOrientationMini/module.json
+  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/NewLesson/module.json
   relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/EquipmentOrientationMini/module.json
   absoluteModulePath: 
   loadOnStart: 0

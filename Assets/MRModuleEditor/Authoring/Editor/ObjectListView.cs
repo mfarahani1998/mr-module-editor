@@ -42,8 +42,17 @@ namespace MRModuleEditor.Authoring.Editor
 
                 EditorGUILayout.HelpBox(
                     "bindingKey connects this module object to a scene BindableObject. " +
-                    "For the sample robot, the scene binding key is RobotPreview.",
+                    "For the generic equipment sample, the scene binding key is Equipment Demo. " +
+                    "For the robotics sample, it is RobotPreview.",
                     MessageType.None);
+
+                string bindingStatus;
+                MessageType bindingStatusType;
+                EditorModuleValidationUtility.TryGetSceneBindingStatus(
+                    moduleObject,
+                    out bindingStatus,
+                    out bindingStatusType);
+                EditorGUILayout.HelpBox(bindingStatus, bindingStatusType);
 
                 bool remove = GUILayout.Button("Remove Object");
                 EditorGUILayout.EndVertical();

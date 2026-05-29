@@ -30,6 +30,187 @@ namespace MRModuleEditor.Core.Templates
             return document;
         }
 
+        public static ModuleDocument CreateGenericBlankLesson()
+        {
+            ModuleDocument document = CreateEmptyModule();
+            document.moduleId = "module.new_mr_lesson";
+            document.title = "New MR Lesson";
+            document.description = "A small starter lesson that validates without assets or scene object bindings.";
+            document.author = "Your Name";
+            document.estimatedDurationSeconds = 60;
+
+            document.layouts.Add(Layout(
+                "layout.step.001.welcome.head_panel",
+                "step.001.welcome",
+                "anchor.head.default",
+                Vec(0f, -0.2f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.002.ready.head_panel",
+                "step.002.ready",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.003.check.head_panel",
+                "step.003.check",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            ModuleStep welcome = Step("step.001.welcome", "text", "Welcome", 4f);
+            welcome.parameters["text"] = JToken.FromObject("Write the first instruction for your lesson here.");
+            welcome.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(welcome);
+
+            ModuleStep ready = Step("step.002.ready", "confirm", "Ready Check", 0f);
+            ready.parameters["message"] = JToken.FromObject("Select Continue when you are ready to start.");
+            ready.parameters["buttonLabel"] = JToken.FromObject("Continue");
+            ready.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(ready);
+
+            ModuleStep check = Step("step.003.check", "mcq", "Quick Check", 0f);
+            check.parameters["question"] = JToken.FromObject("Replace this question with a checkpoint for your lesson.");
+            check.parameters["choices"] = new JArray("Option A", "Option B", "Option C");
+            check.parameters["correctIndex"] = JToken.FromObject(0);
+            check.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(check);
+
+            ModuleStep complete = Step("step.004.complete", "text", "Complete", 4f);
+            complete.parameters["text"] = JToken.FromObject("Lesson complete. Replace this with your summary.");
+            complete.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(complete);
+
+            return document;
+        }
+
+        public static ModuleDocument CreateEquipmentOrientationMini()
+        {
+            ModuleDocument document = CreateEmptyModule();
+            document.moduleId = "module.equipment_orientation_mini";
+            document.title = "Equipment Orientation Mini";
+            document.description = "A non-robotics starter module that uses generic MR learning features.";
+            document.author = "Your Name";
+            document.estimatedDurationSeconds = 90;
+
+            document.objects.Add(new ModuleObject
+            {
+                id = "object.equipment_demo",
+                label = "Equipment Demo",
+                bindingKey = "Equipment Demo"
+            });
+
+            document.anchors.Add(new AnchorDefinition
+            {
+                id = "anchor.object.equipment",
+                type = "object",
+                targetObjectId = "object.equipment_demo"
+            });
+
+            document.layouts.Add(Layout(
+                "layout.object.equipment_demo.world",
+                "object.equipment_demo",
+                "anchor.world.table",
+                Vec(0f, 0f, 1.5f),
+                Vec(0f, 0f, 0f),
+                Vec(0.4f, 0.4f, 0.4f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.001.welcome.head_panel",
+                "step.001.welcome",
+                "anchor.head.default",
+                Vec(0f, -0.2f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.002.ready.head_panel",
+                "step.002.ready",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            document.layouts.Add(Layout(
+                "layout.step.008.check.head_panel",
+                "step.008.check",
+                "anchor.head.default",
+                Vec(0f, -0.15f, 0f),
+                Vec(0f, 0f, 0f),
+                Vec(1f, 1f, 1f)));
+
+            ModuleStep welcome = Step("step.001.welcome", "text", "Welcome", 4f);
+            welcome.parameters["text"] = JToken.FromObject("This mini-module demonstrates generic MR learning features without using RoboticsLite.");
+            welcome.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(welcome);
+
+            ModuleStep ready = Step("step.002.ready", "confirm", "Ready Check", 0f);
+            ready.parameters["message"] = JToken.FromObject("Look at the equipment model. Select Continue when you are ready.");
+            ready.parameters["buttonLabel"] = JToken.FromObject("Continue");
+            ready.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(ready);
+
+            ModuleStep showEquipment = Step("step.003.showEquipment", "showObject", "Show Equipment", 0f);
+            showEquipment.parameters["objectId"] = JToken.FromObject("object.equipment_demo");
+            showEquipment.parameters["visible"] = JToken.FromObject(true);
+            document.steps.Add(showEquipment);
+
+            ModuleStep highlight = Step("step.004.highlight", "highlightObject", "Highlight Main Equipment", 3f);
+            highlight.parameters["objectId"] = JToken.FromObject("object.equipment_demo");
+            highlight.parameters["enabled"] = JToken.FromObject(true);
+            highlight.parameters["colorHex"] = JToken.FromObject("#42A5FF");
+            highlight.parameters["pulseAmplitude"] = JToken.FromObject(0.08f);
+            highlight.parameters["pulseSeconds"] = JToken.FromObject(0.8f);
+            highlight.parameters["clearOnComplete"] = JToken.FromObject(false);
+            document.steps.Add(highlight);
+
+            ModuleStep callout = Step("step.005.callout", "showCallout", "Object Callout", 4f);
+            callout.parameters["text"] = JToken.FromObject("This is the inspection area.");
+            callout.parameters["anchorId"] = JToken.FromObject("anchor.object.equipment");
+            callout.parameters["localOffset"] = Vector(0f, 0.7f, 0f);
+            callout.parameters["localEuler"] = Vector(0f, 0f, 0f);
+            callout.parameters["localScale"] = Vector(0.75f, 0.75f, 0.75f);
+            callout.parameters["clearOnComplete"] = JToken.FromObject(true);
+            document.steps.Add(callout);
+
+            ModuleStep setVariable = Step("step.006.setVariable", "setVariable", "Record Status", 0f);
+            setVariable.parameters["variableKey"] = JToken.FromObject("equipment.status");
+            setVariable.parameters["valueType"] = JToken.FromObject("String");
+            setVariable.parameters["stringValue"] = JToken.FromObject("inspection area found");
+            document.steps.Add(setVariable);
+
+            ModuleStep signalAwareConfirm = Step("step.007.signalGate", "confirm", "Signal-Aware Confirm", 0f);
+            signalAwareConfirm.parameters["message"] = JToken.FromObject("Select Continue, or let the short auto-continue timeout advance the module.");
+            signalAwareConfirm.parameters["buttonLabel"] = JToken.FromObject("Continue");
+            signalAwareConfirm.parameters["autoContinueAfterSeconds"] = JToken.FromObject(5f);
+            signalAwareConfirm.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            signalAwareConfirm.parameters["completeOnSignal"] = JToken.FromObject(true);
+            signalAwareConfirm.parameters["signalAction"] = JToken.FromObject("Select");
+            signalAwareConfirm.parameters["signalTargetId"] = JToken.FromObject("{stepId}.confirm");
+            signalAwareConfirm.parameters["signalIntPayload"] = JToken.FromObject(-1);
+            signalAwareConfirm.parameters["resultVariableKey"] = JToken.FromObject("equipment.signalGate.received");
+            document.steps.Add(signalAwareConfirm);
+
+            ModuleStep check = Step("step.008.check", "mcq", "Quick Check", 0f);
+            check.parameters["question"] = JToken.FromObject("What did the callout identify?");
+            check.parameters["choices"] = new JArray("The inspection area", "A software menu", "The headset battery");
+            check.parameters["correctIndex"] = JToken.FromObject(0);
+            check.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(check);
+
+            ModuleStep complete = Step("step.009.complete", "text", "Complete", 4f);
+            complete.parameters["text"] = JToken.FromObject("Generic MR feature demo complete.");
+            complete.parameters["anchorId"] = JToken.FromObject("anchor.head.default");
+            document.steps.Add(complete);
+
+            return document;
+        }
+
         public static ModuleDocument CreateForwardKinematicsMini()
         {
             ModuleDocument document = new ModuleDocument();

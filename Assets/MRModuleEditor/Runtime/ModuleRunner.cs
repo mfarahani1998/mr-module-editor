@@ -52,6 +52,9 @@ namespace MRModuleEditor.Runtime
         [SerializeField]
         private bool playOnStart = false;
 
+        [SerializeField]
+        private string startStepId = "";
+
         private readonly StepHandlerRegistry handlers = new StepHandlerRegistry();
         private readonly StepFlowResolver flowResolver = new StepFlowResolver();
         private Coroutine runCoroutine;
@@ -93,6 +96,12 @@ namespace MRModuleEditor.Runtime
                 int displayIndex = Mathf.Clamp(CurrentStepIndex + 1, 1, CurrentModule.steps.Count);
                 return displayIndex + " / " + CurrentModule.steps.Count;
             }
+        }
+
+        public string StartStepId
+        {
+            get { return startStepId; }
+            set { startStepId = value ?? ""; }
         }
 
         private void Awake()
@@ -336,7 +345,12 @@ namespace MRModuleEditor.Runtime
             }
 
             Dictionary<string, int> stepIndexById = BuildStepIndexById(CurrentModule);
-            int currentIndex = 0;
+            int currentIndex;
+            if (!TryResolveStartStepIndex(executionToken, stepIndexById, out currentIndex))
+            {
+                yield break;
+            }
+
             int executedStepCount = 0;
 
             while (currentIndex >= 0 && currentIndex < CurrentModule.steps.Count)
@@ -624,6 +638,29 @@ namespace MRModuleEditor.Runtime
 
             ModuleStep nextStep = module.steps[nextIndex];
             return nextStep == null ? "" : nextStep.id ?? "";
+        }
+
+        private bool TryResolveStartStepIndex(
+            RuntimeExecutionToken executionToken,
+            Dictionary<string, int> stepIndexById,
+            out int startIndex)
+        {
+            startIndex = 0;
+
+            if (string.IsNullOrWhiteSpace(startStepId))
+            {
+                return true;
+            }
+
+            if (stepIndexById != null && stepIndexById.TryGetValue(startStepId, out startIndex))
+            {
+                return true;
+            }
+
+            SetErrorForExecution(
+                executionToken,
+                "Start step id '" + startStepId + "' does not exist in this module.");
+            return false;
         }
 
         private bool TryResolveNextStepIndex(

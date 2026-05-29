@@ -13,6 +13,7 @@ namespace MRModuleEditor.Authoring.Editor
         private const string RuntimePreviewScenePath = RuntimePreviewScenePathUtility.RuntimePreviewScenePath;
         private const string PreviewRequestedKey = "MRModuleEditor.Authoring.PreviewRequested";
         private const string PreviewModulePathKey = "MRModuleEditor.Authoring.PreviewModulePathFromAssets";
+        private const string PreviewStartStepIdKey = "MRModuleEditor.Authoring.PreviewStartStepId";
 
         static ModulePreviewLauncher()
         {
@@ -20,6 +21,11 @@ namespace MRModuleEditor.Authoring.Editor
         }
 
         public static void LaunchPreview(string absoluteModulePath)
+        {
+            LaunchPreview(absoluteModulePath, "");
+        }
+
+        public static void LaunchPreview(string absoluteModulePath, string startStepId)
         {
             string relativePathFromAssets = ToRelativePathFromAssets(absoluteModulePath);
             if (string.IsNullOrWhiteSpace(relativePathFromAssets))
@@ -49,6 +55,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             SessionState.SetBool(PreviewRequestedKey, true);
             SessionState.SetString(PreviewModulePathKey, relativePathFromAssets);
+            SessionState.SetString(PreviewStartStepIdKey, startStepId ?? "");
 
             if (EditorSceneManager.GetActiveScene().path != RuntimePreviewScenePath)
             {
@@ -72,6 +79,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             SessionState.SetBool(PreviewRequestedKey, false);
             string relativePathFromAssets = SessionState.GetString(PreviewModulePathKey, "");
+            string startStepId = SessionState.GetString(PreviewStartStepIdKey, "");
 
             RuntimeModuleLoader[] loaders = Object.FindObjectsByType<RuntimeModuleLoader>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < loaders.Length; i++)
@@ -90,13 +98,18 @@ namespace MRModuleEditor.Authoring.Editor
                 return;
             }
 
+            runner.StartStepId = startStepId;
+
             if (!runner.LoadModule())
             {
                 Debug.LogError("Preview failed: " + runner.LastError);
                 return;
             }
 
-            Debug.Log("Preview loaded. Press Play in the runtime control panel to start the module.");
+            string startMessage = string.IsNullOrWhiteSpace(startStepId)
+                ? ""
+                : " Starting from step id: " + startStepId + ".";
+            Debug.Log("Preview loaded." + startMessage + " Press Play in the runtime control panel to start the module.");
         }
 
         private static string ToRelativePathFromAssets(string absolutePath)
