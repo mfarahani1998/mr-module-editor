@@ -19,7 +19,12 @@ namespace MRModuleEditor.Core.Layouts
                 "head",
                 Vec(0f, -0.15f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.SmoothFollow,
+                3.5f,
+                LayoutReadabilityProfiles.HeadPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "head.panel.lower",
@@ -29,7 +34,12 @@ namespace MRModuleEditor.Core.Layouts
                 "head",
                 Vec(0f, -0.45f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.SmoothFollow,
+                3.5f,
+                LayoutReadabilityProfiles.HeadPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "head.panel.left",
@@ -39,7 +49,12 @@ namespace MRModuleEditor.Core.Layouts
                 "head",
                 Vec(-0.55f, -0.15f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.SmoothFollow,
+                3.5f,
+                LayoutReadabilityProfiles.HeadPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "head.panel.right",
@@ -49,7 +64,12 @@ namespace MRModuleEditor.Core.Layouts
                 "head",
                 Vec(0.55f, -0.15f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.SmoothFollow,
+                3.5f,
+                LayoutReadabilityProfiles.HeadPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "world.panel.demo",
@@ -59,7 +79,12 @@ namespace MRModuleEditor.Core.Layouts
                 "world",
                 Vec(0f, 1.25f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.Fixed,
+                4.5f,
+                LayoutReadabilityProfiles.WorldPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "world.panel.side",
@@ -69,7 +94,12 @@ namespace MRModuleEditor.Core.Layouts
                 "world",
                 Vec(-0.75f, 1.1f, 0.35f),
                 Vec(0f, 0f, 0f),
-                Vec(1f, 1f, 1f)),
+                Vec(1f, 1f, 1f),
+                true,
+                LayoutFollowModes.Fixed,
+                4.5f,
+                LayoutReadabilityProfiles.WorldPanel,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "object.callout.above",
@@ -79,7 +109,12 @@ namespace MRModuleEditor.Core.Layouts
                 "object",
                 Vec(0f, 0.7f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(0.75f, 0.75f, 0.75f)),
+                Vec(0.75f, 0.75f, 0.75f),
+                true,
+                LayoutFollowModes.FollowAnchor,
+                2.5f,
+                LayoutReadabilityProfiles.ObjectCallout,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "object.callout.side",
@@ -89,7 +124,12 @@ namespace MRModuleEditor.Core.Layouts
                 "object",
                 Vec(0.45f, 0.45f, 0f),
                 Vec(0f, 0f, 0f),
-                Vec(0.75f, 0.75f, 0.75f)),
+                Vec(0.75f, 0.75f, 0.75f),
+                true,
+                LayoutFollowModes.FollowAnchor,
+                2.5f,
+                LayoutReadabilityProfiles.ObjectCallout,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "world.object.center",
@@ -99,7 +139,12 @@ namespace MRModuleEditor.Core.Layouts
                 "world",
                 Vec(0f, 0f, 1.5f),
                 Vec(0f, 0f, 0f),
-                Vec(0.5f, 0.5f, 0.5f)),
+                Vec(0.5f, 0.5f, 0.5f),
+                false,
+                LayoutFollowModes.Fixed,
+                0f,
+                LayoutReadabilityProfiles.WorldObject,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "world.object.left",
@@ -109,7 +154,12 @@ namespace MRModuleEditor.Core.Layouts
                 "world",
                 Vec(-0.65f, 0f, 1.45f),
                 Vec(0f, 0f, 0f),
-                Vec(0.5f, 0.5f, 0.5f)),
+                Vec(0.5f, 0.5f, 0.5f),
+                false,
+                LayoutFollowModes.Fixed,
+                0f,
+                LayoutReadabilityProfiles.WorldObject,
+                LayoutDeviceProfiles.Any),
 
             new LayoutPresetDefinition(
                 "world.object.right",
@@ -119,7 +169,12 @@ namespace MRModuleEditor.Core.Layouts
                 "world",
                 Vec(0.65f, 0f, 1.45f),
                 Vec(0f, 0f, 0f),
-                Vec(0.5f, 0.5f, 0.5f))
+                Vec(0.5f, 0.5f, 0.5f),
+                false,
+                LayoutFollowModes.Fixed,
+                0f,
+                LayoutReadabilityProfiles.WorldObject,
+                LayoutDeviceProfiles.Any)
         };
 
         public static LayoutPresetDefinition[] GetPresets(string targetKind, string anchorType)
@@ -193,6 +248,11 @@ namespace MRModuleEditor.Core.Layouts
             layout.position = LayoutPresetDefinition.Clone(preset.position, new Vector3Data());
             layout.rotationEuler = LayoutPresetDefinition.Clone(preset.rotationEuler, new Vector3Data());
             layout.scale = LayoutPresetDefinition.Clone(preset.scale, new Vector3Data(1f, 1f, 1f));
+            layout.faceUser = preset.faceUser;
+            layout.followMode = preset.followMode;
+            layout.visibilityRange = preset.visibilityRange;
+            layout.readabilityProfile = preset.readabilityProfile;
+            layout.deviceProfile = preset.deviceProfile;
         }
 
         private static Vector3Data Vec(float x, float y, float z)

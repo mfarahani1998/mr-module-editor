@@ -39,6 +39,7 @@ namespace MRModuleEditor.Core.Layouts
 
                 string location = "layouts[" + i + "]";
                 AddScaleIssues(layout, location, issues);
+                AddProfileIssues(layout, location, issues);
                 AddAnchorSpecificReadabilityIssues(layout, anchorsById, location, issues);
             }
         }
@@ -102,6 +103,33 @@ namespace MRModuleEditor.Core.Layouts
             }
         }
 
+        private static void AddProfileIssues(LayoutDefinition layout, string location, List<ValidationIssue> issues)
+        {
+            if (layout == null)
+            {
+                return;
+            }
+
+            if (layout.readabilityProfile == LayoutReadabilityProfiles.HeadPanel && !layout.faceUser)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.readability.headPanel.faceUser",
+                    "Head panel readability profile usually works best with faceUser enabled.",
+                    location));
+            }
+
+            if (layout.readabilityProfile == LayoutReadabilityProfiles.ObjectCallout
+                && LayoutFollowModes.Normalize(layout.followMode) == LayoutFollowModes.Fixed)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.readability.objectCallout.follow",
+                    "Object callout readability profile usually works best with followAnchor or smoothFollow so the label stays attached while the object moves.",
+                    location));
+            }
+        }
+
         private static void AddAnchorSpecificReadabilityIssues(
             LayoutDefinition layout,
             Dictionary<string, AnchorDefinition> anchorsById,
@@ -123,19 +151,17 @@ namespace MRModuleEditor.Core.Layouts
             if (anchor.type == "head")
             {
                 AddHeadAnchorIssues(layout, position, location, issues);
-                return;
             }
-
-            if (anchor.type == "world")
+            else if (anchor.type == "world")
             {
-                AddWorldAnchorIssues(position, location, issues);
-                return;
+                AddWorldAnchorIssues(layout, position, location, issues);
             }
-
-            if (anchor.type == "object")
+            else if (anchor.type == "object")
             {
                 AddObjectAnchorIssues(layout, anchor, position, location, issues);
             }
+
+            AddFaceUserRecommendation(layout, anchor, location, issues);
         }
 
         private static void AddHeadAnchorIssues(
@@ -165,14 +191,24 @@ namespace MRModuleEditor.Core.Layouts
             }
         }
 
-        private static void AddWorldAnchorIssues(Vector3Data position, string location, List<ValidationIssue> issues)
+        private static void AddWorldAnchorIssues(LayoutDefinition layout, Vector3Data position, string location, List<ValidationIssue> issues)
         {
-            if (Length(position) > MaximumWorldDistance)
+            float distance = Length(position);
+            if (distance > MaximumWorldDistance)
             {
                 issues.Add(new ValidationIssue(
                     ValidationSeverity.Warning,
                     "layout.readability.worldDistance",
                     "World-anchored layout is far from the world origin. Recenter may not make this target comfortable for repeated demos.",
+                    location));
+            }
+
+            if (layout != null && layout.visibilityRange > 0f && distance > layout.visibilityRange)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.readability.visibilityRange",
+                    "Layout position is outside its visibilityRange. Increase the range, move the layout closer, or set visibilityRange to 0 for unlimited.",
                     location));
             }
 
@@ -221,6 +257,33 @@ namespace MRModuleEditor.Core.Layouts
                     ValidationSeverity.Warning,
                     "layout.readability.objectAnchor.selfTarget",
                     "Object layout is relative to an anchor that targets the same object. Prefer a world anchor for object placement to avoid confusing self-relative transforms.",
+                    location));
+            }
+        }
+
+        private static void AddFaceUserRecommendation(
+            LayoutDefinition layout,
+            AnchorDefinition anchor,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            if (layout == null || anchor == null)
+            {
+                return;
+            }
+
+            bool targetIsStep = !string.IsNullOrWhiteSpace(layout.targetId) && layout.targetId.StartsWith("step.", StringComparison.Ordinal);
+            if (!targetIsStep)
+            {
+                return;
+            }
+
+            if ((anchor.type == "world" || anchor.type == "object") && !layout.faceUser)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.faceUser.recommended",
+                    "World/object anchored step panels and callouts are usually easier to read with faceUser enabled.",
                     location));
             }
         }

@@ -43,6 +43,9 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.That(layout.position.y, Is.EqualTo(-0.15f));
             Assert.That(layout.position.z, Is.EqualTo(0f));
             Assert.That(layout.scale.x, Is.EqualTo(1f));
+            Assert.That(layout.faceUser, Is.True);
+            Assert.That(layout.followMode, Is.EqualTo(LayoutFollowModes.SmoothFollow));
+            Assert.That(layout.readabilityProfile, Is.EqualTo(LayoutReadabilityProfiles.HeadPanel));
         }
 
         [Test]
@@ -86,6 +89,32 @@ namespace MRModuleEditor.Tests.EditMode
             Assert.That(issues.Any(issue => issue.code == "layout.readability.headOffset.extraDepth"), Is.True);
             Assert.That(ModuleValidator.HasError(issues), Is.False, string.Join("\n", issues.Select(issue => issue.ToString()).ToArray()));
         }
+
+        [Test]
+        public void ModuleValidator_WarnsForCalibrationRequiredAnchorWithoutFallback()
+        {
+            ModuleDocument document = MakeValidDocumentWithOneLayout();
+            document.anchors[0].calibrationRequired = true;
+            document.anchors[0].fallbackAnchorId = "";
+
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.That(issues.Any(issue => issue.code == "anchor.fallbackAnchorId.recommended"), Is.True);
+            Assert.That(ModuleValidator.HasError(issues), Is.False, string.Join("\n", issues.Select(issue => issue.ToString()).ToArray()));
+        }
+
+        [Test]
+        public void ModuleValidator_ErrorsForUnknownFollowMode()
+        {
+            ModuleDocument document = MakeValidDocumentWithOneLayout();
+            document.layouts[0].followMode = "teleportToMars";
+
+            List<ValidationIssue> issues = ModuleValidator.Validate(document);
+
+            Assert.That(issues.Any(issue => issue.code == "layout.followMode.unknown"), Is.True);
+            Assert.That(ModuleValidator.HasError(issues), Is.True);
+        }
+
 
         private static ModuleDocument MakeValidDocumentWithOneLayout()
         {

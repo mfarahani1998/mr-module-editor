@@ -88,7 +88,7 @@ namespace MRModuleEditor.Runtime.Anchors
             EnsureReferences();
 
             Rect area = showAnchorStatus
-                ? new Rect(Screen.width - 340, 20, 320, showAnchorDetails ? 300 : 160)
+                ? new Rect(Screen.width - 400, 20, 380, showAnchorDetails ? 360 : 165)
                 : new Rect(Screen.width - 260, 20, 240, 95);
 
             GUILayout.BeginArea(area, GUI.skin.box);
@@ -122,8 +122,9 @@ namespace MRModuleEditor.Runtime.Anchors
 
             List<RuntimeAnchorStatus> statuses = RuntimeAnchorStatusUtility.Collect(module, anchorResolver);
             int resolved = RuntimeAnchorStatusUtility.CountResolved(statuses);
+            int resolvedWithoutFallback = RuntimeAnchorStatusUtility.CountResolvedWithoutFallback(statuses);
             GUILayout.Space(4);
-            GUILayout.Label("Anchors: " + resolved + " / " + statuses.Count + " resolved");
+            GUILayout.Label("Anchors: " + resolved + " / " + statuses.Count + " resolved (" + resolvedWithoutFallback + " direct)");
 
             if (GUILayout.Button(showAnchorDetails ? "Hide Anchor Details" : "Show Anchor Details"))
             {
@@ -143,11 +144,17 @@ namespace MRModuleEditor.Runtime.Anchors
                     continue;
                 }
 
-                string prefix = status.resolved ? "OK " : "WARN ";
-                string label = prefix + status.anchorId + " [" + status.anchorType + "]";
+                string prefix = status.resolved ? (status.usedFallback ? "FALLBACK " : "OK ") : "WARN ";
+                string provider = string.IsNullOrWhiteSpace(status.provider) ? "default" : status.provider;
+                string state = string.IsNullOrWhiteSpace(status.state) ? "unknown" : status.state;
+                string label = prefix + status.anchorId + " [" + status.anchorType + ", " + provider + ", " + state + "]";
                 if (status.resolved)
                 {
                     label += " @ " + FormatVector(status.position);
+                    if (status.usedFallback && !string.IsNullOrWhiteSpace(status.fallbackAnchorId))
+                    {
+                        label += " via " + status.fallbackAnchorId;
+                    }
                 }
                 else if (!string.IsNullOrWhiteSpace(status.message))
                 {

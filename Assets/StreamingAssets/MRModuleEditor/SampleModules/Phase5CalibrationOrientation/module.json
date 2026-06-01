@@ -1,0 +1,235 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.phase5_calibration_orientation",
+  "title": "Phase 5 Calibration Orientation",
+  "description": "A small MR layout demo using head, world, and object anchors with calibration/fallback metadata.",
+  "author": "MR Module Editor",
+  "estimatedDurationSeconds": 75,
+  "assets": [],
+  "objects": [
+    {
+      "id": "object.equipment_demo",
+      "label": "Equipment Demo",
+      "bindingKey": "Equipment Demo"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head",
+      "targetObjectId": "",
+      "provider": "simulator",
+      "displayName": "Head Default",
+      "calibrationStatus": "ready"
+    },
+    {
+      "id": "anchor.world.table",
+      "type": "world",
+      "targetObjectId": "",
+      "provider": "simulator",
+      "displayName": "Calibrated Demo Space",
+      "fallbackAnchorId": "anchor.head.default",
+      "calibrationRequired": true,
+      "calibrationStatus": "approximate",
+      "notes": "Use the runtime recenter/manual calibration action before showing world-placed content."
+    },
+    {
+      "id": "anchor.object.equipment",
+      "type": "object",
+      "targetObjectId": "object.equipment_demo",
+      "provider": "simulator",
+      "displayName": "Equipment Object",
+      "fallbackAnchorId": "anchor.head.default",
+      "calibrationStatus": "ready"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "layout.object.equipment_demo.world",
+      "targetId": "object.equipment_demo",
+      "anchorId": "anchor.world.table",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 1.5
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5
+      },
+      "followMode": "fixed",
+      "readabilityProfile": "worldObject"
+    },
+    {
+      "id": "layout.step.001.welcome.head_panel",
+      "targetId": "step.001.welcome",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "smoothFollow",
+      "visibilityRange": 3.5,
+      "readabilityProfile": "headPanel"
+    },
+    {
+      "id": "layout.step.003.callout.object",
+      "targetId": "step.003.callout",
+      "anchorId": "anchor.object.equipment",
+      "position": {
+        "x": 0.0,
+        "y": 0.7,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.75,
+        "y": 0.75,
+        "z": 0.75
+      },
+      "faceUser": true,
+      "followMode": "followAnchor",
+      "visibilityRange": 2.5,
+      "readabilityProfile": "objectCallout"
+    },
+    {
+      "id": "layout.step.004.world_panel",
+      "targetId": "step.004.worldPanel",
+      "anchorId": "anchor.world.table",
+      "position": {
+        "x": -0.75,
+        "y": 1.1,
+        "z": 0.35
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "fixed",
+      "visibilityRange": 4.5,
+      "readabilityProfile": "worldPanel"
+    },
+    {
+      "id": "layout.step.005.check.head_panel",
+      "targetId": "step.005.check",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "smoothFollow",
+      "visibilityRange": 3.5,
+      "readabilityProfile": "headPanel"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step.001.welcome",
+      "type": "text",
+      "title": "Readable Head Panel",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "This head-anchored panel should remain readable after the world space is recentered.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002.showObject",
+      "type": "showObject",
+      "title": "Show Equipment",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "objectId": "object.equipment_demo",
+        "visible": true
+      }
+    },
+    {
+      "id": "step.003.callout",
+      "type": "showCallout",
+      "title": "Object Callout",
+      "durationSeconds": 5.0,
+      "parameters": {
+        "text": "This callout follows the equipment object and faces the learner.",
+        "anchorId": "anchor.object.equipment",
+        "clearOnComplete": false
+      }
+    },
+    {
+      "id": "step.004.worldPanel",
+      "type": "text",
+      "title": "World Panel",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "This world-anchored panel proves the calibrated demo space is stable.",
+        "anchorId": "anchor.world.table"
+      }
+    },
+    {
+      "id": "step.005.check",
+      "type": "mcq",
+      "title": "Layout Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "question": "Which anchor is best for a label that should follow an object?",
+        "choices": [
+          "Object anchor",
+          "Head anchor",
+          "A missing anchor"
+        ],
+        "correctIndex": 0,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.006.complete",
+      "type": "text",
+      "title": "Complete",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "Phase 5 anchor/layout demo complete.",
+        "anchorId": "anchor.head.default"
+      }
+    }
+  ]
+}

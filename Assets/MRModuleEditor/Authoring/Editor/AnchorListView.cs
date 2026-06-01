@@ -13,6 +13,24 @@ namespace MRModuleEditor.Authoring.Editor
             "object"
         };
 
+        private static readonly string[] AnchorProviders =
+        {
+            "",
+            AnchorProviderIds.Simulator,
+            AnchorProviderIds.Manual,
+            AnchorProviderIds.Marker,
+            AnchorProviderIds.Spatial
+        };
+
+        private static readonly string[] CalibrationStatuses =
+        {
+            "",
+            AnchorCalibrationStatuses.Unknown,
+            AnchorCalibrationStatuses.Ready,
+            AnchorCalibrationStatuses.Approximate,
+            AnchorCalibrationStatuses.Lost
+        };
+
         public static bool Draw(ModuleDocument document)
         {
             if (document == null)
@@ -49,6 +67,25 @@ namespace MRModuleEditor.Authoring.Editor
                 int nextTypeIndex = EditorGUILayout.Popup("Type", currentTypeIndex, AnchorTypes);
                 anchor.type = AnchorTypes[nextTypeIndex];
 
+                anchor.displayName = EditorGUILayout.TextField("Display Name", anchor.displayName);
+                anchor.provider = DrawStringPopup("Provider", anchor.provider, AnchorProviders);
+                anchor.calibrationRequired = EditorGUILayout.Toggle("Calibration Required", anchor.calibrationRequired);
+                anchor.calibrationStatus = DrawStringPopup("Calibration Status", anchor.calibrationStatus, CalibrationStatuses);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    changed = true;
+                }
+
+                changed |= EditorIdDropdowns.DrawAnchorIdDropdown(
+                    document,
+                    ref anchor.fallbackAnchorId,
+                    "Fallback Anchor",
+                    true);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.LabelField("Notes");
+                anchor.notes = EditorGUILayout.TextArea(anchor.notes, GUILayout.MinHeight(38));
                 if (EditorGUI.EndChangeCheck())
                 {
                     changed = true;
@@ -96,7 +133,10 @@ namespace MRModuleEditor.Authoring.Editor
                 {
                     id = EditorModuleDataUtility.MakeUniqueId(document, "anchor.head.default"),
                     type = "head",
-                    targetObjectId = ""
+                    targetObjectId = "",
+                    provider = AnchorProviderIds.Simulator,
+                    displayName = "Head Default",
+                    calibrationStatus = AnchorCalibrationStatuses.Ready
                 });
                 EditorGUILayout.EndHorizontal();
                 return true;
@@ -108,7 +148,12 @@ namespace MRModuleEditor.Authoring.Editor
                 {
                     id = EditorModuleDataUtility.MakeUniqueId(document, "anchor.world.default"),
                     type = "world",
-                    targetObjectId = ""
+                    targetObjectId = "",
+                    provider = AnchorProviderIds.Simulator,
+                    displayName = "World Default",
+                    calibrationRequired = true,
+                    calibrationStatus = AnchorCalibrationStatuses.Approximate,
+                    fallbackAnchorId = "anchor.head.default"
                 });
                 EditorGUILayout.EndHorizontal();
                 return true;
@@ -122,7 +167,10 @@ namespace MRModuleEditor.Authoring.Editor
                 {
                     id = EditorModuleDataUtility.MakeUniqueId(document, "anchor.object"),
                     type = "object",
-                    targetObjectId = EditorModuleDataUtility.FirstObjectId(document)
+                    targetObjectId = EditorModuleDataUtility.FirstObjectId(document),
+                    provider = AnchorProviderIds.Simulator,
+                    displayName = "Object Anchor",
+                    fallbackAnchorId = "anchor.head.default"
                 });
                 GUI.enabled = true;
                 return true;
@@ -135,6 +183,25 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             return changed;
+        }
+
+        private static string DrawStringPopup(string label, string value, string[] options)
+        {
+            if (options == null || options.Length == 0)
+            {
+                return EditorGUILayout.TextField(label, value ?? "");
+            }
+
+            string current = value ?? "";
+            int currentIndex = System.Array.IndexOf(options, current);
+            if (currentIndex < 0)
+            {
+                currentIndex = 0;
+            }
+
+            int nextIndex = EditorGUILayout.Popup(label, currentIndex, options);
+            nextIndex = Mathf.Clamp(nextIndex, 0, options.Length - 1);
+            return options[nextIndex];
         }
     }
 }

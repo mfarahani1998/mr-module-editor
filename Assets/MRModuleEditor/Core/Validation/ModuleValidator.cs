@@ -55,7 +55,7 @@ namespace MRModuleEditor.Core.Validation
 
             HashSet<string> objectIds = new HashSet<string>(StringComparer.Ordinal);
             HashSet<string> assetIds = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> anchorIds = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> anchorIds = CollectAnchorIds(document);
             HashSet<string> layoutTargetIds = CollectLayoutTargetIds(document);
             HashSet<string> stepIds = CollectStepIds(document);
 
@@ -200,6 +200,8 @@ namespace MRModuleEditor.Core.Validation
                         location));
                 }
 
+                ValidateAnchorMetadata(anchor, anchorIds, location, issues);
+
                 if (anchor.type == "object")
                 {
                     if (string.IsNullOrWhiteSpace(anchor.targetObjectId))
@@ -267,6 +269,129 @@ namespace MRModuleEditor.Core.Validation
                         "Layout references unknown target id '" + layout.targetId + "'.",
                         location));
                 }
+
+                ValidateLayoutMetadata(layout, location, issues);
+            }
+        }
+
+        private static void ValidateAnchorMetadata(
+            AnchorDefinition anchor,
+            HashSet<string> anchorIds,
+            string location,
+            List<ValidationIssue> issues)
+        {
+            if (anchor == null)
+            {
+                return;
+            }
+
+            if (!AnchorProviderIds.IsKnown(anchor.provider))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "anchor.provider.unknown",
+                    "Anchor provider '" + anchor.provider + "' is not a known Phase 5 provider. Known providers are simulator, manual, marker, and spatial.",
+                    location));
+            }
+
+            if (!AnchorCalibrationStatuses.IsKnown(anchor.calibrationStatus))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "anchor.calibrationStatus.unknown",
+                    "Anchor calibrationStatus '" + anchor.calibrationStatus + "' is not recognized. Use unknown, ready, approximate, or lost.",
+                    location));
+            }
+
+            if (!string.IsNullOrWhiteSpace(anchor.fallbackAnchorId))
+            {
+                if (anchor.fallbackAnchorId == anchor.id)
+                {
+                    issues.Add(new ValidationIssue(
+                        ValidationSeverity.Error,
+                        "anchor.fallbackAnchorId.self",
+                        "Anchor fallbackAnchorId cannot point to the same anchor.",
+                        location));
+                }
+                else if (anchorIds == null || !anchorIds.Contains(anchor.fallbackAnchorId))
+                {
+                    issues.Add(new ValidationIssue(
+                        ValidationSeverity.Error,
+                        "anchor.fallbackAnchorId.unknown",
+                        "Anchor fallback references unknown anchor id '" + anchor.fallbackAnchorId + "'.",
+                        location));
+                }
+            }
+
+            if (anchor.calibrationRequired && string.IsNullOrWhiteSpace(anchor.fallbackAnchorId))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "anchor.fallbackAnchorId.recommended",
+                    "Calibration-required anchors should name a fallbackAnchorId so the module can still be previewed when calibration is not ready.",
+                    location));
+            }
+
+            if (anchor.calibrationRequired && string.IsNullOrWhiteSpace(anchor.calibrationStatus))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Info,
+                    "anchor.calibrationStatus.empty",
+                    "Calibration-required anchor has no authored calibrationStatus yet. Runtime status will still report whether it resolves.",
+                    location));
+            }
+        }
+
+        private static void ValidateLayoutMetadata(LayoutDefinition layout, string location, List<ValidationIssue> issues)
+        {
+            if (layout == null)
+            {
+                return;
+            }
+
+            if (!LayoutFollowModes.IsKnown(layout.followMode))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "layout.followMode.unknown",
+                    "Layout followMode '" + layout.followMode + "' is unknown. Use fixed, followAnchor, or smoothFollow.",
+                    location));
+            }
+
+            if (layout.visibilityRange < 0f)
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Error,
+                    "layout.visibilityRange.negative",
+                    "Layout visibilityRange cannot be negative. Use 0 for unlimited.",
+                    location));
+            }
+
+            if (!LayoutReadabilityProfiles.IsKnown(layout.readabilityProfile))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.readabilityProfile.unknown",
+                    "Layout readabilityProfile '" + layout.readabilityProfile + "' is not recognized.",
+                    location));
+            }
+
+            if (!LayoutDeviceProfiles.IsKnown(layout.deviceProfile))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.deviceProfile.unknown",
+                    "Layout deviceProfile '" + layout.deviceProfile + "' is not recognized. Use simulator, headset, desktop, or leave it blank.",
+                    location));
+            }
+
+            if (layout.faceUser && !string.IsNullOrWhiteSpace(layout.targetId) && layout.targetId.StartsWith("object.", StringComparison.Ordinal))
+            {
+                issues.Add(new ValidationIssue(
+                    ValidationSeverity.Warning,
+                    "layout.faceUser.objectTarget",
+                    "Face User on an object layout rotates the scene object toward the learner. Use it only for label/panel objects; keep 3D equipment fixed unless that rotation is intentional.",
+                    location));
             }
         }
 
@@ -655,6 +780,27 @@ namespace MRModuleEditor.Core.Validation
             }
 
             seenIds.Add(id, ownerKind);
+        }
+
+        private static HashSet<string> CollectAnchorIds(ModuleDocument document)
+        {
+            HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
+
+            if (document == null || document.anchors == null)
+            {
+                return ids;
+            }
+
+            for (int i = 0; i < document.anchors.Count; i++)
+            {
+                AnchorDefinition anchor = document.anchors[i];
+                if (anchor != null && !string.IsNullOrWhiteSpace(anchor.id))
+                {
+                    ids.Add(anchor.id);
+                }
+            }
+
+            return ids;
         }
 
         private static HashSet<string> CollectLayoutTargetIds(ModuleDocument document)
