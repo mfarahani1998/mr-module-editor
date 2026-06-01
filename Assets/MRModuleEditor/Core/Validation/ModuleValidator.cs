@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using MRModuleEditor.Core.Layouts;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.StepTypes;
 using Newtonsoft.Json.Linq;
@@ -62,6 +63,7 @@ namespace MRModuleEditor.Core.Validation
             ValidateObjects(document, objectIds, seenIds, issues);
             ValidateAnchors(document, objectIds, anchorIds, seenIds, issues);
             ValidateLayouts(document, anchorIds, layoutTargetIds, seenIds, issues);
+            LayoutReadabilityValidator.AddIssues(document, issues);
             ValidateSteps(document, catalog, objectIds, assetIds, assetTypesById, anchorIds, stepIds, seenIds, issues);
 
             return issues;
