@@ -28,3 +28,27 @@ Assets/MRModuleEditor/Domains/<DomainName>/
 `RoboticsLiteStepDefinitions` registers `showFrame`, `rotateJoint`, and `resetRobot`. `RoboticsLiteStepInstaller` registers the matching runtime handlers with `ModuleRunner`.
 
 That keeps RoboticsLite usable as a sample/domain while preventing future phases from becoming robotics-centered.
+
+## ProcedureTraining example
+
+`ProcedureTrainingStepDefinitions` registers `showProcedureItem` and `checkSafetyPoint`. `ProcedureTrainingStepInstaller` registers the matching runtime handlers with `ModuleRunner`.
+
+Use this as the preferred Phase 6 pattern for future non-robotics domains:
+
+```text
+Assets/MRModuleEditor/Domains/ProcedureTraining/
+├─ ProcedureTrainingStepDefinitions.cs
+├─ ProcedureTrainingStepInstaller.cs
+├─ ProcedureTrainingModuleFactory.cs
+├─ Runtime/
+│  ├─ ProcedureItemMarker.cs
+│  ├─ ProcedureTrainingResolver.cs
+│  ├─ ShowProcedureItemStepHandler.cs
+│  └─ CheckSafetyPointStepHandler.cs
+├─ Samples/EquipmentSafetyProcedureMini/module.json
+├─ Tests/EditMode/
+├─ Tests/PlayMode/
+└─ Docs/README.md
+```
+
+Scene setup rule: add `ProcedureTrainingStepInstaller` to a services GameObject in any runtime preview scene that needs to run ProcedureTraining modules. Do not register these handlers from built-in runtime code, because that would make the platform core aware of this domain.

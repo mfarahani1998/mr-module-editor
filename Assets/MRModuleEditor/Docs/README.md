@@ -8,7 +8,7 @@ The current baseline supports:
 - Unity Editor authoring through `MR Module Editor > Module Editor`.
 - Runtime preview scenes.
 - Head, world, and object anchors.
-- Text, image, audio, wait, confirm, variable, object visibility/highlight/callout/movement, MCQ, and RoboticsLite demo steps.
+- Text, image, audio, wait, confirm, variable, object visibility/highlight/callout/movement, MCQ, RoboticsLite demo steps, and the Phase 6 ProcedureTraining domain steps.
 - Validation, export, and a sample Forward Kinematics mini module.
 
 ## Start here
@@ -24,9 +24,11 @@ The current baseline supports:
 9. [Known Limitations](KNOWN_LIMITATIONS.md)
 10. [Roadmap](ROADMAP.md)
 
-## Current baseline sample
+## Current baseline samples
 
-- Module JSON: `Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json`
+- Forward Kinematics module JSON: `Assets/MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json`
+- Generic equipment orientation module JSON: `Assets/MRModuleEditor/Samples/SampleModules/EquipmentOrientationMini/module.json`
+- ProcedureTraining Phase 6 module JSON: `Assets/MRModuleEditor/Domains/ProcedureTraining/Samples/EquipmentSafetyProcedureMini/module.json`
 - Desktop/simulator preview scene: `Assets/MRModuleEditor/Samples/Scenes/RuntimePreview.unity`
 - Headset preview scene: `Assets/MRModuleEditor/Samples/Scenes/RuntimePreview_Headset.unity`
 
@@ -36,5 +38,5 @@ The next expansion should not make the platform robotics-centered. `Domains/Robo
 
 ## Current extension warning
 
-Generic step metadata is centralized in the Step Catalog so the editor add menu, inspector defaults, and generic validation stay aligned with runtime handlers.
+Generic step metadata is centralized in the Step Catalog so the editor add menu, inspector defaults, and generic validation stay aligned with runtime handlers. New domain packs should follow the ProcedureTraining pattern: define step metadata and runtime handlers inside `Assets/MRModuleEditor/Domains/<DomainName>/`, then add one scene installer component to register handlers with `ModuleRunner`.
 
