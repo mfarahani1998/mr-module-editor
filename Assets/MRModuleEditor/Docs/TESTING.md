@@ -7,6 +7,13 @@ Assets/MRModuleEditor/Tests/EditMode
 Assets/MRModuleEditor/Tests/PlayMode
 ```
 
+Domain packs may also keep their own tests next to the domain code. For example, Phase 6 adds:
+
+```text
+Assets/MRModuleEditor/Domains/ProcedureTraining/Tests/EditMode
+Assets/MRModuleEditor/Domains/ProcedureTraining/Tests/PlayMode
+```
+
 ## Run tests in Unity
 
 1. Open Unity.
@@ -21,7 +28,7 @@ Window > General > Test Runner
 
 EditMode tests are faster and protect serialization, validation, templates, and editor-safe utilities.
 
-PlayMode tests protect runtime behavior, scene-bound systems, step execution, interaction, audio, variables, anchors, layouts, and RoboticsLite handlers.
+PlayMode tests protect runtime behavior, scene-bound systems, step execution, interaction, audio, variables, anchors, layouts, RoboticsLite handlers, and ProcedureTraining handlers.
 
 ## Current EditMode test areas
 
@@ -33,6 +40,7 @@ ModuleTemplateFactoryTests
 ModuleValidatorTests
 RoboticsLiteValidationTests
 SpatialRenderUtilityTests
+ProcedureTrainingValidationTests   # under Domains/ProcedureTraining/Tests/EditMode
 ```
 
 ## Current PlayMode test areas
@@ -44,6 +52,7 @@ MCQStepHandlerPlayModeTests
 ModuleRunnerFlowPlayModeTests
 ModuleRunnerPlayModeTests
 RoboticsLiteStepHandlerPlayModeTests
+ProcedureTrainingStepHandlerPlayModeTests   # under Domains/ProcedureTraining/Tests/PlayMode
 RuntimeAudioServicePlayModeTests
 RuntimeModuleLoaderPlayModeTests
 RuntimeVariableStorePlayModeTests

@@ -1,0 +1,264 @@
+{
+  "schemaVersion": "0.1",
+  "moduleId": "module.procedure_training.equipment_safety_mini",
+  "title": "Equipment Safety Procedure Mini",
+  "description": "Phase 6 sample that proves a non-robotics ProcedureTraining domain pack can define, validate, and run its own step types.",
+  "author": "MR Module Editor",
+  "estimatedDurationSeconds": 180,
+  "assets": [],
+  "objects": [
+    {
+      "id": "object.equipment_demo",
+      "label": "Equipment Demo",
+      "bindingKey": "Equipment Demo"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "anchor.head.default",
+      "type": "head",
+      "targetObjectId": "",
+      "provider": "simulator",
+      "displayName": "Head Default",
+      "calibrationStatus": "ready"
+    },
+    {
+      "id": "anchor.world.table",
+      "type": "world",
+      "targetObjectId": "",
+      "provider": "simulator",
+      "displayName": "World Table",
+      "fallbackAnchorId": "anchor.head.default",
+      "calibrationRequired": true,
+      "calibrationStatus": "approximate"
+    },
+    {
+      "id": "anchor.object.equipment",
+      "type": "object",
+      "targetObjectId": "object.equipment_demo",
+      "provider": "simulator",
+      "displayName": "Equipment Object",
+      "fallbackAnchorId": "anchor.head.default",
+      "calibrationStatus": "ready"
+    }
+  ],
+  "layouts": [
+    {
+      "id": "layout.object.equipment_demo.world",
+      "targetId": "object.equipment_demo",
+      "anchorId": "anchor.world.table",
+      "position": {
+        "x": 0.45,
+        "y": 0.0,
+        "z": 1.35
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.45,
+        "y": 0.45,
+        "z": 0.45
+      },
+      "followMode": "fixed",
+      "readabilityProfile": "worldObject",
+      "deviceProfile": "simulator"
+    },
+    {
+      "id": "layout.step.001.welcome.head_panel",
+      "targetId": "step.001.welcome",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.2,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "followAnchor",
+      "readabilityProfile": "headPanel",
+      "deviceProfile": "simulator"
+    },
+    {
+      "id": "layout.step.002.item.object_callout",
+      "targetId": "step.002.item",
+      "anchorId": "anchor.object.equipment",
+      "position": {
+        "x": 0.0,
+        "y": 0.75,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 0.75,
+        "y": 0.75,
+        "z": 0.75
+      },
+      "faceUser": true,
+      "followMode": "followAnchor",
+      "readabilityProfile": "objectCallout",
+      "deviceProfile": "simulator"
+    },
+    {
+      "id": "layout.step.003.safety.head_panel",
+      "targetId": "step.003.safety",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "followAnchor",
+      "readabilityProfile": "headPanel",
+      "deviceProfile": "simulator"
+    },
+    {
+      "id": "layout.step.005.check.head_panel",
+      "targetId": "step.005.check",
+      "anchorId": "anchor.head.default",
+      "position": {
+        "x": 0.0,
+        "y": -0.15,
+        "z": 0.0
+      },
+      "rotationEuler": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "faceUser": true,
+      "followMode": "followAnchor",
+      "readabilityProfile": "headPanel",
+      "deviceProfile": "simulator"
+    }
+  ],
+  "steps": [
+    {
+      "id": "step.001.welcome",
+      "type": "text",
+      "title": "Procedure Training Intro",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "This Phase 6 sample uses a non-robotics ProcedureTraining domain pack. It still reuses the platform's generic panels, anchors, validation, and scene bindings.",
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.002.item",
+      "type": "showProcedureItem",
+      "title": "Locate Guard Door",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "objectId": "object.equipment_demo",
+        "itemId": "guard-door",
+        "instruction": "Find the guard door area on the equipment. The domain step reveals and highlights the procedure item.",
+        "highlight": true,
+        "colorHex": "#FFD54F",
+        "pulseAmplitude": 0.05,
+        "pulseSeconds": 0.8,
+        "clearHighlightOnComplete": false,
+        "resultVariableKey": "procedure.currentItem"
+      }
+    },
+    {
+      "id": "step.003.safety",
+      "type": "checkSafetyPoint",
+      "title": "Guard Door Safety Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "objectId": "object.equipment_demo",
+        "safetyPointId": "guard-door-closed",
+        "prompt": "Confirm that the guard door is closed before the learner proceeds.",
+        "buttonLabel": "Guard Door Checked",
+        "status": "Checked",
+        "autoCompleteAfterSeconds": 6.0,
+        "resultVariableKey": "procedure.guardDoor.status",
+        "highlightOnComplete": true,
+        "highlightColorHex": "#66BB6A"
+      }
+    },
+    {
+      "id": "step.004.callout",
+      "type": "showCallout",
+      "title": "Why This Matters",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "ProcedureTraining adds domain meaning, while showCallout remains a generic MR teaching primitive.",
+        "anchorId": "anchor.object.equipment",
+        "localOffset": {
+          "x": 0.0,
+          "y": 0.95,
+          "z": 0.0
+        },
+        "localEuler": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "localScale": {
+          "x": 0.75,
+          "y": 0.75,
+          "z": 0.75
+        },
+        "clearOnComplete": true
+      }
+    },
+    {
+      "id": "step.005.check",
+      "type": "mcq",
+      "title": "Quick Procedure Check",
+      "durationSeconds": 0.0,
+      "parameters": {
+        "question": "Which part of the system should stay generic as domains grow?",
+        "choices": [
+          "The core validator should hard-code every domain step",
+          "Domain packs should register their own definitions and handlers",
+          "All domain behavior should be copied into RoboticsLite"
+        ],
+        "correctIndex": 1,
+        "anchorId": "anchor.head.default"
+      }
+    },
+    {
+      "id": "step.006.complete",
+      "type": "text",
+      "title": "Phase 6 Complete",
+      "durationSeconds": 4.0,
+      "parameters": {
+        "text": "ProcedureTraining sample complete. The new domain step names live in the domain folder, not in platform core validation/editor files.",
+        "anchorId": "anchor.head.default"
+      }
+    }
+  ]
+}

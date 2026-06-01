@@ -32,6 +32,8 @@ Phase 6.
 
 Goal: a non-robotics domain pack proves platform extensibility.
 
+Implementation target: `Domains/ProcedureTraining` adds procedure-specific step definitions, runtime handlers, tests, docs, and a small equipment safety sample without adding ProcedureTraining step names to platform core validation or editor code.
+
 ## Milestone F — Portable Modules
 
 Phase 7.
