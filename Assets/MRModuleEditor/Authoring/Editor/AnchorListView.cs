@@ -67,6 +67,18 @@ namespace MRModuleEditor.Authoring.Editor
                     changed = true;
                 }
 
+                string statusMessage;
+                MessageType statusType;
+                EditorModuleValidationUtility.TryGetAnchorAuthoringStatus(
+                    document,
+                    anchor,
+                    out statusMessage,
+                    out statusType);
+                if (!string.IsNullOrWhiteSpace(statusMessage))
+                {
+                    EditorGUILayout.HelpBox(statusMessage, statusType);
+                }
+
                 bool remove = GUILayout.Button("Remove Anchor");
                 EditorGUILayout.EndVertical();
 
