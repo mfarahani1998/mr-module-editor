@@ -1381,7 +1381,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadMode: 0
-  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/ForwardKinematicsMini/module.json
+  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/Phase5Orientation/module.json
   relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
   absoluteModulePath: 
   loadOnStart: 0
@@ -1431,9 +1431,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorResolver: {fileID: 1762172286}
+  moduleLoader: {fileID: 0}
+  interactionContext: {fileID: 0}
   showOnGuiButton: 1
+  showAnchorStatus: 1
+  showAnchorDetails: 0
   enableKeyboardShortcut: 1
   recenterKey: 114
+  recenterSignalTargetId: runtime.world.recenter
 --- !u!114 &1762172288
 MonoBehaviour:
   m_ObjectHideFlags: 0
