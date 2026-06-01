@@ -86,6 +86,7 @@ namespace MRModuleEditor.Authoring.Editor
                 changed |= DrawVector3Data("Position", ref layout.position, Vector3.zero, clampPositive: false);
                 changed |= DrawVector3Data("Rotation Euler", ref layout.rotationEuler, Vector3.zero, clampPositive: false);
                 changed |= DrawVector3Data("Scale", ref layout.scale, Vector3.one, clampPositive: true);
+                changed |= LayoutAdvancedFieldsView.Draw(layout);
 
                 EditorGUILayout.HelpBox(
                     "For object placement, prefer world anchors and start from one of the object demo presets. " +
@@ -157,7 +158,12 @@ namespace MRModuleEditor.Authoring.Editor
                 anchorId = anchorId,
                 position = new Vector3Data(0f, 0f, 1.5f),
                 rotationEuler = new Vector3Data(0f, 0f, 0f),
-                scale = new Vector3Data(1f, 1f, 1f)
+                scale = new Vector3Data(1f, 1f, 1f),
+                faceUser = false,
+                followMode = LayoutFollowModes.Fixed,
+                visibilityRange = 0f,
+                readabilityProfile = LayoutReadabilityProfiles.WorldObject,
+                deviceProfile = LayoutDeviceProfiles.Any
             };
         }
 

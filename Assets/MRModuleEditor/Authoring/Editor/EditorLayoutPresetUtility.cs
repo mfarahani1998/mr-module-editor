@@ -32,7 +32,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             EditorGUILayout.LabelField("Layout Presets", EditorStyles.miniBoldLabel);
             EditorGUILayout.HelpBox(
-                "Presets only write position, rotation, and scale. They do not change the selected anchor or target id.",
+                "Presets write position, rotation, scale, and Phase 5 behavior hints such as faceUser/followMode. They do not change the selected anchor or target id.",
                 MessageType.None);
 
             bool changed = false;

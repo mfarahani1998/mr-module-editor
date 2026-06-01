@@ -93,9 +93,16 @@ namespace MRModuleEditor.Runtime.Anchors
                 : RuntimeLayoutApplier.ToVector3(layout.scale, fallbackLocalScale);
 
             Quaternion localRotation = Quaternion.Euler(localEuler);
-            pose = new Pose(
-                anchorPose.position + anchorPose.rotation * localPosition,
-                anchorPose.rotation * localRotation);
+            Vector3 worldPosition = anchorPose.position + anchorPose.rotation * localPosition;
+            Quaternion worldRotation = anchorPose.rotation * localRotation;
+
+            if (layout != null && layout.faceUser)
+            {
+                Quaternion facingRotation = AnchorResolver.GetCameraFacingRotation(anchorResolver.ViewerCamera, worldPosition, anchorPose.rotation);
+                worldRotation = facingRotation * localRotation;
+            }
+
+            pose = new Pose(worldPosition, worldRotation);
 
             return true;
         }

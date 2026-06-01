@@ -1,3 +1,5 @@
+using System;
+using MRModuleEditor.Core.Layouts;
 using MRModuleEditor.Core.Models;
 using Newtonsoft.Json.Linq;
 
@@ -18,13 +20,21 @@ namespace MRModuleEditor.Core.Templates
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.head.default",
-                type = "head"
+                type = "head",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "Head Default",
+                calibrationStatus = AnchorCalibrationStatuses.Ready
             });
 
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.world.table",
-                type = "world"
+                type = "world",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "World Table",
+                calibrationRequired = true,
+                calibrationStatus = AnchorCalibrationStatuses.Approximate,
+                fallbackAnchorId = "anchor.head.default"
             });
 
             return document;
@@ -109,7 +119,11 @@ namespace MRModuleEditor.Core.Templates
             {
                 id = "anchor.object.equipment",
                 type = "object",
-                targetObjectId = "object.equipment_demo"
+                targetObjectId = "object.equipment_demo",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "Equipment Object",
+                fallbackAnchorId = "anchor.head.default",
+                calibrationStatus = AnchorCalibrationStatuses.Ready
             });
 
             document.layouts.Add(Layout(
@@ -247,13 +261,21 @@ namespace MRModuleEditor.Core.Templates
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.head.default",
-                type = "head"
+                type = "head",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "Head Default",
+                calibrationStatus = AnchorCalibrationStatuses.Ready
             });
 
             document.anchors.Add(new AnchorDefinition
             {
                 id = "anchor.world.table",
-                type = "world"
+                type = "world",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "World Table",
+                calibrationRequired = true,
+                calibrationStatus = AnchorCalibrationStatuses.Approximate,
+                fallbackAnchorId = "anchor.head.default"
             });
 
             document.layouts.Add(Layout(
@@ -332,7 +354,11 @@ namespace MRModuleEditor.Core.Templates
             {
                 id = "anchor.object.robot",
                 type = "object",
-                targetObjectId = "object.robot_preview"
+                targetObjectId = "object.robot_preview",
+                provider = AnchorProviderIds.Simulator,
+                displayName = "Robot Object",
+                fallbackAnchorId = "anchor.head.default",
+                calibrationStatus = AnchorCalibrationStatuses.Ready
             });
 
             ModuleStep welcome = Step("step.001", "text", "Welcome", 10f);
@@ -469,7 +495,53 @@ namespace MRModuleEditor.Core.Templates
             layout.position = position;
             layout.rotationEuler = rotationEuler;
             layout.scale = scale;
+            ApplyPhase5LayoutDefaults(layout);
             return layout;
+        }
+
+        private static void ApplyPhase5LayoutDefaults(LayoutDefinition layout)
+        {
+            if (layout == null)
+            {
+                return;
+            }
+
+            string anchorId = layout.anchorId ?? "";
+            string targetId = layout.targetId ?? "";
+            bool targetIsObject = targetId.StartsWith("object.", StringComparison.Ordinal);
+            bool anchorIsHead = anchorId.IndexOf(".head", StringComparison.Ordinal) >= 0;
+            bool anchorIsObject = anchorId.IndexOf(".object", StringComparison.Ordinal) >= 0;
+
+            if (targetIsObject)
+            {
+                layout.faceUser = false;
+                layout.followMode = LayoutFollowModes.Fixed;
+                layout.visibilityRange = 0f;
+                layout.readabilityProfile = LayoutReadabilityProfiles.WorldObject;
+            }
+            else if (anchorIsHead)
+            {
+                layout.faceUser = true;
+                layout.followMode = LayoutFollowModes.SmoothFollow;
+                layout.visibilityRange = 3.5f;
+                layout.readabilityProfile = LayoutReadabilityProfiles.HeadPanel;
+            }
+            else if (anchorIsObject)
+            {
+                layout.faceUser = true;
+                layout.followMode = LayoutFollowModes.FollowAnchor;
+                layout.visibilityRange = 2.5f;
+                layout.readabilityProfile = LayoutReadabilityProfiles.ObjectCallout;
+            }
+            else
+            {
+                layout.faceUser = true;
+                layout.followMode = LayoutFollowModes.Fixed;
+                layout.visibilityRange = 4.5f;
+                layout.readabilityProfile = LayoutReadabilityProfiles.WorldPanel;
+            }
+
+            layout.deviceProfile = LayoutDeviceProfiles.Any;
         }
 
         private static Vector3Data Vec(float x, float y, float z)

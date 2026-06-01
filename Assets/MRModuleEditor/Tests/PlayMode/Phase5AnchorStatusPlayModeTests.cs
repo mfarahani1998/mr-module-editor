@@ -47,5 +47,54 @@ namespace MRModuleEditor.Tests.PlayMode
             Object.Destroy(services);
             Object.Destroy(cameraObject);
         }
+
+        [UnityTest]
+        public IEnumerator RuntimeAnchorStatusUtility_ReportsFallbackWhenProviderIsMissing()
+        {
+            ModuleDocument document = new ModuleDocument
+            {
+                schemaVersion = "0.1",
+                moduleId = "module.phase5.fallback",
+                title = "Fallback Anchor Test"
+            };
+
+            document.anchors.Add(new AnchorDefinition
+            {
+                id = "anchor.head.default",
+                type = "head",
+                provider = AnchorProviderIds.Simulator
+            });
+
+            document.anchors.Add(new AnchorDefinition
+            {
+                id = "anchor.world.manual",
+                type = "world",
+                provider = AnchorProviderIds.Manual,
+                calibrationRequired = true,
+                fallbackAnchorId = "anchor.head.default"
+            });
+
+            GameObject cameraObject = new GameObject("Main Camera");
+            cameraObject.tag = "MainCamera";
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.transform.position = new Vector3(0f, 0f, -2f);
+            camera.transform.rotation = Quaternion.identity;
+
+            GameObject services = new GameObject("Services");
+            AnchorResolver resolver = services.AddComponent<AnchorResolver>();
+
+            yield return null;
+
+            List<RuntimeAnchorStatus> statuses = RuntimeAnchorStatusUtility.Collect(document, resolver);
+            RuntimeAnchorStatus manualAnchor = statuses.FirstOrDefault(status => status.anchorId == "anchor.world.manual");
+
+            Assert.That(manualAnchor, Is.Not.Null);
+            Assert.That(manualAnchor.resolved, Is.True, manualAnchor.message);
+            Assert.That(manualAnchor.usedFallback, Is.True);
+            Assert.That(manualAnchor.state, Is.EqualTo(AnchorCalibrationStatuses.Approximate));
+
+            Object.Destroy(services);
+            Object.Destroy(cameraObject);
+        }
     }
 }

@@ -20,6 +20,11 @@ namespace MRModuleEditor.Runtime.Anchors
                     "",
                     "",
                     "",
+                    "",
+                    "",
+                    AnchorCalibrationStatuses.Lost,
+                    false,
+                    false,
                     false,
                     "The loaded module has no anchors.",
                     Vector3.zero));
@@ -35,6 +40,11 @@ namespace MRModuleEditor.Runtime.Anchors
                         "<null>",
                         "",
                         "",
+                        "",
+                        "",
+                        AnchorCalibrationStatuses.Lost,
+                        false,
+                        false,
                         false,
                         "Anchor entry is null.",
                         Vector3.zero));
@@ -47,22 +57,31 @@ namespace MRModuleEditor.Runtime.Anchors
                         anchor.id,
                         anchor.type,
                         anchor.targetObjectId,
+                        AnchorProviderIds.Normalize(anchor.provider, anchor.type),
+                        anchor.fallbackAnchorId,
+                        AnchorCalibrationStatuses.Lost,
+                        anchor.calibrationRequired,
+                        false,
                         false,
                         "AnchorResolver is missing from the runtime scene.",
                         Vector3.zero));
                     continue;
                 }
 
-                Pose pose;
-                string error;
-                bool resolved = resolver.TryResolveAnchor(module, anchor.id, out pose, out error);
+                AnchorResolveResult resolveResult;
+                bool resolved = resolver.TryResolveAnchorWithStatus(module, anchor.id, out resolveResult);
                 result.Add(new RuntimeAnchorStatus(
                     anchor.id,
                     anchor.type,
                     anchor.targetObjectId,
+                    resolveResult == null ? AnchorProviderIds.Normalize(anchor.provider, anchor.type) : resolveResult.provider,
+                    anchor.fallbackAnchorId,
+                    resolveResult == null ? AnchorCalibrationStatuses.Lost : resolveResult.state,
+                    anchor.calibrationRequired,
                     resolved,
-                    resolved ? "Resolved" : error,
-                    resolved ? pose.position : Vector3.zero));
+                    resolveResult != null && resolveResult.usedFallback,
+                    resolveResult == null ? "Anchor resolution failed." : resolveResult.message,
+                    resolved && resolveResult != null ? resolveResult.pose.position : Vector3.zero));
             }
 
             return result;
@@ -80,6 +99,26 @@ namespace MRModuleEditor.Runtime.Anchors
             {
                 RuntimeAnchorStatus status = statuses[i];
                 if (status != null && status.resolved)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        public static int CountResolvedWithoutFallback(List<RuntimeAnchorStatus> statuses)
+        {
+            if (statuses == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < statuses.Count; i++)
+            {
+                RuntimeAnchorStatus status = statuses[i];
+                if (status != null && status.resolved && !status.usedFallback)
                 {
                     count++;
                 }

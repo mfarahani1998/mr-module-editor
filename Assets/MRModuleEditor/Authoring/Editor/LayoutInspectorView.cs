@@ -115,6 +115,8 @@ namespace MRModuleEditor.Authoring.Editor
                 changed = true;
             }
 
+            changed |= LayoutAdvancedFieldsView.Draw(layout);
+
             EditorGUILayout.HelpBox(
                 "Layout offsets are local to the selected anchor. Presets provide safe starting points, but you can still fine-tune x/y/z. " +
                 "For head anchors, z usually stays 0 because AnchorResolver already applies the head distance. " +
@@ -198,7 +200,24 @@ namespace MRModuleEditor.Authoring.Editor
                 anchorId = anchorId,
                 position = new Vector3Data(defaultPosition.x, defaultPosition.y, defaultPosition.z),
                 rotationEuler = new Vector3Data(0f, 0f, 0f),
-                scale = new Vector3Data(1f, 1f, 1f)
+                scale = new Vector3Data(1f, 1f, 1f),
+                faceUser = true,
+                followMode = anchorType == "object"
+                    ? LayoutFollowModes.FollowAnchor
+                    : anchorType == "head"
+                        ? LayoutFollowModes.SmoothFollow
+                        : LayoutFollowModes.Fixed,
+                visibilityRange = anchorType == "object"
+                    ? 2.5f
+                    : anchorType == "world"
+                        ? 4.5f
+                        : 3.5f,
+                readabilityProfile = anchorType == "object"
+                    ? LayoutReadabilityProfiles.ObjectCallout
+                    : anchorType == "world"
+                        ? LayoutReadabilityProfiles.WorldPanel
+                        : LayoutReadabilityProfiles.HeadPanel,
+                deviceProfile = LayoutDeviceProfiles.Any
             };
         }
 

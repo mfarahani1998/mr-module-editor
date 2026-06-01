@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Runtime.SceneBinding;
 using UnityEngine;
@@ -14,6 +15,10 @@ namespace MRModuleEditor.Runtime.Anchors
 
         [SerializeField]
         private Transform simulatorWorldOrigin;
+
+        [Header("Providers")]
+        [SerializeField]
+        private MonoBehaviour[] anchorProviderBehaviours;
 
         [Header("Head Anchor")]
         [SerializeField]
@@ -98,12 +103,33 @@ namespace MRModuleEditor.Runtime.Anchors
             out Pose pose,
             out string error)
         {
-            pose = new Pose(Vector3.zero, Quaternion.identity);
-            error = "";
+            AnchorResolveResult result;
+            bool resolved = TryResolveAnchorWithStatus(module, anchorId, out result);
+            pose = result == null ? new Pose(Vector3.zero, Quaternion.identity) : result.pose;
+            error = result == null ? "Anchor resolution failed." : result.message;
+            return resolved;
+        }
+
+        public bool TryResolveAnchorWithStatus(
+            ModuleDocument module,
+            string anchorId,
+            out AnchorResolveResult result)
+        {
+            HashSet<string> visitedAnchorIds = new HashSet<string>();
+            return TryResolveAnchorWithStatus(module, anchorId, visitedAnchorIds, out result);
+        }
+
+        private bool TryResolveAnchorWithStatus(
+            ModuleDocument module,
+            string anchorId,
+            HashSet<string> visitedAnchorIds,
+            out AnchorResolveResult result)
+        {
+            result = AnchorResolveResult.Failed(anchorId, "Anchor resolution failed.");
 
             if (module == null)
             {
-                error = "ModuleDocument is null.";
+                result = AnchorResolveResult.Failed(anchorId, "ModuleDocument is null.");
                 return false;
             }
 
@@ -112,11 +138,90 @@ namespace MRModuleEditor.Runtime.Anchors
                 anchorId = "anchor.head.default";
             }
 
+            if (visitedAnchorIds == null)
+            {
+                visitedAnchorIds = new HashSet<string>();
+            }
+
+            if (visitedAnchorIds.Contains(anchorId))
+            {
+                result = AnchorResolveResult.Failed(anchorId, "Anchor fallback cycle detected at '" + anchorId + "'.");
+                return false;
+            }
+
+            visitedAnchorIds.Add(anchorId);
+
             AnchorDefinition anchor = FindAnchor(module, anchorId);
             if (anchor == null)
             {
-                error = "No anchor with id '" + anchorId + "' exists in the module.";
+                result = AnchorResolveResult.Failed(anchorId, "No anchor with id '" + anchorId + "' exists in the module.");
                 return false;
+            }
+
+            Pose pose;
+            string error;
+            if (TryResolveWithoutFallback(module, anchor, out pose, out error))
+            {
+                result = new AnchorResolveResult
+                {
+                    requestedAnchorId = anchorId,
+                    effectiveAnchorId = anchorId,
+                    provider = AnchorProviderIds.Normalize(anchor.provider, anchor.type),
+                    state = ResolveSuccessfulState(anchor),
+                    resolved = true,
+                    usedFallback = false,
+                    pose = pose,
+                    message = "Resolved"
+                };
+                return true;
+            }
+
+            if (!string.IsNullOrWhiteSpace(anchor.fallbackAnchorId))
+            {
+                AnchorResolveResult fallbackResult;
+                if (TryResolveAnchorWithStatus(module, anchor.fallbackAnchorId, visitedAnchorIds, out fallbackResult))
+                {
+                    fallbackResult.requestedAnchorId = anchorId;
+                    fallbackResult.usedFallback = true;
+                    fallbackResult.state = AnchorCalibrationStatuses.Approximate;
+                    fallbackResult.message = "Resolved via fallback anchor '" + anchor.fallbackAnchorId + "' after: " + error;
+                    result = fallbackResult;
+                    return true;
+                }
+            }
+
+            result = AnchorResolveResult.Failed(anchorId, error);
+            result.effectiveAnchorId = anchorId;
+            result.provider = AnchorProviderIds.Normalize(anchor.provider, anchor.type);
+            return false;
+        }
+
+        private bool TryResolveWithoutFallback(
+            ModuleDocument module,
+            AnchorDefinition anchor,
+            out Pose pose,
+            out string error)
+        {
+            pose = new Pose(Vector3.zero, Quaternion.identity);
+            error = "";
+
+            if (anchor == null)
+            {
+                error = "Anchor is null.";
+                return false;
+            }
+
+            string provider = AnchorProviderIds.Normalize(anchor.provider, anchor.type);
+            if (provider != AnchorProviderIds.Simulator)
+            {
+                IAnchorProvider customProvider = FindProvider(provider);
+                if (customProvider == null)
+                {
+                    error = "No runtime anchor provider with id '" + provider + "' was found for anchor '" + anchor.id + "'.";
+                    return false;
+                }
+
+                return customProvider.TryResolveAnchor(module, anchor, this, out pose, out error);
             }
 
             if (anchor.type == "head")
@@ -136,7 +241,7 @@ namespace MRModuleEditor.Runtime.Anchors
                 return TryResolveObjectAnchor(module, anchor, out pose, out error);
             }
 
-            error = "Unsupported anchor type '" + anchor.type + "' for anchor '" + anchorId + "'.";
+            error = "Unsupported anchor type '" + anchor.type + "' for anchor '" + anchor.id + "'.";
             return false;
         }
 
@@ -208,7 +313,7 @@ namespace MRModuleEditor.Runtime.Anchors
             return true;
         }
 
-        private static Quaternion GetCameraFacingRotation(Camera camera, Vector3 position, Quaternion fallback)
+        public static Quaternion GetCameraFacingRotation(Camera camera, Vector3 position, Quaternion fallback)
         {
             if (camera == null)
             {
@@ -222,6 +327,54 @@ namespace MRModuleEditor.Runtime.Anchors
             }
 
             return Quaternion.LookRotation(awayFromCamera.normalized, Vector3.up);
+        }
+
+        private IAnchorProvider FindProvider(string providerId)
+        {
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                return null;
+            }
+
+            if (anchorProviderBehaviours != null)
+            {
+                for (int i = 0; i < anchorProviderBehaviours.Length; i++)
+                {
+                    IAnchorProvider provider = anchorProviderBehaviours[i] as IAnchorProvider;
+                    if (provider != null && provider.ProviderId == providerId)
+                    {
+                        return provider;
+                    }
+                }
+            }
+
+            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                IAnchorProvider provider = behaviours[i] as IAnchorProvider;
+                if (provider != null && provider.ProviderId == providerId)
+                {
+                    return provider;
+                }
+            }
+
+            return null;
+        }
+
+        private static string ResolveSuccessfulState(AnchorDefinition anchor)
+        {
+            if (anchor == null || string.IsNullOrWhiteSpace(anchor.calibrationStatus))
+            {
+                return AnchorCalibrationStatuses.Ready;
+            }
+
+            string authoredStatus = AnchorCalibrationStatuses.Normalize(anchor.calibrationStatus);
+            if (authoredStatus == AnchorCalibrationStatuses.Lost)
+            {
+                return AnchorCalibrationStatuses.Approximate;
+            }
+
+            return authoredStatus;
         }
 
         private static AnchorDefinition FindAnchor(ModuleDocument module, string anchorId)

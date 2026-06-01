@@ -1381,8 +1381,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   loadMode: 0
-  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/Phase5Orientation/module.json
-  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/ForwardKinematicsMini/module.json
+  relativeModulePathFromAssets: MRModuleEditor/Samples/SampleModules/Phase5CalibrationOrientation/module.json
+  relativeModulePathFromStreamingAssets: MRModuleEditor/SampleModules/Phase5CalibrationOrientation/module.json
   absoluteModulePath: 
   loadOnStart: 0
 --- !u!4 &1762172285
@@ -1415,6 +1415,7 @@ MonoBehaviour:
   viewerCamera: {fileID: 961739752}
   sceneBindingRegistry: {fileID: 1762172283}
   simulatorWorldOrigin: {fileID: 840358894}
+  anchorProviderBehaviours: []
   headDistance: 1.7
   headOffset: {x: 0.5, y: 0, z: 0}
   defaultWorldDistance: 2
