@@ -1,3 +1,4 @@
+using MRModuleEditor.Core.Layouts;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Utilities;
 using UnityEditor;
@@ -81,12 +82,14 @@ namespace MRModuleEditor.Authoring.Editor
                 }
 
                 changed |= EditorIdDropdowns.DrawAnchorIdDropdown(document, ref layout.anchorId, "Anchor");
+                changed |= EditorLayoutPresetUtility.DrawPresetButtons(document, layout, LayoutPresetCatalog.ObjectTargetKind);
                 changed |= DrawVector3Data("Position", ref layout.position, Vector3.zero, clampPositive: false);
                 changed |= DrawVector3Data("Rotation Euler", ref layout.rotationEuler, Vector3.zero, clampPositive: false);
                 changed |= DrawVector3Data("Scale", ref layout.scale, Vector3.one, clampPositive: true);
 
                 EditorGUILayout.HelpBox(
-                    "For a world anchor, position is a world-like offset from that anchor. For an object anchor, avoid targeting the same object as the anchor, or the result can be confusing.",
+                    "For object placement, prefer world anchors and start from one of the object demo presets. " +
+                    "Avoid placing an object relative to an anchor that targets the same object unless you are intentionally testing self-relative transforms.",
                     MessageType.None);
 
                 if (GUILayout.Button("Delete Object Layout"))

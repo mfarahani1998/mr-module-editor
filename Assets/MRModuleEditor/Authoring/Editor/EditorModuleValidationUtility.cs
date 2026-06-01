@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Validation;
+using MRModuleEditor.Runtime.Anchors;
 using MRModuleEditor.Runtime.SceneBinding;
 using UnityEditor;
 using UnityEngine;
@@ -139,6 +140,87 @@ namespace MRModuleEditor.Authoring.Editor
             message = "Active scene has a matching BindableObject for binding key '" + moduleObject.bindingKey + "'.";
             messageType = MessageType.Info;
             return true;
+        }
+
+        public static bool TryGetAnchorAuthoringStatus(
+            ModuleDocument document,
+            AnchorDefinition anchor,
+            out string message,
+            out MessageType messageType)
+        {
+            message = "";
+            messageType = MessageType.Info;
+
+            if (anchor == null)
+            {
+                message = "Anchor entry is null.";
+                messageType = MessageType.Error;
+                return false;
+            }
+
+            if (anchor.type == "head")
+            {
+                Camera camera = Camera.main;
+                if (camera == null)
+                {
+                    message = "No Main Camera is currently tagged in the active scene. Head anchors will resolve once the runtime preview scene provides one.";
+                    messageType = MessageType.Warning;
+                    return false;
+                }
+
+                message = "Head anchor can resolve from active scene Main Camera '" + camera.name + "'.";
+                messageType = MessageType.Info;
+                return true;
+            }
+
+            if (anchor.type == "world")
+            {
+                AnchorResolver resolver = Object.FindFirstObjectByType<AnchorResolver>(FindObjectsInactive.Include);
+                if (resolver == null)
+                {
+                    message = "No AnchorResolver was found in the active scene. The runtime preview scene must contain one for world anchors and recentering.";
+                    messageType = MessageType.Warning;
+                    return false;
+                }
+
+                message = "World anchor can resolve through active scene AnchorResolver '" + resolver.name + "'. Use the runtime recenter panel to calibrate it during preview.";
+                messageType = MessageType.Info;
+                return true;
+            }
+
+            if (anchor.type == "object")
+            {
+                if (string.IsNullOrWhiteSpace(anchor.targetObjectId))
+                {
+                    message = "Object anchor needs a target object id.";
+                    messageType = MessageType.Warning;
+                    return false;
+                }
+
+                ModuleObject target = FindModuleObject(document, anchor.targetObjectId);
+                if (target == null)
+                {
+                    message = "Object anchor targets unknown module object id '" + anchor.targetObjectId + "'.";
+                    messageType = MessageType.Error;
+                    return false;
+                }
+
+                bool ok = TryGetSceneBindingStatus(target, out message, out messageType);
+                if (ok)
+                {
+                    message = "Object anchor target is ready. " + message;
+                }
+                else
+                {
+                    message = "Object anchor target is not ready yet. " + message;
+                }
+
+                return ok;
+            }
+
+            message = "Unknown anchor type '" + anchor.type + "'. Expected head, world, or object.";
+            messageType = MessageType.Error;
+            return false;
         }
 
         private static void AddAssetFileIssues(ModuleDocument document, string moduleJsonPath, List<ValidationIssue> issues)
@@ -288,6 +370,25 @@ namespace MRModuleEditor.Authoring.Editor
 
             moduleFolder = Path.GetDirectoryName(fullPath);
             return !string.IsNullOrWhiteSpace(moduleFolder);
+        }
+
+        private static ModuleObject FindModuleObject(ModuleDocument document, string objectId)
+        {
+            if (document == null || document.objects == null || string.IsNullOrWhiteSpace(objectId))
+            {
+                return null;
+            }
+
+            for (int i = 0; i < document.objects.Count; i++)
+            {
+                ModuleObject moduleObject = document.objects[i];
+                if (moduleObject != null && moduleObject.id == objectId)
+                {
+                    return moduleObject;
+                }
+            }
+
+            return null;
         }
 
         private static Dictionary<string, int> CountSceneBindingKeys()

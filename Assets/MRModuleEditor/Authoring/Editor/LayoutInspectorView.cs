@@ -1,3 +1,4 @@
+using MRModuleEditor.Core.Layouts;
 using MRModuleEditor.Core.Models;
 using MRModuleEditor.Core.Utilities;
 using UnityEditor;
@@ -85,6 +86,7 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             changed |= EditorIdDropdowns.DrawAnchorIdDropdown(document, ref layout.anchorId, "Anchor");
+            changed |= EditorLayoutPresetUtility.DrawPresetButtons(document, layout, LayoutPresetCatalog.StepTargetKind);
 
             Vector3 position = ReadVector3(layout.position, Vector3.zero);
             Vector3 nextPosition = EditorGUILayout.Vector3Field("Position", position);
@@ -114,9 +116,9 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Layout offsets are local to the selected anchor. For head anchors, z usually stays 0 because " +
-                "AnchorResolver already applies the head distance. Use x/y for left-right/up-down placement, " +
-                "and use scale for spatial size tuning.",
+                "Layout offsets are local to the selected anchor. Presets provide safe starting points, but you can still fine-tune x/y/z. " +
+                "For head anchors, z usually stays 0 because AnchorResolver already applies the head distance. " +
+                "Use scale for spatial size tuning.",
                 MessageType.Info);
 
             EditorGUILayout.Space(4);

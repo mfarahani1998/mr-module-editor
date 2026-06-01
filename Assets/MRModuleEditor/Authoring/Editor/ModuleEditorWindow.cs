@@ -255,8 +255,8 @@ namespace MRModuleEditor.Authoring.Editor
             }
 
             EditorGUILayout.HelpBox(
-                "Authoring status: catalog-driven steps, direct asset import, grouped validation, object binding checks, step layouts, and object layouts are available. " +
-                "Save often and preview after each small change.",
+                "Authoring status: catalog-driven steps, direct asset import, grouped validation, object binding checks, step layouts, object layouts, layout presets, and layout-readability warnings are available. " +
+                "Save often, apply presets before fine-tuning, and preview after each small change.",
                 MessageType.Info);
         }
 
@@ -273,7 +273,7 @@ namespace MRModuleEditor.Authoring.Editor
 
             showModuleDataEditors = EditorGUILayout.Foldout(
                 showModuleDataEditors,
-                "Assets, Objects, Anchors, and Object Layouts",
+                "Assets, Objects, Anchors, Layout Presets, and Object Layouts",
                 true);
 
             if (!showModuleDataEditors)

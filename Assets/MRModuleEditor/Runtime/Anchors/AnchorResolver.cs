@@ -62,11 +62,22 @@ namespace MRModuleEditor.Runtime.Anchors
         [ContextMenu("Recenter Simulator World Origin")]
         public void RecenterSimulatorWorldOrigin()
         {
+            string error;
+            if (!TryRecenterSimulatorWorldOrigin(out error))
+            {
+                Debug.LogWarning(error);
+            }
+        }
+
+        public bool TryRecenterSimulatorWorldOrigin(out string error)
+        {
+            error = "";
+
             Camera camera = ViewerCamera;
             if (camera == null || simulatorWorldOrigin == null)
             {
-                Debug.LogWarning("Cannot recenter simulator origin because the camera or origin is missing.");
-                return;
+                error = "Cannot recenter simulator origin because the camera or origin is missing.";
+                return false;
             }
 
             Vector3 flatForward = Vector3.ProjectOnPlane(camera.transform.forward, Vector3.up);
@@ -78,6 +89,7 @@ namespace MRModuleEditor.Runtime.Anchors
             flatForward.Normalize();
             simulatorWorldOrigin.position = camera.transform.position + flatForward * defaultWorldDistance;
             simulatorWorldOrigin.rotation = Quaternion.LookRotation(flatForward, Vector3.up);
+            return true;
         }
 
         public bool TryResolveAnchor(
